@@ -33,4 +33,9 @@ public class ClusteringPoint {
     public void setProducts(String[] products) {
         this.products = products;
     }
+
+    @Override
+    public String toString(){
+        return new StringBuilder().append(id).append(location).toString();
+    }
 }

@@ -12,7 +12,7 @@ public class ClusterObj {
     private String name;
     private List<ClusteringPoint> points = new ArrayList<ClusteringPoint>();
     private String[] products = null;
-    private double getProductCount;
+    private int productCount;
     private double distance ;
 
 
@@ -79,12 +79,12 @@ public class ClusterObj {
         this.products = products;
     }
 
-    public double getGetProductCount() {
-        return getProductCount;
+    public int getProductCount() {
+        return productCount;
     }
 
-    public void setGetProductCount(double getProductCount) {
-        this.getProductCount = getProductCount;
+    public void setProductCount(int productCount) {
+        this.productCount = productCount;
     }
 
     public double getDistance() {

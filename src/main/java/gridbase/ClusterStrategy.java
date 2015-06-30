@@ -19,8 +19,17 @@ public class ClusterStrategy {
 
 
     public void createClusters(ClusteringPoint geoHash, List<ClusteringPoint> points){
-        ClusterObj clusterObj = formCluster(geoHash,new ClusterObj(),points);
 
+        List<ClusterObj> clusters = new ArrayList<ClusterObj>();
+
+        while(points.size()>1){
+            ClusterObj clusterObj = new ClusterObj();
+            while(clusterObj.getPoints().size()<4 && clusterObj.getProductCount()<60){
+                clusterObj = formCluster(geoHash,clusterObj,points);
+            }
+            clusters.add(clusterObj);
+        }
+        System.out.println(clusters);
     }
 
     public ClusterObj formCluster(ClusteringPoint geoHash, ClusterObj cluster, List<ClusteringPoint> points){
@@ -28,6 +37,7 @@ public class ClusterStrategy {
         //Consider the case of only geoHash point
         if(cluster.getPoints().size()==0){
             ClusteringPoint nearestPoint = getDNearestPoint(geoHash,points);
+            points.remove(nearestPoint);
             cluster.getPoints().add(nearestPoint);
             return cluster;
         }
@@ -48,6 +58,7 @@ public class ClusterStrategy {
         }
         //Add it to Cluster
         cluster.addPoint(goodClusteringPoint);
+        points.remove(goodClusteringPoint);
 
         return cluster;
     }
@@ -119,7 +130,7 @@ public class ClusterStrategy {
         double fav_facotr = Double.MIN_VALUE;
         ClusterObj rCluster =null;
         for(ClusterObj c : clusterList){
-            double tempFav = c.getGetProductCount() + c.getDistance();
+            double tempFav = (double)c.getProductCount() + c.getDistance();
             if(fav_facotr<tempFav) rCluster = c;
         }
         return  rCluster;
