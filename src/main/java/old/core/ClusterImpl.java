@@ -1,6 +1,6 @@
-package core;
+package old.core;
 
-import Util.LocationWrapper;
+import old.Util.LocationWrapper;
 import org.apache.commons.math3.ml.clustering.CentroidCluster;
 import org.apache.commons.math3.ml.clustering.Cluster;
 import org.apache.commons.math3.ml.clustering.DBSCANClusterer;

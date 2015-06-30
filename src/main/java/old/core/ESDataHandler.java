@@ -1,12 +1,14 @@
-package core;
+package old.core;
 
-import Util.Location;
-import Util.LocationWrapper;
+import old.Util.Location;
+import old.Util.LocationWrapper;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -49,6 +51,8 @@ public class ESDataHandler {
         }
         return locationWrapperList;
     }
+
+
 
     public String getESResults(String qString){
         HttpClient httpClient = null;
