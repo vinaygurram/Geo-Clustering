@@ -1,7 +1,8 @@
-package gridbase;
+package live.cluster.one;
 
 import com.github.davidmoten.geo.Coverage;
 import com.github.davidmoten.geo.GeoHash;
+import gridbase.*;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
@@ -19,7 +20,6 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Created by gurramvinay on 6/16/15.
@@ -154,7 +154,7 @@ public class GeoCLustering {
             String ssd = "{\"query\": \"filtered\": {\"query\": {\"match_all\": {}},\"filter\": " +
                     "{\"geo_distance\": {\"distance\": \"1km\",\"location\": \"tdr1t\"}}}}}";
             //String ss ="{\"name\":\""+s.getName()+"\",\"location\":\""+s.getLat()+","+s.getLon()+"\",\"id\":\""+s.getId()+"\"}";
-            ssd = "{size:\"40\",query: {filtered: {query: {match_all: {}},filter: {geo_distance: {distance: \"4km\",location: \""+geohash+"\"}}}}}";
+            ssd = "{size:\"40\",query: {filtered: {query: {match_all: {}},filter: {geo_distance: {distance: \"12km\",location: \""+geohash+"\"}}}}}";
             postRequest.setEntity(new StringEntity(ssd));
             //send post request
             HttpResponse response = httpClient.execute(postRequest);
@@ -266,19 +266,6 @@ public class GeoCLustering {
     }
 
 
-    /*public void getShopCloseToCluster(List<ESShop> shopList, List<Geopoint> gpList){
-        double minDistance = Double.MAX_VALUE;
-        String rSHop =null;
-        for(ESShop shop : shopList){
-            double totalDistance =0;
-            for(Geopoint g: gpList){
-                double sDistance = Geopoint.getDistance(g,shop.getLocation());
-                totalDistance+=sDistance;
-            }
-            if(totalDistance<minDistance)
-        }
-    }*/
-
     //Convert shops to clustering points
     public List<ClusteringPoint> getClusteringPoints(List<ESShop> esShops){
         List<ClusteringPoint> clusteringPoints = new ArrayList<ClusteringPoint>();
@@ -375,9 +362,6 @@ public class GeoCLustering {
             }
 
         }
-
-
-
     }
 
     public static void main(String[] args){

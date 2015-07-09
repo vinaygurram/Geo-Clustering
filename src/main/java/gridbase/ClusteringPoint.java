@@ -9,6 +9,14 @@ public class ClusteringPoint {
     private String id;
     private String[] products;
 
+
+    //constructor
+    public ClusteringPoint(String id, String[] products, Geopoint location ){
+        this.id = id;
+        this.products = products;
+        this.location = location;
+    }
+
     //Getter and Setter Methods
     public Geopoint getLocation() {
         return location;
@@ -36,6 +44,6 @@ public class ClusteringPoint {
 
     @Override
     public String toString(){
-        return new StringBuilder().append(id).append(location).toString();
+        return new StringBuilder().append(id).append(" ").append(location).append(";;;").toString();
     }
 }

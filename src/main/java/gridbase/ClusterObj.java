@@ -1,5 +1,9 @@
 package gridbase;
 
+import com.github.davidmoten.geo.GeoHash;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,9 +15,10 @@ public class ClusterObj {
     //Fields
     private String name;
     private List<ClusteringPoint> points = new ArrayList<ClusteringPoint>();
-    private String[] products = null;
+    private String[] products = {};
     private int productCount;
     private double distance ;
+    private String geoHash;
 
 
     //Object methods
@@ -34,6 +39,11 @@ public class ClusterObj {
         points.remove(p);
     }
 
+    /**
+     * Merges products and returns them
+     * Optimization :: Use bitset
+     * Optimization :: sort and merge arrays it will be faster
+     * */
     public String[] mergeShopProducts(String[] s1, String[] s2){
         List<String> shops = new ArrayList<String>(100);
         for(int i=0;i<s1.length;i++){
@@ -41,6 +51,7 @@ public class ClusterObj {
         }
 
         for(String s: s2){
+
             boolean repeated = false;
             for(String d: s1){
                 if(s.contentEquals(d)) repeated = true;
@@ -95,5 +106,36 @@ public class ClusterObj {
         this.distance = distance;
     }
 
+    public String getGeoHash() {
+        return geoHash;
+    }
+
+    public void setGeoHash(String geoHash) {
+        this.geoHash = geoHash;
+    }
+
+    @Override
+    public String toString(){
+        return new StringBuilder().append(points).append(" Pcount ").append(products.length).append("\n").toString();
+    }
+
+
+    public JSONObject getJSON(){
+        JSONObject jo = new JSONObject();
+        JSONObject cluster = new JSONObject();
+
+        cluster.put("name",geoHash);
+        cluster.put("cluster_id","_id");
+        cluster.put("load",1);
+        cluster.put("rank",1);
+        JSONArray jsonArray = new JSONArray();
+        for(ClusteringPoint c:  points){
+            jsonArray.put(c.getId());
+        }
+        cluster.put("shop_ids", jsonArray);
+        cluster.put("geohash",geoHash);
+        jo.put("clusterOB",cluster);
+        return jo;
+    }
 
 }

@@ -1,6 +1,10 @@
-package gridbase;
+package live.cluster.one;
 
 import com.github.davidmoten.geo.GeoHash;
+import gridbase.ClusterObj;
+import gridbase.ClusteringPoint;
+import gridbase.DistanceMatrix;
+import gridbase.Geopoint;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,7 +19,7 @@ public class ClusterStrategy {
     ClusteringPoint geoHash;
 
     //Constructor
-    ClusterStrategy(List<ClusteringPoint> points,ClusteringPoint geoHash){
+    ClusterStrategy(List<ClusteringPoint> points, ClusteringPoint geoHash){
         List<ClusteringPoint> ttpoints = new ArrayList<ClusteringPoint>(points);
         ttpoints.add(geoHash);
         this.distanceMatrix = new DistanceMatrix(ttpoints);

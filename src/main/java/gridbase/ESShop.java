@@ -1,5 +1,8 @@
 package gridbase;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by gurramvinay on 6/19/15.
  */
@@ -8,6 +11,11 @@ public class ESShop {
     private String[] pids;
     private String id;
     private Geopoint location;
+
+    //Cat count right now;;
+    private List<String> catList = new ArrayList<String>();
+    private List<String> prodList = new ArrayList<String>();
+
 
     public ESShop(String name,String[] pids,String id, Geopoint location){
         this.name = name;
