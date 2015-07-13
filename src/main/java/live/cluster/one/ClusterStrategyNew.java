@@ -12,14 +12,18 @@ import java.util.List;
 
 /**
  * Created by gurramvinay on 6/26/15.
+ * defining strategy to create the goe hash based cluster.
+ * Covers point selection criteria, Sample Space for Cluster, Max Distance Coverage,Cluster Selection Criteria
+ * low level distance matraix is computer for each geo hash
  */
-public class ClusterStrategy {
+
+public class ClusterStrategyNew {
     private DistanceMatrix distanceMatrix;
     List<ClusteringPoint> points;
     ClusteringPoint geoHash;
 
     //Constructor
-    ClusterStrategy(List<ClusteringPoint> points, ClusteringPoint geoHash){
+    ClusterStrategyNew(List<ClusteringPoint> points, ClusteringPoint geoHash){
         List<ClusteringPoint> ttpoints = new ArrayList<ClusteringPoint>(points);
         ttpoints.add(geoHash);
         this.distanceMatrix = new DistanceMatrix(ttpoints);
@@ -31,10 +35,10 @@ public class ClusterStrategy {
     public List<ClusterObj> createClusters(ClusteringPoint geoHash, List<ClusteringPoint> points){
 
         List<ClusterObj> clusters = new ArrayList<ClusterObj>();
-
-        while(points.size()>5){
+        while(points.size()>2){
             ClusterObj clusterObj = new ClusterObj();
-            while(clusterObj.getPoints().size()<4 && clusterObj.getProductCount()<60){
+            //while(clusterObj.getPoints().size()<4 && clusterObj.getProductCount()<3000 &&clusterObj.getSub_cat().length<120){
+            while(clusterObj.getSub_cat().length<120 && points.size()>0){
                 clusterObj = formCluster(geoHash,clusterObj,points);
             }
             clusterObj.setGeoHash(GeoHash.encodeHash(geoHash.getLocation().getLatitude(),geoHash.getLocation().getLongitude()));
@@ -46,7 +50,6 @@ public class ClusterStrategy {
         }
         clusterObj.setGeoHash(GeoHash.encodeHash(geoHash.getLocation().getLatitude(),geoHash.getLocation().getLongitude()));
         clusters.add(clusterObj);
-        //logger.info("p "+clusters.size());
         return clusters;
     }
 
@@ -57,6 +60,10 @@ public class ClusterStrategy {
             ClusteringPoint nearestPoint = getDNearestPoint(geoHash,points);
             points.remove(nearestPoint);
             cluster.addPoint(nearestPoint);
+            double distance = Geopoint.getDistance(nearestPoint.getLocation(), geoHash.getLocation());
+            cluster.setDistance(distance);
+            double rank = getFavourFactor(distance,nearestPoint.getProducts().length);
+            cluster.setRank(rank);
             return cluster;
         }
 
@@ -65,26 +72,58 @@ public class ClusterStrategy {
         ClusteringPoint[] tempPointList = findProbablePoints(cluster.getPoints(),points);
 
         //find best clustering point out of those using shortest distance
-        //Choosing the best possbile point in the cluster
+        //Choosing the best possible point in the cluster
         ClusteringPoint goodClusteringPoint =null;
-        double leastDistance =Double.MAX_VALUE;
+        double bestDistance= Double.MAX_VALUE;
+        List<String> bestProductCoverage = new ArrayList<String>();
+        ClusteringPoint bestPoint = null;
+
+        double fav = Double.MIN_VALUE;
+
         for(ClusteringPoint p : tempPointList){
             double dd = getShortestDistance(p,geoHash,cluster.getPoints());
-            if(dd<leastDistance){
-                leastDistance = dd;
-                goodClusteringPoint = p;
+            List<String> productsCoverage = getProductCoverage(p,cluster);
+            double temp = getFavourFactor(dd,productsCoverage.size());
+            if(temp>fav){
+                fav = temp;
+                bestProductCoverage = productsCoverage;
+                bestDistance = dd;
+                bestPoint = p;
             }
         }
         //Add it to Cluster
-        cluster.addPoint(goodClusteringPoint);
-        points.remove(goodClusteringPoint);
+        //Doint it multiple times but let it go
+        cluster.setDistance(bestDistance);
+        cluster.addPoint(bestPoint);
+        cluster.setRank(fav);
+        points.remove(bestPoint);
+        String[] pps = new String[bestProductCoverage.size()];
+        pps = bestProductCoverage.toArray(pps);
+        cluster.setProducts(pps);
 
         return cluster;
     }
+     /**
+      * Get product coverage with this point
+      * */
+    public List<String> getProductCoverage(ClusteringPoint clusteringPoint, ClusterObj clusterObj){
+        String[] clusterProducts = clusterObj.getProducts();
+        String[] pointProducts = clusteringPoint.getProducts();
+        List<String> finalProducts = new ArrayList<String>();
+        for(int i=0;i<clusterProducts.length;i++){
+            finalProducts.add(clusterProducts[i]);
+        }
+        for(int i=0;i<pointProducts.length;i++){
+            if(!finalProducts.contains(pointProducts[i])){
+                finalProducts.add(pointProducts[i]);
+            }
+        }
+        return finalProducts;
+    }
 
     /**
-    * Get nearest point according to distance
-    * */
+     * Get nearest point according to distance
+     * */
     public ClusteringPoint getDNearestPoint(ClusteringPoint p, List<ClusteringPoint> points){
         HashMap<String,Double>ddNode = distanceMatrix.getNodeDistanceMatrix(p.getId());
         double distanceN = Double.MAX_VALUE;
@@ -152,26 +191,24 @@ public class ClusterStrategy {
     public double getDistanceFromCluster(ClusteringPoint point, List<ClusteringPoint> pointList){
         double ddd = 0d;
         for(ClusteringPoint dd: pointList){
-           ddd += Geopoint.getDistance(point.getLocation(),dd.getLocation());
+            ddd += Geopoint.getDistance(point.getLocation(),dd.getLocation());
         }
         return (ddd/pointList.size());
     }
 
     /**
      * Get Favoured Cluster in List of clusters
-     * Fav Factor Logic
-     * Fav Factor = Distance + Product Count (Will be changed later)
-     * @return ClusterObj favoured cluster
-     * @param clusterList list of clusters available
+     * Fav Factor Logic D--> Distance, P ---> Product Count
+     * Dmax = 15; Product Count Pmax = 17000
+     * Fav Factor = (1/2)*(Dmax/D) + (1/2) * (P/Pmax)
+     * @return
      * */
-    public ClusterObj getFavouredCluster(List<ClusterObj> clusterList){
-        double fav_facotr = Double.MIN_VALUE;
-        ClusterObj rCluster =null;
-        for(ClusterObj c : clusterList){
-            double tempFav = (double)c.getProductCount() + c.getDistance();
-            if(fav_facotr<tempFav) rCluster = c;
-        }
-        return  rCluster;
+    public double getFavourFactor(double distance, int products){
+        double d = 15000/distance;
+        d = d/2;
+        double p = ((double)products)/17000;
+        p =p/2;
+        return  d+p;
     }
 
 
@@ -184,7 +221,7 @@ public class ClusterStrategy {
      * @param cp probable point that can be added to cluster
      * @param geohashPoint geoHash for which cluster is being calculated
      * @param points list of points that are already in cluster
-    * */
+     * */
     public double getShortestDistance(ClusteringPoint cp, ClusteringPoint geohashPoint, List<ClusteringPoint> points){
 
 
@@ -209,41 +246,41 @@ public class ClusterStrategy {
      * @return the distance between two geo points
      * */
     public double distanceBtPoints(ClusteringPoint c1, ClusteringPoint c2){
-        return Geopoint.getDistance(c1.getLocation(),c2.getLocation());
+        return Geopoint.getDistance(c1.getLocation(), c2.getLocation());
     }
 
     /**
      * computes the shortest path using all possible combinations
      * @return Double shortest distance which connects all the distances
      * */
-     public double getShortestDistanceWithPoint(ClusteringPoint cp2, List<ClusteringPoint> list){
+    public double getShortestDistanceWithPoint(ClusteringPoint cp2, List<ClusteringPoint> list){
 
-         try {
-             String[] idsString = new String[list.size()];
-             for(int i=0;i<list.size();i++){
-                 idsString[i] = list.get(i).getId();
-             }
-             List<List<String>> permutations = permute(idsString);
-             double gDistance = Double.MAX_VALUE;
-             for(List<String> possiblity : permutations){
+        try {
+            String[] idsString = new String[list.size()];
+            for(int i=0;i<list.size();i++){
+                idsString[i] = list.get(i).getId();
+            }
+            List<List<String>> permutations = permute(idsString);
+            double gDistance = Double.MAX_VALUE;
+            for(List<String> possiblity : permutations){
 
-                 double tempDist = distanceMatrix.getDistance(cp2.getId(),possiblity.get(0));
-                 for(int i=0;i<possiblity.size()-1;i++){
-                     tempDist+=distanceMatrix.getDistance(possiblity.get(i),possiblity.get(i+1));
-                 }
-                 if(tempDist < gDistance) gDistance = tempDist;
-             }
-             return  gDistance;
-
-
-         }catch (Exception e){
-             e.printStackTrace();
-         }
-
-         return Double.MAX_VALUE;
+                double tempDist = distanceMatrix.getDistance(cp2.getId(),possiblity.get(0));
+                for(int i=0;i<possiblity.size()-1;i++){
+                    tempDist+=distanceMatrix.getDistance(possiblity.get(i),possiblity.get(i+1));
+                }
+                if(tempDist < gDistance) gDistance = tempDist;
+            }
+            return  gDistance;
 
 
-     }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return Double.MAX_VALUE;
+
+
+    }
 
     /**
      * Creates all possible String ids;
