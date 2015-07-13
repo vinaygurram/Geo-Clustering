@@ -1,6 +1,5 @@
 package gridbase;
 
-import com.github.davidmoten.geo.GeoHash;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -16,9 +15,12 @@ public class ClusterObj {
     private String name;
     private List<ClusteringPoint> points = new ArrayList<ClusteringPoint>();
     private String[] products = {};
-    private int productCount;
     private double distance ;
     private String geoHash;
+    private double rank;
+
+    private int num_stores;
+    private String[] sub_cat={};
 
 
     //Object methods
@@ -26,6 +28,7 @@ public class ClusterObj {
     public void addPoint(ClusteringPoint p){
         //add to points
         points.add(p);
+        num_stores++;
 
         //Update products
         if(products==null){
@@ -33,18 +36,28 @@ public class ClusterObj {
         }else{
             products = mergeShopProducts(products,p.getProducts());
         }
-    }
 
-    public void removePoint(ClusteringPoint p){
-        points.remove(p);
+        //update sub categories
+        if(sub_cat==null){
+            sub_cat = p.getSubCat();
+        }else {
+            sub_cat = mergeShopProducts(sub_cat,p.getSubCat());
+        }
     }
 
     /**
      * Merges products and returns them
      * Optimization :: Use bitset
-     * Optimization :: sort and merge arrays it will be faster
+     * Optimization :: merge arrays it will be faster
      * */
     public String[] mergeShopProducts(String[] s1, String[] s2){
+
+        if(s2==null){
+            return s1;
+        }
+        if(s1==null){
+            return s2;
+        }
         List<String> shops = new ArrayList<String>(100);
         for(int i=0;i<s1.length;i++){
             shops.add(s1[i]);
@@ -90,13 +103,6 @@ public class ClusterObj {
         this.products = products;
     }
 
-    public int getProductCount() {
-        return productCount;
-    }
-
-    public void setProductCount(int productCount) {
-        this.productCount = productCount;
-    }
 
     public double getDistance() {
         return distance;
@@ -114,6 +120,31 @@ public class ClusterObj {
         this.geoHash = geoHash;
     }
 
+    public String[] getSub_cat() {
+        return sub_cat;
+    }
+
+    public void setSub_cat(String[] sub_cat) {
+
+        this.sub_cat = sub_cat;
+    }
+
+    public int getNum_stores() {
+        return num_stores;
+    }
+
+    public void setNum_stores(int num_stores) {
+        this.num_stores = num_stores;
+    }
+
+    public double getRank() {
+        return rank;
+    }
+
+    public void setRank(double rank) {
+        this.rank = rank;
+    }
+
     @Override
     public String toString(){
         return new StringBuilder().append(points).append(" Pcount ").append(products.length).append("\n").toString();
@@ -125,15 +156,18 @@ public class ClusterObj {
         JSONObject cluster = new JSONObject();
 
         cluster.put("name",geoHash);
-        cluster.put("cluster_id","_id");
         cluster.put("load",1);
-        cluster.put("rank",1);
+        cluster.put("rank",rank);
+        cluster.put("distance",distance);
         JSONArray jsonArray = new JSONArray();
         for(ClusteringPoint c:  points){
             jsonArray.put(c.getId());
         }
+        cluster.put("sub_cat_count",sub_cat.length);
+        cluster.put("product_count",products.length);
         cluster.put("shop_ids", jsonArray);
         cluster.put("geohash",geoHash);
+        cluster.put("stores_count",num_stores);
         jo.put("clusterOB",cluster);
         return jo;
     }

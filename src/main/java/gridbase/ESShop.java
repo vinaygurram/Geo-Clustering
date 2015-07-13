@@ -1,6 +1,8 @@
 package gridbase;
 
+import org.json.JSONArray;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -8,20 +10,26 @@ import java.util.List;
  */
 public class ESShop {
     private String name;
-    private String[] pids;
     private String id;
     private Geopoint location;
 
     //Cat count right now;;
     private List<String> catList = new ArrayList<String>();
-    private List<String> prodList = new ArrayList<String>();
+    private List<String> productIDList = new ArrayList<String>();
+    private int catCount ;
+    private int prodCount;
 
 
-    public ESShop(String name,String[] pids,String id, Geopoint location){
+    public ESShop(String name,JSONArray pids, String id, Geopoint location,HashMap<String,List<String>> map){
         this.name = name;
-        this.pids = pids;
+
+        for(int i=0;i<pids.length();i++){
+            productIDList.add(pids.getString(i));
+        }
+        this.prodCount = productIDList.size();
         this.id = id;
         this.location = location;
+        createCatList(map);
     }
 
 
@@ -33,14 +41,6 @@ public class ESShop {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String[] getPids() {
-        return pids;
-    }
-
-    public void setpis(String[] pids) {
-        this.pids = pids;
     }
 
     public String getId() {
@@ -59,9 +59,56 @@ public class ESShop {
         this.location = location;
     }
 
+    public List<String> getCatList() {
+        return catList;
+    }
+
+    public void setCatList(List<String> catList) {
+        this.catList = catList;
+    }
+
+    public List<String> getProductIDList() {
+        return productIDList;
+    }
+
+    public void setProductIDList(List<String> productIDList) {
+        this.productIDList = productIDList;
+    }
+
+    public int getCatCount() {
+        return catCount;
+    }
+
+    public void setCatCount(int catCount) {
+        this.catCount = catCount;
+    }
+
+    public int getProdCount() {
+        return prodCount;
+    }
+
+    public void setProdCount(int prodCount) {
+        this.prodCount = prodCount;
+    }
+
+    public void createCatList(HashMap<String,List<String>> map){
+        for(String id: productIDList){
+            if(map.containsKey(id)){
+                List<String> list = map.get(id);
+                if(list.get(2).isEmpty() || list.get(2).contentEquals("")){
+                }else {
+                    if(!catList.contains(list.get(2))){
+                        catList.add(list.get(2));
+                    }
+                }
+            }
+
+        }
+        catCount = catList.size();
+    }
+
     @Override
     public ESShop clone(){
-        ESShop esShop = new ESShop(name,pids,id,location.clone());
-        return esShop;
+        return this;
     }
 }

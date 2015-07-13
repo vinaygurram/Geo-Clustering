@@ -1,14 +1,17 @@
 package gridbase;
 
 import com.github.davidmoten.geo.GeoHash;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 /**
  * Created by gurramvinay on 6/26/15.
+ * defining strategy to create the goe hash based cluster.
+ * Covers point selection criteria, Sample Space for Cluster, Max Distance Coverage,Cluster Selection Criteria
+ * low level distance matraix is computer for each geo hash
  */
+
 public class ClusterStrategy {
     private DistanceMatrix distanceMatrix;
     List<ClusteringPoint> points;
@@ -27,10 +30,10 @@ public class ClusterStrategy {
     public List<ClusterObj> createClusters(ClusteringPoint geoHash, List<ClusteringPoint> points){
 
         List<ClusterObj> clusters = new ArrayList<ClusterObj>();
-
         while(points.size()>5){
             ClusterObj clusterObj = new ClusterObj();
-            while(clusterObj.getPoints().size()<4 && clusterObj.getProductCount()<60){
+            //while(clusterObj.getPoints().size()<4 && clusterObj.getProductCount()<3000 &&clusterObj.getSub_cat().length<120){
+            while(clusterObj.getSub_cat().length<120){
                 clusterObj = formCluster(geoHash,clusterObj,points);
             }
             clusterObj.setGeoHash(GeoHash.encodeHash(geoHash.getLocation().getLatitude(),geoHash.getLocation().getLongitude()));
@@ -42,7 +45,6 @@ public class ClusterStrategy {
         }
         clusterObj.setGeoHash(GeoHash.encodeHash(geoHash.getLocation().getLatitude(),geoHash.getLocation().getLongitude()));
         clusters.add(clusterObj);
-        //logger.info("p "+clusters.size());
         return clusters;
     }
 
@@ -53,6 +55,7 @@ public class ClusterStrategy {
             ClusteringPoint nearestPoint = getDNearestPoint(geoHash,points);
             points.remove(nearestPoint);
             cluster.addPoint(nearestPoint);
+            cluster.setDistance(Geopoint.getDistance(nearestPoint.getLocation(),geoHash.getLocation()));
             return cluster;
         }
 
@@ -72,6 +75,7 @@ public class ClusterStrategy {
             }
         }
         //Add it to Cluster
+        cluster.setDistance(leastDistance);
         cluster.addPoint(goodClusteringPoint);
         points.remove(goodClusteringPoint);
 
@@ -164,7 +168,7 @@ public class ClusterStrategy {
         double fav_facotr = Double.MIN_VALUE;
         ClusterObj rCluster =null;
         for(ClusterObj c : clusterList){
-            double tempFav = (double)c.getProductCount() + c.getDistance();
+            double tempFav = (double)c.getProducts().length + c.getDistance();
             if(fav_facotr<tempFav) rCluster = c;
         }
         return  rCluster;

@@ -38,7 +38,7 @@ public class GeoCLusteringNew {
         int m = 0;
         HttpClient httpClient = HttpClientBuilder.create().build();
         try {
-            while (m<16000){
+            while (m<19000){
                 String query = "{query:{match_all:{}},size:1000,from:"+m+"}";
                 m = m+1000;
                 HttpPost httpPost = new HttpPost("http://localhost:9200/products_list/_search");
@@ -193,7 +193,7 @@ public class GeoCLusteringNew {
             HttpPost postRequest = new HttpPost(uri);
             String ssd = "{\"size\":40,\"fields\": [\"store.store_id\",\"store.location\",\"store.cat_list\",\"store.products.id\"," +
                     "\"store.products_count\",\"store.sub_cat_list\"],\"query\": {\"match_all\": {}}," +
-                    "\"filter\": {\"geo_distance\": {\"distance\":\"20km\",\"location\": \""+geohash+"\"}}}";
+                    "\"filter\": {\"geo_distance\": {\"distance\":\"10km\",\"location\": \""+geohash+"\"}}}";
             postRequest.setEntity(new StringEntity(ssd));
             //send post request
             HttpResponse response = httpClient.execute(postRequest);
@@ -207,7 +207,7 @@ public class GeoCLusteringNew {
             JSONObject jsonObject = new JSONObject(result.toString());
             JSONArray jsonArray = jsonObject.getJSONObject("hits").getJSONArray("hits");
             if(jsonArray.length()>1){
-                System.out.println();
+               // System.out.println();
             }
             for(int i=0;i<jsonArray.length();i++){
                 JSONObject jsonObject1 = jsonArray.getJSONObject(i);
@@ -374,7 +374,7 @@ public class GeoCLusteringNew {
             StringBuffer result = new StringBuffer();
             List<Long> numbers = new ArrayList<Long>();
             try {
-                String ESAPI = "http://localhost:9200/live_geo_clusters/geo_cluster";
+                String ESAPI = "http://localhost:9200/live_geo_clusters_new3/geo_cluster";
 
                 String uri = ESAPI;
                 httpClient = HttpClientBuilder.create().build();
@@ -412,44 +412,48 @@ public class GeoCLusteringNew {
             GeoCLusteringNew geoCLusteringNew = new GeoCLusteringNew();
             int tt = geoCLusteringNew.generateProdCatMap(geoCLusteringNew.map);
             long time_s = System.currentTimeMillis();
-            String geohash = "tdr108q";
+            //String geohash = "tdr108q";
 
-            //List<String> geoHashList = geoCLusteringNew.getBlrGeoHashes();
-            List<ESShop> esShopgList = geoCLusteringNew.getStoresForGeoHash(geohash, geoCLusteringNew.map);
-            if(esShopgList.size()>5){
-                System.out.println("oooo");
-            }
-            List<ClusteringPoint> clusterPoints = geoCLusteringNew.getClusteringPoints(esShopgList);
-            LatLong ll = GeoHash.decodeHash(geohash);
-            String[] pp = {};
-            ClusteringPoint cp = new ClusteringPoint("gggggeee",pp,new Geopoint(ll.getLat(),ll.getLon()));
-            ClusterStrategyNew clusterStrategyNew = new ClusterStrategyNew(clusterPoints,cp);
-            List<ClusterObj> clusterObjList = clusterStrategyNew.createClusters(cp,clusterPoints);
-            //GeoCLusteringNew.clusterNumber.incrementAndGet();
-            geoCLusteringNew.pushClusterToES(clusterObjList);
-            //SimpleWorkerThread simpleWorkerThread = new SimpleWorkerThread(geoCLusteringNew,geohash,prodCatMap.productsCatMap);
-            //executorService.execute(simpleWorkerThread);
-
-
-//            for(String geohash: geoHashList){
-//                List<ESShop> esShopgList = geoCLusteringNew.getStoresForGeoHash(geohash,geoCLusteringNew.map);
-//                if(esShopgList.size()==0){
-//                    continue;
-//                }
-//                if(esShopgList.size()>5){
-//                    System.out.println("oooo");
-//                }
-//                List<ClusteringPoint> clusterPoints = geoCLusteringNew.getClusteringPoints(esShopgList);
-//                LatLong ll = GeoHash.decodeHash(geohash);
-//                String[] pp = {};
-//                ClusteringPoint cp = new ClusteringPoint("gggggeee",pp,new Geopoint(ll.getLat(),ll.getLon()));
-//                ClusterStrategyNew clusterStrategyNew = new ClusterStrategyNew(clusterPoints,cp);
-//                List<ClusterObj> clusterObjList = clusterStrategyNew.createClusters(cp,clusterPoints);
-//                //GeoCLusteringNew.clusterNumber.incrementAndGet();
-//                geoCLusteringNew.pushClusterToES(clusterObjList);
-//                //SimpleWorkerThread simpleWorkerThread = new SimpleWorkerThread(geoCLusteringNew,geohash,prodCatMap.productsCatMap);
-//                //executorService.execute(simpleWorkerThread);
+             List<String> geoHashList = geoCLusteringNew.getBlrGeoHashes();
+//             List<ESShop> esShopgList = geoCLusteringNew.getStoresForGeoHash(geohash, geoCLusteringNew.map);
+//            if(esShopgList.size()>5){
+//                System.out.println("oooo");
 //            }
+//            List<ClusteringPoint> clusterPoints = geoCLusteringNew.getClusteringPoints(esShopgList);
+//            LatLong ll = GeoHash.decodeHash(geohash);
+//            String[] pp = {};
+//            ClusteringPoint cp = new ClusteringPoint("gggggeee",pp,new Geopoint(ll.getLat(),ll.getLon()));
+//            ClusterStrategyNew clusterStrategyNew = new ClusterStrategyNew(clusterPoints,cp);
+//            List<ClusterObj> clusterObjList = clusterStrategyNew.createClusters1(cp,clusterPoints);
+//           //GeoCLusteringNew.clusterNumber.incrementAndGet();
+//            geoCLusteringNew.pushClusterToES(clusterObjList);
+//            //SimpleWorkerThread simpleWorkerThread = new SimpleWorkerThread(geoCLusteringNew,geohash,prodCatMap.productsCatMap);
+//            //executorService.execute(simpleWorkerThread);
+
+            List<ClusterObj> clusters= new ArrayList<ClusterObj>();
+
+
+            for(String geohash: geoHashList){
+                List<ESShop> esShopgList = geoCLusteringNew.getStoresForGeoHash(geohash,geoCLusteringNew.map);
+                if(esShopgList.size()==0){
+                    continue;
+                }
+                List<ClusteringPoint> clusterPoints = geoCLusteringNew.getClusteringPoints(esShopgList);
+                LatLong ll = GeoHash.decodeHash(geohash);
+                String[] pp = {};
+                ClusteringPoint cp = new ClusteringPoint("gggggeee",pp,new Geopoint(ll.getLat(),ll.getLon()));
+                ClusterStrategyNew clusterStrategyNew = new ClusterStrategyNew();
+                List<ClusterObj> clusterObjList1 = clusterStrategyNew.createClusters1(cp, clusterPoints);
+                for(ClusterObj c: clusterObjList1){
+                    clusters.add(c);
+                }
+                if(clusters.size()>100){
+                    geoCLusteringNew.pushClusterToES(clusters);
+                    clusters = new ArrayList<ClusterObj>();
+                }
+                //SimpleWorkerThread simpleWorkerThread = new SimpleWorkerThread(geoCLusteringNew,geohash,prodCatMap.productsCatMap);
+                //executorService.execute(simpleWorkerThread);
+            }
             long time_e = System.currentTimeMillis();
 
             System.out.println("total time taken is "+(time_e-time_s) );

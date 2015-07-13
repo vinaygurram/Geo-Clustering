@@ -1,5 +1,7 @@
 package gridbase;
 
+import java.util.List;
+
 /**
  * Created by gurramvinay on 6/26/15.
  */
@@ -8,12 +10,27 @@ public class ClusteringPoint {
     private Geopoint location;
     private String id;
     private String[] products;
+    private String[] subCat;
+    private boolean isClustered = false;
 
 
     //constructor
     public ClusteringPoint(String id, String[] products, Geopoint location ){
         this.id = id;
         this.products = products;
+        this.location = location;
+    }
+
+    public ClusteringPoint(String id, List<String> productsList,List<String> subcatLlist, Geopoint location ){
+        this.id = id;
+        this.products = new String[productsList.size()];
+        for(int i=0;i<productsList.size();i++){
+            this.products[i] = productsList.get(i);
+        }
+        this.subCat = new String[subcatLlist.size()];
+        for(int i=0;i<subcatLlist.size();i++){
+            this.subCat[i] = subcatLlist.get(i);
+        }
         this.location = location;
     }
 
@@ -40,6 +57,22 @@ public class ClusteringPoint {
 
     public void setProducts(String[] products) {
         this.products = products;
+    }
+
+    public String[] getSubCat() {
+        return subCat;
+    }
+
+    public boolean isClustered() {
+        return isClustered;
+    }
+
+    public void setIsClustered(boolean isClustered) {
+        this.isClustered = isClustered;
+    }
+
+    public void setSubCat(String[] subCat) {
+        this.subCat = subCat;
     }
 
     @Override

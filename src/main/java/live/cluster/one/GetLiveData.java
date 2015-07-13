@@ -1,6 +1,11 @@
 package live.cluster.one;
 
 import gridbase.Geopoint;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -165,12 +170,108 @@ public class GetLiveData {
         }
     }
 
+    public List<String> generateIds(){
+        List<String> list = new ArrayList<String>();
+        try {
+            int k=1;
+            while(k<170){
+                URL url = new URL("http://seller-engine.olastore.com/stores/100006/inventories?page="+k);
+                HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+                BufferedReader rd = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+                String line;
+                StringBuffer result = new StringBuffer();
+                while ((line = rd.readLine()) != null) {
+                    result.append(line);
+                }
+                String fResult = result.toString();
+                JSONObject jsonObject = new JSONObject(fResult);
+                JSONArray jsonArray = jsonObject.getJSONArray("products");
+                for(int i=0;i<jsonArray.length();i++){
+                    JSONObject jsonObject1 = jsonArray.getJSONObject(i);
+                    String id =jsonObject1.getString("id");
+                    if(!list.contains(id)){
+                       list.add(id);
+                    }
+                }
+                System.out.println(k);
+                k++;
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+
+    public List<PCat> GetCat(List<String> ids) {
+        List<PCat> pCats = new ArrayList<PCat>();
+        BufferedReader bufferedReader;
+        try {
+            for(String id:ids){
+                URL url = new URL("http://catalog-engine.olastore.com/v1/category/tree/product/"+id+"/path");
+                HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+                bufferedReader =  new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+                String line;
+                StringBuffer result = new StringBuffer();
+                while ((line = bufferedReader.readLine()) != null) {
+                    result.append(line);
+                }
+                String fResult = result.toString();
+                JSONObject jsonObject = new JSONObject(fResult);
+                JSONArray ppath = jsonObject.getJSONArray("primary_path");
+                for(int i =0;i<ppath.length();i++){
+                    JSONObject jo = ppath.getJSONObject(i);
+                    String node_path = jo.getString("node_id_path");
+                    String[] cats = node_path.split(">");
+                    String sbc = "";
+                    if(cats.length>2) sbc = cats[2];
+                    PCat pCat = new PCat(id,cats[0],sbc,cats[1]);
+                    pCats.add(pCat);
+                }
+            }
+            return pCats;
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return new ArrayList<PCat>();
+    }
+
+
+    public void pushPcatToES(){
+        List<String> ids = generateIds();
+        HttpClient httpClient = null;
+        httpClient = HttpClientBuilder.create().build();
+        long l =1;
+        List<PCat> pCats = GetCat(ids);
+        for(PCat pCat : pCats){
+            try {
+
+                HttpPost postRequest = new HttpPost("http://localhost:9200/products_list/products");
+                postRequest.setEntity(new StringEntity(pCat.getJSON().toString()));
+                //send post request
+                HttpResponse response = httpClient.execute(postRequest);
+
+                BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
+                StringBuffer result = new StringBuffer();
+                String line;
+                while ((line = rd.readLine()) != null) {
+                    result.append(line);
+                }
+
+                JSONObject jsonObject = new JSONObject(result.toString());
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+    }
+
     public static void main(String[] args){
         GetLiveData getLiveData = new GetLiveData();
-        List<Store> stores1 = getLiveData.getStoresData();;
-        stores1 = getLiveData.getProductsOfStores(stores1);
+        //List<Store> stores1 = getLiveData.getStoresData();;
+        //stores1 = getLiveData.getProductsOfStores(stores1);
         //stores1 = getLiveData.getCatOfStores(stores1);
-        getLiveData.pushDataToES(stores1);
+        //getLiveData.pushDataToES(stores1);
+        getLiveData.pushPcatToES();
     }
 
 }

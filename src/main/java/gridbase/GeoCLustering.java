@@ -175,8 +175,9 @@ public class GeoCLustering {
                 double lon = Double.parseDouble(ll[1]);
                 String product_string = jsonObject1.getJSONObject("_source").getString("product_array");
                 product_string = product_string.substring(1,product_string.length()-1);
-                ESShop tempShop = new ESShop(jsonObject1.getString("_id"),product_string.split(","),
-                        jsonObject1.getJSONObject("_source").getString("name"),new Geopoint(lat,lon));
+//                ESShop tempShop = new ESShop(jsonObject1.getString("_id"),product_string.split(","),
+//                        jsonObject1.getJSONObject("_source").getString("name"),new Geopoint(lat,lon));
+                ESShop tempShop = null;
                 reShops.add(tempShop);
             }
         }catch (IOException e){
@@ -193,48 +194,48 @@ public class GeoCLustering {
 
 
     //Temporary requirement for forming a cluster is 95% of the products
-    public void doClustering(List<ESShop> esShops){
-
-        //Cloning the shops
-        List<ESShop> tempShop = new ArrayList<ESShop>(esShops.size());
-        for(ESShop es: esShops){
-            tempShop.add(es.clone());
-        }
-
-        //compute the distance matrix
-        HashMap<String,HashMap<String,Double>> distancematrix = computeDistanceMatrix(esShops);
-
-        HashMap<String,List<String>> clusters = new HashMap<String, List<String>>();
-
-        List<String> clusteredShops = new ArrayList<String>();
-
-        for(ESShop startingPoint: esShops){
-
-            ESShop clusterPoint = startingPoint.clone();
-            if(clusteredShops.contains(startingPoint.getId())) continue;
-            clusteredShops.add(startingPoint.getId());
-            //now try to create the cluster with this point
-
-            int product_count=clusterPoint.getPids().length;
-            List<String> thisCList = new ArrayList<String>();
-            thisCList.add(startingPoint.getId());
-            double distance = -1;
-            while(product_count<98){
-                List<String> rList = getNearestShop(distance,clusterPoint,distancematrix.get(startingPoint.getId()));
-                distance = Double.parseDouble(rList.get(0));
-                String shopKey = rList.get(1);
-                ESShop clusterShop = searchShop(shopKey,esShops);
-                clusteredShops.add(clusterShop.getId());
-                thisCList.add(clusterShop.getId());
-                String[] pids = mergeShopProducts(startingPoint, clusterShop);
-                product_count = pids.length;
-                startingPoint.setpis(pids);
-            }
-            clusters.put(startingPoint.getId(),thisCList);
-        }
-
-        System.out.println(clusters.toString());
-    }
+//    public void doClustering(List<ESShop> esShops){
+//
+//        //Cloning the shops
+//        List<ESShop> tempShop = new ArrayList<ESShop>(esShops.size());
+//        for(ESShop es: esShops){
+//            tempShop.add(es.clone());
+//        }
+//
+//        //compute the distance matrix
+//        HashMap<String,HashMap<String,Double>> distancematrix = computeDistanceMatrix(esShops);
+//
+//        HashMap<String,List<String>> clusters = new HashMap<String, List<String>>();
+//
+//        List<String> clusteredShops = new ArrayList<String>();
+//
+//        for(ESShop startingPoint: esShops){
+//
+//            ESShop clusterPoint = startingPoint.clone();
+//            if(clusteredShops.contains(startingPoint.getId())) continue;
+//            clusteredShops.add(startingPoint.getId());
+//            //now try to create the cluster with this point
+//
+//            int product_count=clusterPoint.getPids().length;
+//            List<String> thisCList = new ArrayList<String>();
+//            thisCList.add(startingPoint.getId());
+//            double distance = -1;
+//            while(product_count<98){
+//                List<String> rList = getNearestShop(distance,clusterPoint,distancematrix.get(startingPoint.getId()));
+//                distance = Double.parseDouble(rList.get(0));
+//                String shopKey = rList.get(1);
+//                ESShop clusterShop = searchShop(shopKey,esShops);
+//                clusteredShops.add(clusterShop.getId());
+//                thisCList.add(clusterShop.getId());
+//                String[] pids = mergeShopProducts(startingPoint, clusterShop);
+//                product_count = pids.length;
+//                startingPoint.setpis(pids);
+//            }
+//            clusters.put(startingPoint.getId(),thisCList);
+//        }
+//
+//        System.out.println(clusters.toString());
+//    }
 
 
     public ESShop searchShop(String key, List<ESShop> shops){
@@ -245,25 +246,25 @@ public class GeoCLustering {
         return null;
     }
 
-    public String[] mergeShopProducts(ESShop s1, ESShop s2){
-        List<String> shops = new ArrayList<String>(100);
-        for(int i=0;i<s1.getPids().length;i++){
-            shops.add(s1.getPids()[i]);
-        }
-
-        for(String s: s2.getPids()){
-            boolean repeated = false;
-            for(String d: s1.getPids()){
-                if(s.contentEquals(d)) repeated = true;
-            }
-            if(!repeated) shops.add(s);
-        }
-        String[] rStrings = new String[shops.size()];
-        for(int i=0;i<shops.size();i++){
-            rStrings[i] = shops.get(i);
-        }
-        return rStrings;
-    }
+//    public String[] mergeShopProducts(ESShop s1, ESShop s2){
+//        List<String> shops = new ArrayList<String>(100);
+//        for(int i=0;i<s1.getPids().length;i++){
+//            shops.add(s1.getPids()[i]);
+//        }
+//
+//        for(String s: s2.getPids()){
+//            boolean repeated = false;
+//            for(String d: s1.getPids()){
+//                if(s.contentEquals(d)) repeated = true;
+//            }
+//            if(!repeated) shops.add(s);
+//        }
+//        String[] rStrings = new String[shops.size()];
+//        for(int i=0;i<shops.size();i++){
+//            rStrings[i] = shops.get(i);
+//        }
+//        return rStrings;
+//    }
 
 
     /*public void getShopCloseToCluster(List<ESShop> shopList, List<Geopoint> gpList){
@@ -280,13 +281,13 @@ public class GeoCLustering {
     }*/
 
     //Convert shops to clustering points
-    public List<ClusteringPoint> getClusteringPoints(List<ESShop> esShops){
-        List<ClusteringPoint> clusteringPoints = new ArrayList<ClusteringPoint>();
-        for(ESShop shop : esShops){
-            clusteringPoints.add(new ClusteringPoint(shop.getId(),shop.getPids(),shop.getLocation()));
-        }
-        return clusteringPoints;
-    }
+//    public List<ClusteringPoint> getClusteringPoints(List<ESShop> esShops){
+//        List<ClusteringPoint> clusteringPoints = new ArrayList<ClusteringPoint>();
+//        for(ESShop shop : esShops){
+//            clusteringPoints.add(new ClusteringPoint(shop.getId(),shop.getPids(),shop.getLocation()));
+//        }
+//        return clusteringPoints;
+//    }
 
 
     public List<String> getNearestShop(double distance,ESShop shop,HashMap<String,Double> nodeDistanceMatrix){
@@ -307,18 +308,18 @@ public class GeoCLustering {
     }
 
 
-    public ESShop selectStartingPoint(List<ESShop> esShops){
-        ESShop mShop = null;
-        int maxId = Integer.MIN_VALUE;
-        for(ESShop s: esShops){
-            if(s.getPids().length>maxId){
-                maxId = s.getPids().length;
-                mShop = s;
-            }
-
-        }
-        return mShop;
-    }
+//    public ESShop selectStartingPoint(List<ESShop> esShops){
+//        ESShop mShop = null;
+//        int maxId = Integer.MIN_VALUE;
+//        for(ESShop s: esShops){
+//            if(s.getPids().length>maxId){
+//                maxId = s.getPids().length;
+//                mShop = s;
+//            }
+//
+//        }
+//        return mShop;
+//    }
 
 
 
@@ -345,7 +346,7 @@ public class GeoCLustering {
             StringBuffer result = new StringBuffer();
             List<Long> numbers = new ArrayList<Long>();
             try {
-                String ESAPI = "http://localhost:9200/hash_clusters/clusters_type";
+                String ESAPI = "http://localhost:9200/live_hash_clusters/clusters_type";
 
                 String uri = ESAPI;
                 httpClient = HttpClientBuilder.create().build();
@@ -399,7 +400,7 @@ public class GeoCLustering {
             LatLong ll = GeoHash.decodeHash(geohash);
             String[] pp = {};
             ClusteringPoint cp = new ClusteringPoint("gggggeee",pp,new Geopoint(ll.getLat(),ll.getLon()));
-            ClusterStrategy clusterStrategy = new ClusterStrategy(clusterPoints,cp);
+            ClusterStrategyNew clusterStrategy = new ClusterStrategyNew(clusterPoints,cp);
             clusterStrategy.createClusters(cp,clusterPoints);*/
 
         }
