@@ -1,0 +1,59 @@
+DBSCAN :
+Clustering distance can’t be controlled
+Non core/Core point
+
+K-means clustering ::
+good but how to decide k points
+if we chose each geo hash as centroid then how do you specify requirements
+random clustering
+
+Hierarchical Clustering ::
+Using hierarchical clustering with centroid based clustering.
+no factor to determine the total cluster distance
+products have to be calculated on the go
+
+GeoHash based Clustering ::
+Clusters are formed for each geo hash
+Clusters are not mutually exclusive
+
+Requirements :
+Step 1:
+85% SC should be visible
+SKU count should be more than 80% of total Bangalore products
+Step 2: (Order by)
+Current number of orders going on
+shipper un availability
+Core points and non core points
+Step 3:
+Order later
+Seller rating
+
+Bangalore Bounding Box ::
+
+TopLeft :: (13.1245,77.3664)
+BotRight :: (12.8342)
+
+Geo hash precision : 7
+
+Geo based Clustering ::
+
+Requirements :
+  Max number of shops == 4;
+  Min number of products = 90%;
+  Distance for the cluster should be minimum
+
+Cluster properties :
+Shop list
+OrderCount (Total number of orders for each shop)
+Seller Rating (Avg rating of all the shops)
+
+Clustering Strategy :
+
+Distance Calculation :: (Shortest Path)
+ Lets say a cluster is formed with points 1…n;
+  Total Distance  = Min(di+Si) for i=1..n
+  di —> distance from ith point to Geohash Cell
+  Si —> Shortest distance covering all the points in the cluster ending with ith point
+
+Fav Factor ::
+  F= (coverage) + distance

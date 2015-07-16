@@ -1,0 +1,60 @@
+Creating Clusters ::
+
+Clustering Point Selection Criteria :
+
+1. Limits —> Distance from GeoHash (3km, 4km, 5km)
+2. Essential Products —> Must have product list
+3. Product Coverage
+4. Least Distance
+5. Price to Choose shop (Future)
+
+
+Cluster Selection Criteria : Choosing best of clusters
+1. Load
+2. Rating
+
+Cluster Rebuild Cases :
+1. Inventory Update (Partial update)
+2. Store status change (Partial Update/offline,online, fully loaded)
+3. Store location change (Partial Update)
+
+Clustering System Design:
+
+1. Clustered Data
+2. Clustering DataWrapper
+3. Clustering Rebuild Checker
+4. Clustering Rebuilder
+5. Cluster Selector
+
+USE CASES —> Clustering Data Wrapper ———Cluster Exists ——> Cluster Selector —>Clustered Data (Give results)
+             Clustering Data Wrapper ———Cluster Not Exists ——> Clustering Rebuilder ——> Cluster Selector —> Clustered Data (Give results)
+             Clustering Rebuild Checker —Yes-> Clustering Rebuilder —> Cluster Selector —>Clustering Data (Give Results)
+
+
+Direct Calls :
+
+ APP —> Get Super categories/Categories (GeoHash) ——> Clustering Data (results from a cluster)
+ APP —> Get Sub categories (with cluster ID) —> Clustering Data
+ APP —> Get Products (with cluster ID & sub category) —> Clustering Data
+
+ FF —> Get Stores (GeoHash, ClusterID) —> Clustering Data Wrapper
+ FF —> Get Shippers (GeoHash, Clusters) —> ES shippers API
+
+ Get Stores —> Stores from StoresIndex
+
+Events ::
+
+  Seller Inventory Update (product state change/adding product) —> Clustering Rebuilder Checker
+  Catalog Updates —> (state hidden/current/ deleted)
+  Store Location —> Cluster Rebuilder
+  Device Pings —> Cluster Rebuild Checker
+  Category Path —> No change
+
+Other Calls :
+
+Order Now —> Clustering Data Wrapper
+Order Later —-> Clustering Data Wrapper
+Load Management —> ClusterSelector
+Capping —> Clustering Selector (Area/zone wise index, orders updating the counter by 1;; when cap is reached stop)
+Shipper Not Available  (High Load)—> Display slot not available
+Cluster Not Available  (High Load)—> Display slot not available

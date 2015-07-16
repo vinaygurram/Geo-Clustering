@@ -1,0 +1,39 @@
+Clustering Design :
+
+Elastic search indexes
+Indexes : GeoHash Index, Clusters Index, Products Index
+GeoHash Index :
+	 id, Geo hash, List<ClusterId,rank
+Cluster Index :
+	id, sub_cat_list, product_coverage, max_distance, store_ids
+
+ Product Index :  (Same as Listing index)
+	pid, attributes, storeId
+
+ Stores Index :
+	id, name, location
+
+API Calls
+Customer APP —> Get Super cat & Cat   (Input :: Geo hash)
+        :: Get best cluster id from GeoHashIndex
+        :: Get sub_cat list from ClusterIndex
+        :: Get tree from catalog and merge with sub_cat list
+        :: Return tree
+Customer APP —> Get SubCat  (Input :: ClusterId, CategoryId, SuperCategory Id)
+        :: Get sub_cat using Cluster Id from Cluster Index
+        :: Get tree from catalog
+        :: Filter the sub_cat from catalog tree
+        :: return final sub_cat list
+Customer APP  —> Get Products (Input :: ClusterId, SubCat Id)
+        :: Get ShopList from ClusterIndex
+        :: Fire ES query on Product Index with extra filter of shops (Reduction of duplicates)
+Fulfillment Stores—> Get Stores from given product  (Input :: key/values, cluster_id)
+        :: See if the stores in the cluster fulfill if yes return the stores
+        :: No? Hit the ProductIndex
+Fulfillment Shippers —> No changes
+Search API —> No changes
+
+Tech Stack
+Web Server —> Jetty/Tomcat
+ Language —> Java
+DB —> ES

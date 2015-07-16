@@ -1,0 +1,68 @@
+Geo Hash Clustering
+
+What is geo hash?
+
+  Geo hash —>It is a small location Box. The length and width of the box changes. A box can be from following ranges
+         13.7cm *1.8cm to 150m*150m to 5004km*50004km
+   Examples : g(5000*5000 box), gcpuuz9 (150*150 box), gcpuuz94kkp5 ()
+
+How it works ::
+
+Creation ::
+Pick a geo hash (small area of 150m * 150m)
+Pick up shops within 3kms(configurable)
+Create a small cluster with 3-4 shops. Each cluster must have given % of the product coverage. (number of shops configurable)
+Build clusters for each geo hash
+
+
+Comparison with Existing model :
+
+Shipper Distance ::
+  Existing model :  Users selects 8 different products which are served by 8 different shops. Shipper have to travel lot of distance
+  New Model : User only sees subset of products which are nearby
+
+Cacheable Queries/API calls ::
+  Geohash queries are cacheable as opposed to pin point queries
+
+Pre computed :
+  Existing Model : on the fly
+  Clusters : Pre computed
+
+Product Criteria (might remove manual addition)::
+  Existing Model : Choose first two shops  automatically then if they not fulfill add additional shops
+  New Model : The products are always present in the cluster so can be automated easily
+
+
+Use cases ::
+
+
+Existing APIS :
+
+From the APP :
+Catalog API —> Given lat and long ;; give super categories and categories
+Category API —> Given super category or category give sub categories
+Products API —> Given sub category and lat/long ;; give products
+From the Fulfillment :
+Get stores —> given lat/long and key/value pairs give store the fulfill the category
+get shippers —> given lat/long give the shippers near to you
+
+Updates From Catalog/Seller Engine
+
+Impact on API and Reworking ::
+  All new APIs must be backward compatible. So no need for new changes
+
+From the APP —>
+Catalog API —>change lat/long to GeoHash ;;from app side ;;; Give all super categories and categories for a geo hash //
+Category API —> Choose a cluster based on criteria (criteria to be decided).and return all sub categories in the cluster
+Products API —> add clusterId param to the call; list all the unique products in the cluster (cluster properties to be decided)
+From the Fulfillment :
+Get stores —> Please add cluster ID;; sorting and listing to be same;
+Get Shippers —> no change as of now
+
+Updates from the Catalog/Seller engine —>
+Add Inventory —> need to rebuild the cluster for some hashes
+Update Inventory —> check for rebuild then rebuild
+Category Path —> check then rebuild
+Update Store/Listing —> rebuild geo cluster
+Update device ping —> no change
+Catalog Update —> check and rebuild

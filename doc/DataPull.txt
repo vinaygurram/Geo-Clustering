@@ -1,0 +1,25 @@
+Pull Data ::
+
+Live Store List ::
+ES API : http://listing-service.olastore.com/list/stores?lat=12.969558&lng=77.685487&radius=40000000000
+Header : “client” —> “ff@tnt”
+
+Store Products Data
+Seller Store Product List : http://seller-engine.olastore.com/stores/:productId/inventories
+
+Product Cat/SupCat/SubCat list :
+Catalog Tree API : http://catalog-engine.olastore.com/v1/category/tree/product/ACL0RULHU4PO/path
+
+
+Data Manipulation ::
+Get Store List
+For Each Store get Product List
+
+Final Data Index In ES :: (lot of replicated data //need to improve on logic)
+Stores Index ::
+Store ID
+Store Location
+Product List
+Sub Categories
+Super Categories
+Categories
