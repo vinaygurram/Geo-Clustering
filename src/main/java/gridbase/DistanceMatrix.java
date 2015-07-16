@@ -1,5 +1,9 @@
 package gridbase;
 
+import com.github.davidmoten.geo.GeoHash;
+import com.github.davidmoten.geo.LatLong;
+import live.cluster.one.GeoCLusteringNew;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
@@ -12,8 +16,8 @@ public class DistanceMatrix {
     private final HashMap<String, Double> dMatrix = new HashMap<String, Double>();
     private final String CCATTERM = "##";
 
-    public DistanceMatrix(List<ClusteringPoint> points){
-        computeDistancMatrix(points);
+    public DistanceMatrix(Geopoint geoHash, List<String> points){
+        computeDistancMatrix(geoHash,points);
     }
 
     private String getHash(String id1, String id2,boolean order) {
@@ -44,15 +48,18 @@ public class DistanceMatrix {
         return 0d;
     }
 
-    private void computeDistancMatrix(List<ClusteringPoint> clusteringPoints){
-        for(ClusteringPoint cp: clusteringPoints){
-           for(ClusteringPoint tp: clusteringPoints){
-               if(cp.getId()!=tp.getId()){
-                   String hashId = getHash(tp.getId(),cp.getId(),true);
-                   String hashId2 = getHash(tp.getId(),cp.getId(),false);
+    synchronized private void computeDistancMatrix(Geopoint geoHashString,List<String> clusteringPoints){
+        for(String cp: clusteringPoints){
+            //geoHash Calculation
+            dMatrix.put(getHash(GeoHash.encodeHash(geoHashString.getLatitude(),geoHashString.getLongitude()),cp,true),Geopoint.getDistance(geoHashString,GeoCLusteringNew.clusterPoints.get(cp).getLocation()));
+
+           for(String tp: clusteringPoints){
+               if(!cp.contentEquals(tp)){
+                   String hashId = getHash(tp,cp,true);
+                   String hashId2 = getHash(tp,cp,false);
                    if(dMatrix.containsKey(hashId) || dMatrix.containsKey(hashId2)){
                    }else {
-                       dMatrix.put(hashId,Geopoint.getDistance(cp.getLocation(),tp.getLocation()));
+                       dMatrix.put(hashId,Geopoint.getDistance(GeoCLusteringNew.clusterPoints.get(cp).getLocation(),GeoCLusteringNew.clusterPoints.get(tp).getLocation()));
                    }
                }
            }

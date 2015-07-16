@@ -4,6 +4,7 @@ import org.json.JSONArray;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by gurramvinay on 6/19/15.
@@ -20,7 +21,7 @@ public class ESShop {
     private int prodCount;
 
 
-    public ESShop(String name,JSONArray pids, String id, Geopoint location,HashMap<String,List<String>> map){
+    public ESShop(String name,JSONArray pids, String id, Geopoint location,ConcurrentHashMap<String,List<String>> map){
         this.name = name;
 
         for(int i=0;i<pids.length();i++){
@@ -91,7 +92,7 @@ public class ESShop {
         this.prodCount = prodCount;
     }
 
-    public void createCatList(HashMap<String,List<String>> map){
+    synchronized public void createCatList(ConcurrentHashMap<String,List<String>> map){
         for(String id: productIDList){
             if(map.containsKey(id)){
                 List<String> list = map.get(id);

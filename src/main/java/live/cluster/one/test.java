@@ -4,6 +4,7 @@ import gridbase.ClusterObj;
 import gridbase.ClusteringPoint;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -62,7 +63,7 @@ public class test {
     }
 
     public List<List<String>> getAll2Strings(List<String> strings){
-                List<List<String>> totalList = new ArrayList<List<String>>();
+        List<List<String>> totalList = new ArrayList<List<String>>();
         for(int i=0;i<strings.size();i++){
             List<String> tempList = new ArrayList<String>();
             tempList.add(strings.get(i));
@@ -77,14 +78,32 @@ public class test {
 
     }
 
+    public String getHashForCHM(List<String> strings){
+        Collections.sort(strings);
+        StringBuilder sb = new StringBuilder();
+        for(String s : strings){
+            sb.append("-");
+            sb.append(s);
+        }
+        return sb.toString().substring(1);
+
+    }
+
     public static void main(String[] args){
         test tes = new test();
         List<String> teds = new ArrayList<String>();
         teds.add("1");
         teds.add("2");
         teds.add("3");
-        teds.add("4");
-        teds.add("5");
+        //teds.add("4");
+        //eds.add("5");
+
+        System.out.println(tes.getHashForCHM(teds));
+        teds = new ArrayList<String>();
+        teds.add("2");
+        teds.add("1");
+        teds.add("3");
+        System.out.println(tes.getHashForCHM(teds));
 
 
         String[] ssip = {"12"};
@@ -97,10 +116,10 @@ public class test {
         list.add(cd);
         list.add(ce);
         list.add(fd);
-        List<ClusterObj> ssd = tes.getAll2Clusters(list);
+        //List<ClusterObj> ssd = tes.getAll2Clusters(list);
         //teds.add("4");
         //teds.add("5");
-        List<List<String>> aes = tes.getAllCombinations(teds);
+        //List<List<String>> aes = tes.getAllCombinations(teds);
 //        List<List<String>> aes = tes.getAll2Strings(teds);
 //        for(List<String> sd : aes){
 //            for(String ss : sd){
@@ -108,6 +127,8 @@ public class test {
 //            }
 //            System.out.println();
 //        }
+
+
 
     }
 }

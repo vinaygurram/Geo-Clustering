@@ -17,21 +17,18 @@ import java.io.InputStreamReader;
  */
 public class CSVGenerator {
 
-
-
-
     public void getESData(){
 
         try {
 
             FileWriter fileWriter = new FileWriter("src/main/resources/esData.csv");
-            fileWriter.write("id,geoHash,rank,sub_cat_count,product_count,distance");
+            fileWriter.write("id,geoHash,rank,sub_cat_count,product_count,distance,stores_count,shop_ids");
             fileWriter.write("\n");
             HttpClient httpClient = HttpClientBuilder.create().build();
             int from =0;
-            while(from<110000){
-                String query = "{\"size\": 10000,\"from\":"+from+",\"fields\":[\"clusterOB.distance\",\"clusterOB.product_count\",\"clusterOB.geohash\",\"clusterOB.rank\",\"clusterOB.sub_cat_count\",\"store.shop_ids\"], \"query\": {\"match_all\": {}}}";
-                String ES_API = "http://localhost:9200/live_geo_clusters_new1/_search";
+            while(from<461000){
+                String query = "{\"size\": 10000,\"from\":"+from+",\"fields\":[\"clusterOB.distance\",\"clusterOB.product_count\",\"clusterOB.geohash\",\"clusterOB.rank\",\"clusterOB.sub_cat_count\",\"store.shop_ids\",\"clusterOB.stores_count\",\"clusterOB.shop_ids\"], \"query\": {\"match_all\": {}}}";
+                String ES_API = "http://localhost:9200/live_geo_clusters_new3/_search";
 
                 HttpPost httpPost = new HttpPost(ES_API);
                 httpPost.setEntity(new StringEntity(query));
@@ -53,7 +50,11 @@ public class CSVGenerator {
                     int sub_cat_count = fieldsObject.getJSONArray("clusterOB.sub_cat_count").getInt(0);
                     int product_count = fieldsObject.getJSONArray("clusterOB.product_count").getInt(0);
                     double distance = fieldsObject.getJSONArray("clusterOB.distance").getDouble(0);
-                    fileWriter.write(id+","+geoHash+","+rank+","+sub_cat_count+","+product_count+","+distance);
+                    int store_count = fieldsObject.getJSONArray("clusterOB.stores_count").getInt(0);
+                    JSONArray store_ids = fieldsObject.getJSONArray("clusterOB.shop_ids");
+                    String shop_ids = store_ids.getString(0)+":"+store_ids.getString(1);
+                    //double
+                    fileWriter.write(id+","+geoHash+","+rank+","+sub_cat_count+","+product_count+","+distance+","+store_count+","+shop_ids);
                     fileWriter.write("\n");
 
                 }

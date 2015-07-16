@@ -14,16 +14,10 @@ import java.util.List;
 
 public class ClusterStrategy {
     private DistanceMatrix distanceMatrix;
-    List<ClusteringPoint> points;
-    ClusteringPoint geoHash;
 
     //Constructor
-    ClusterStrategy(List<ClusteringPoint> points,ClusteringPoint geoHash){
-        List<ClusteringPoint> ttpoints = new ArrayList<ClusteringPoint>(points);
-        ttpoints.add(geoHash);
-        this.distanceMatrix = new DistanceMatrix(ttpoints);
-        this.geoHash = geoHash;
-        this.points = points;
+    ClusterStrategy(List<String> points,String geoHash){
+ //       this.distanceMatrix = new DistanceMatrix(geoHash,points);
     }
 
 

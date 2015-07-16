@@ -2,6 +2,7 @@ package gridbase;
 
 import com.github.davidmoten.geo.Coverage;
 import com.github.davidmoten.geo.GeoHash;
+import live.cluster.one.SimpleWorkerThread;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
@@ -19,7 +20,6 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Created by gurramvinay on 6/16/15.
@@ -391,7 +391,7 @@ public class GeoCLustering {
         //geoHashList.add("tdr129d");
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         for(String geohash: geoHashList){
-            SimpleWorkerThread simpleWorkerThread = new SimpleWorkerThread(new GeoCLustering(),geohash);
+            SimpleWorkerThread simpleWorkerThread = null;//new SimpleWorkerThread(new GeoCLustering(),geohash);
             executorService.execute(simpleWorkerThread);
             /*System.out.println("geohash is "+ geohash);
             List<ESShop> esShopgList = geoCLustering.getStoresForGeoHash(geohash);

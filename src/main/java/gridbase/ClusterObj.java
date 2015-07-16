@@ -18,7 +18,6 @@ public class ClusterObj {
     private double distance ;
     private String geoHash;
     private double rank;
-
     private int num_stores;
     private String[] sub_cat={};
 
@@ -31,18 +30,18 @@ public class ClusterObj {
         num_stores++;
 
         //Update products
-        if(products==null){
-            products = p.getProducts();
-        }else{
-            products = mergeShopProducts(products,p.getProducts());
-        }
-
-        //update sub categories
-        if(sub_cat==null){
-            sub_cat = p.getSubCat();
-        }else {
-            sub_cat = mergeShopProducts(sub_cat,p.getSubCat());
-        }
+//        if(products==null){
+//            products = p.getProducts();
+//        }else{
+//            products = mergeShopProducts(products,p.getProducts());
+//        }
+//
+//        //update sub categories
+//        if(sub_cat==null){
+//            sub_cat = p.getSubCat();
+//        }else {
+//            sub_cat = mergeShopProducts(sub_cat,p.getSubCat());
+//       }
     }
 
     /**
