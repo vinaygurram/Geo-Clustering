@@ -3,6 +3,7 @@ package live.cluster.one;
 import com.github.davidmoten.geo.Coverage;
 import com.github.davidmoten.geo.GeoHash;
 import gridbase.*;
+import live.cluster.one.LObject.CatalogTree;
 import live.cluster.one.LObject.ClusterObjNew;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -36,8 +37,13 @@ public class GeoCLusteringNew {
     public static ConcurrentHashMap<String ,ClusteringPoint> clusterPoints = new ConcurrentHashMap<String, ClusteringPoint>();
     public static ConcurrentHashMap<String,String[]> product3MergerMap = new ConcurrentHashMap<String, String[]>();
     public static ConcurrentHashMap<String,String[]> subCat3MergerMap = new ConcurrentHashMap<String, String[]>();
+    public static ConcurrentHashMap<String,String[]> subCatMultiMergerMap = new ConcurrentHashMap<String, String[]>();
     public static ConcurrentHashMap<String,String[]> product2MergerMap = new ConcurrentHashMap<String, String[]>();
+    public static ConcurrentHashMap<String,String[]> productMultiMergerMap = new ConcurrentHashMap<String, String[]>();
     public static ConcurrentHashMap<String,String[]> subCat2MergerMap = new ConcurrentHashMap<String, String[]>();
+    public static ConcurrentHashMap<String,CatalogTree> catalogTreeMap = new ConcurrentHashMap<String,CatalogTree>();
+    public static ConcurrentHashMap<String ,List<ClusterObj>> computedClusters = new ConcurrentHashMap<String, List<ClusterObj>>();
+    public static ArrayList<String> pushedClusters = new ArrayList<String>();
 
 
     public int generateProdCatMap(ConcurrentHashMap<String,List<String>> productsCatMap){
@@ -47,7 +53,7 @@ public class GeoCLusteringNew {
             while (m<19000){
                 String query = "{query:{match_all:{}},size:1000,from:"+m+"}";
                 m = m+1000;
-                HttpPost httpPost = new HttpPost("http://localhost:9200/products_list/_search");
+                HttpPost httpPost = new HttpPost("http://localhost:9200/products_list_new/_search");
                 httpPost.setEntity(new StringEntity(query));
                 HttpResponse response = httpClient.execute(httpPost);
 
@@ -58,7 +64,6 @@ public class GeoCLusteringNew {
                     result.append(line);
                 }
                 JSONObject jsonObject = new JSONObject(result.toString());
-                System.out.println(jsonObject);
                 JSONArray jsonArray = jsonObject.getJSONObject("hits").getJSONArray("hits");
 
                 for(int i=0;i<jsonArray.length();i++){
@@ -303,24 +308,54 @@ public class GeoCLusteringNew {
 
 
     public static void pushClusterToES(List<ClusterObjNew> clusterObjs){
+        HttpClient httpClient = null;
 
         for(ClusterObjNew clusterObj : clusterObjs){
-            HttpClient httpClient = null;
             StringBuffer result = new StringBuffer();
             List<Long> numbers = new ArrayList<Long>();
             try {
-                String ESAPI = "http://localhost:9200/live_geo_clusters_new3/geo_cluster";
-
-                String uri = ESAPI;
                 httpClient = HttpClientBuilder.create().build();
+                List<String> stringList = clusterObj.getPoints();
+                String hash = getHashForCHM(stringList);
+                String geoHash = clusterObj.getGeoHash();
 
-                HttpPost postRequest = new HttpPost(uri);
+                if(pushedClusters.contains(hash)){
+                    String ESAPI = "http://localhost:9200/geo_hash1/geo_cluster/";
+                    String query = "{\"script\":\"ctx._source.geo_hash\"+="+"\","+geoHash+"\"\",\"upsert\":{\"geo_hash\":"+geoHash+"}}";
+                   // query = "{\"geo_hash\":\""+geoHash+"\"}";
+                    HttpPost post = new HttpPost(ESAPI);
+                    post.setEntity(new StringEntity(query));
 
-               String ssd = clusterObj.getJSON().toString();
-                postRequest.setEntity(new StringEntity(ssd));
-                //send post request
-                HttpResponse response = httpClient.execute(postRequest);
-                HttpEntity code =response.getEntity();
+                    HttpResponse response = httpClient.execute(post);
+                    HttpEntity code = response.getEntity();
+
+                }else {
+
+                    String ESAPI = "http://localhost:9200/geo_hash1/geo_cluster/";
+                    //String query = "{\"script\":\"ctx._source.geo_hash+="+","+geoHash+"\",\"upsert\":{\"geo_hash\":"+geoHash+"}}";
+                    String query = "{\"geo_hash\":\""+geoHash+"\",\"cluster_ids\":\""+hash+"\"}";
+                    HttpPost post = new HttpPost(ESAPI);
+                    post.setEntity(new StringEntity(query));
+
+                    HttpResponse response = httpClient.execute(post);
+                    HttpEntity code = response.getEntity();
+
+
+                     ESAPI = "http://localhost:9200/live_geo_clusters_new5/geo_cluster/"+hash;
+
+                    String uri = ESAPI;
+
+                    HttpPost postRequest = new HttpPost(uri);
+
+                    String ssd = clusterObj.getJSON().toString();
+                    postRequest.setEntity(new StringEntity(ssd));
+                    //send post request
+                     response = httpClient.execute(postRequest);
+                     code =response.getEntity();
+                    pushedClusters.add(hash);
+                }
+
+
 
 
             }catch (IOException e){
@@ -345,7 +380,6 @@ public class GeoCLusteringNew {
             //Make geohashes and product category map
             List<String> geoHashList = geoCLusteringNew.getBlrGeoHashes();
             int tt = geoCLusteringNew.generateProdCatMap(geoCLusteringNew.map);
-            List<Future> futures = new ArrayList<Future>();
 
             ExecutorService executorService = Executors.newFixedThreadPool(20);
             for(String s : geoHashList){
@@ -353,16 +387,27 @@ public class GeoCLusteringNew {
                 List<String> clusterPoints = geoCLusteringNew.getClusteringPoints(shops);
 
                 SimpleWorkerThread thread = new SimpleWorkerThread(clusterPoints,s);
+                //thread.run();
                 executorService.execute(thread);
-            }
-
-            while(executorService.isTerminated()){
-
             }
             executorService.shutdown();
 
         }catch (Exception e){
             e.printStackTrace();
         }
+    }
+
+    //Helper function to create the hash
+    public static String getHashForCHM(List<String> strings){
+        Collections.sort(strings);
+        StringBuilder sb = new StringBuilder();
+        for(String s : strings){
+            sb.append("" +
+                    "" +
+                    "" +
+                    "-");
+            sb.append(s);
+        }
+        return sb.toString().substring(1);
     }
 }

@@ -1,5 +1,6 @@
 package gridbase;
 
+import live.cluster.one.LObject.CatalogTree;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -20,7 +21,6 @@ public class ClusterObj {
     private double rank;
     private int num_stores;
     private String[] sub_cat={};
-
 
     //Object methods
 

@@ -1,5 +1,6 @@
 package live.cluster.one;
 
+import com.github.davidmoten.geo.GeoHash;
 import gridbase.Geopoint;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -15,7 +16,11 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Created by gurramvinay on 7/9/15.
@@ -236,17 +241,51 @@ public class GetLiveData {
         return new ArrayList<PCat>();
     }
 
+    public List<PCat> generateProductsFromFile(String path){
+        FileReader fileReader=null;
+        BufferedReader bufferedReader=null;
+        List<PCat> rPcat = new ArrayList<PCat>();
+        try {
+            fileReader = new FileReader(path);
+            bufferedReader = new BufferedReader(fileReader);
+            String line= bufferedReader.readLine();
+            while((line=bufferedReader.readLine())!=null){
+                String[] lineArray = line.split("\t");
+                String sbCat = "";
+                if(lineArray.length==4){
+                    sbCat = lineArray[3];
+                }
+                PCat pCat = new PCat(lineArray[0],lineArray[1],sbCat,lineArray[2]);
+                rPcat.add(pCat);
+            }
+            bufferedReader.close();
+            fileReader.close();
+        }catch (Exception e){
+            e.printStackTrace();
+        }finally {
+            try {
+                bufferedReader.close();
+                fileReader.close();
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+
+        }
+        return rPcat;
+    }
+
 
     public void pushPcatToES(){
-        List<String> ids = generateIds();
+        //List<String> ids = generateIds();
         HttpClient httpClient = null;
         httpClient = HttpClientBuilder.create().build();
         long l =1;
-        List<PCat> pCats = GetCat(ids);
+        //List<PCat> pCats = GetCat(ids);
+        List<PCat> pCats = generateProductsFromFile("/Users/gurramvinay/Downloads/catalog_segment.csv");
         for(PCat pCat : pCats){
             try {
 
-                HttpPost postRequest = new HttpPost("http://localhost:9200/products_list/products");
+                HttpPost postRequest = new HttpPost("http://localhost:9200/products_list_new/products");
                 postRequest.setEntity(new StringEntity(pCat.getJSON().toString()));
                 //send post request
                 HttpResponse response = httpClient.execute(postRequest);
@@ -265,12 +304,14 @@ public class GetLiveData {
         }
     }
 
+
     public static void main(String[] args){
         GetLiveData getLiveData = new GetLiveData();
         //List<Store> stores1 = getLiveData.getStoresData();;
         //stores1 = getLiveData.getProductsOfStores(stores1);
         //stores1 = getLiveData.getCatOfStores(stores1);
         //getLiveData.pushDataToES(stores1);
+        //getLiveData.pushPcatToES();
         getLiveData.pushPcatToES();
     }
 

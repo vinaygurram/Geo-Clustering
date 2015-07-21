@@ -89,45 +89,62 @@ public class test {
 
     }
 
+    public List<List<String>> get5CClusters(List<String> idList){
+
+        if(idList.size()<5) return null;
+
+        List<List<String>> totalList = new ArrayList<List<String>>();
+        for(int i=0;i<idList.size();i++){
+            List<String> tempList = new ArrayList<String>();
+            tempList.add(idList.get(i));
+            for(int j=i+1;j+3<idList.size();j++){
+                tempList.add(idList.get(j));
+                tempList.add(idList.get(j+1));
+                tempList.add(idList.get(j+2));
+                tempList.add(idList.get(j+3));
+                totalList.add(tempList);
+                tempList = new ArrayList<String>();
+                tempList.add(idList.get(i));
+            }
+        }
+        return totalList;
+    }
+
+    public List<List<String>> get6CClusters(List<String> idList){
+
+        if(idList.size()<6) return null;
+
+        List<List<String>> totalList = new ArrayList<List<String>>();
+        for(int i=0;i<idList.size();i++){
+            List<String> tempList = new ArrayList<String>();
+            tempList.add(idList.get(i));
+            for(int j=i+1;j+4<idList.size();j++){
+                tempList.add(idList.get(j));
+                tempList.add(idList.get(j+1));
+                tempList.add(idList.get(j+2));
+                tempList.add(idList.get(j+3));
+                tempList.add(idList.get(j+4));
+                totalList.add(tempList);
+                tempList = new ArrayList<String>();
+                tempList.add(idList.get(i));
+            }
+        }
+        return totalList;
+    }
+
     public static void main(String[] args){
         test tes = new test();
         List<String> teds = new ArrayList<String>();
         teds.add("1");
         teds.add("2");
         teds.add("3");
-        //teds.add("4");
-        //eds.add("5");
-
-        System.out.println(tes.getHashForCHM(teds));
-        teds = new ArrayList<String>();
-        teds.add("2");
-        teds.add("1");
-        teds.add("3");
-        System.out.println(tes.getHashForCHM(teds));
-
-
-        String[] ssip = {"12"};
-        ClusteringPoint cc = new ClusteringPoint("1",ssip,null);
-        ClusteringPoint cd = new ClusteringPoint("2",ssip,null);
-        ClusteringPoint ce = new ClusteringPoint("3",ssip,null);
-        ClusteringPoint fd = new ClusteringPoint("4",ssip,null);
-        List<ClusteringPoint > list = new ArrayList<ClusteringPoint>();
-        list.add(cc);
-        list.add(cd);
-        list.add(ce);
-        list.add(fd);
-        //List<ClusterObj> ssd = tes.getAll2Clusters(list);
-        //teds.add("4");
-        //teds.add("5");
-        //List<List<String>> aes = tes.getAllCombinations(teds);
-//        List<List<String>> aes = tes.getAll2Strings(teds);
-//        for(List<String> sd : aes){
-//            for(String ss : sd){
-//                System.out.print(" " + ss);
-//            }
-//            System.out.println();
-//        }
-
+        teds.add("4");
+        teds.add("5");
+        teds.add("6");
+        teds.add("7");
+        teds.add("8");
+        List<List<String>> stringList = tes.get6CClusters(teds);
+        System.out.println(stringList);
 
 
     }

@@ -2,7 +2,7 @@ package live.cluster.one;
 
 import com.github.davidmoten.geo.GeoHash;
 import gridbase.*;
-import live.cluster.one.LObject.ClusterObjNew;
+import live.cluster.one.LObject.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,35 +25,9 @@ public class ClusterStrategyNew {
         this.distanceMatrix = new DistanceMatrix(geoHash,ttpoints);
 
     }
-
-
-    public List<ClusterObj> createClusters(Geopoint geoHash, List<String> points){
-//
-//
-//        createDistanceMatrix(geoHash,points);
-//        List<ClusterObj> clusters = new ArrayList<ClusterObj>();
-//        while(points.size()>2){
-//            ClusterObj clusterObj = new ClusterObj();
-//            //while(clusterObj.getPoints().size()<4 && clusterObj.getProductCount()<3000 &&clusterObj.getSub_cat().length<120){
-//            while(clusterObj.getSub_cat().length<120 && points.size()>1 && clusterObj.getPoints().size()<5){
-//                //C****//clusterObj = formCluster(geoHash,clusterObj,points);
-//                clusterObj = null;
-//            }
-//            clusterObj.setGeoHash(GeoHash.encodeHash(geoHash.getLocation().getLatitude(), geoHash.getLocation().getLongitude()));
-//            clusters.add(clusterObj);
-//        }
-//        ClusterObj clusterObj = new ClusterObj();
-//        for(ClusteringPoint cp: points){
-//            clusterObj.addPoint(cp);
-//        }
-//        clusterObj.setGeoHash(GeoHash.encodeHash(geoHash.getLocation().getLatitude(),geoHash.getLocation().getLongitude()));
-//        clusters.add(clusterObj);
-//        return clusters;
-        return null;
-    }
-
     public List<ClusterObjNew> createClusters1(Geopoint geoHash,  List<String>points){
-        createDistanceMatrix(geoHash,points);
+
+        createDistanceMatrix(geoHash, points);
         List<ClusterObjNew> rclusters = new ArrayList<ClusterObjNew>();
         if(points.size()==0){
             return rclusters;
@@ -84,9 +58,10 @@ public class ClusterStrategyNew {
                 return rclusters;
             }
         }else {
-            //create clusters with 3 shops
-            List<List<String>> clusters =getAllClusters(points);
             List<ClusterObjNew> validClusters = new ArrayList<ClusterObjNew>();
+
+            //create clusters with 3 shops
+            List<List<String>> clusters =get3CClusters(points);
             for(List<String> clusterObj : clusters){
                 ClusterObjNew temp = checkValidCluster(geoHash,clusterObj);
                 if(temp!=null){
@@ -95,190 +70,58 @@ public class ClusterStrategyNew {
                 }
 
             }
-            System.out.println();
-            //create clusters with 2 shops if 3 shops fail
-            if(validClusters.size()==0){
-                clusters = getAll2Clusters(points);
-                validClusters = new ArrayList<ClusterObjNew>();
+            //create clusters with 4 shops
+            if(points.size()>3){
+                clusters = get4CClusters(points);
                 for(List<String> clusterObj : clusters){
                     ClusterObjNew temp = checkValidCluster(geoHash,clusterObj);
                     if(temp!=null){
                         temp.setGeoHash(GeoHash.encodeHash(geoHash.getLatitude(),geoHash.getLongitude()));
                         validClusters.add(temp);
-                        System.out.println("s--1");
+                    }
+                }
+                if(points.size()>4){
+
+                    //create clusters with 5 shops
+                    clusters = get5CClusters(points);
+                    for(List<String> clusterObj : clusters){
+                        ClusterObjNew temp = checkValidCluster(geoHash,clusterObj);
+                        if(temp!=null){
+                            temp.setGeoHash(GeoHash.encodeHash(geoHash.getLatitude(),geoHash.getLongitude()));
+                            validClusters.add(temp);
+                        }
                     }
 
+                    if(points.size()>5){
+                        //create clusters with 6 shops
+                        clusters = get5CClusters(points);
+                        for(List<String> clusterObj : clusters){
+                            ClusterObjNew temp = checkValidCluster(geoHash,clusterObj);
+                            if(temp!=null){
+                                temp.setGeoHash(GeoHash.encodeHash(geoHash.getLatitude(),geoHash.getLongitude()));
+                                validClusters.add(temp);
+                            }
+                        }
+                    }
                 }
+            }
+            clusters = get2CClusters(points);
+            validClusters = new ArrayList<ClusterObjNew>();
+            for(List<String> clusterObj : clusters){
+                ClusterObjNew temp = checkValidCluster(geoHash,clusterObj);
+                if(temp!=null){
+                    temp.setGeoHash(GeoHash.encodeHash(geoHash.getLatitude(),geoHash.getLongitude()));
+                    validClusters.add(temp);
+                }
+
             }
             rclusters = validClusters;
         }
         return rclusters;
     }
 
-    public ClusterObj formCluster(ClusteringPoint geoHash, ClusterObj cluster, List<ClusteringPoint> points){
-
-        //Consider the case of only geoHash point
-        if(cluster.getPoints().size()==0){
-            ClusteringPoint nearestPoint = getDNearestPoint(geoHash,points);
-            points.remove(nearestPoint);
-            cluster.addPoint(nearestPoint);
-            double distance = Geopoint.getDistance(nearestPoint.getLocation(), geoHash.getLocation());
-            cluster.setDistance(distance);
-            double rank = getFavourFactor(distance,nearestPoint.getProducts().length);
-            cluster.setRank(rank);
-            return cluster;
-        }
-
-        //Cluster has some points
-        //find probable points
-        ClusteringPoint[] tempPointList = findProbablePoints(cluster.getPoints(),points);
-
-        //find best clustering point out of those using shortest distance
-        //Choosing the best possible point in the cluster
-        ClusteringPoint goodClusteringPoint =null;
-        double bestDistance= Double.MAX_VALUE;
-        List<String> bestProductCoverage = new ArrayList<String>();
-        ClusteringPoint bestPoint = null;
-
-        double fav = Double.MIN_VALUE;
-
-        for(ClusteringPoint p : tempPointList){
-            //double dd = getShortestDistance(p,geoHash,cluster.getPoints());
-            double dd =1.0;
-            List<String> productsCoverage = getProductCoverage(p,cluster);
-            double temp = getFavourFactor(dd,productsCoverage.size());
-            if(temp>fav){
-                fav = temp;
-                bestProductCoverage = productsCoverage;
-                bestDistance = dd;
-                bestPoint = p;
-            }
-        }
-        //Add it to Cluster
-        //Doint it multiple times but let it go
-        cluster.setDistance(bestDistance);
-        cluster.addPoint(bestPoint);
-        cluster.setRank(fav);
-        points.remove(bestPoint);
-        String[] pps = new String[bestProductCoverage.size()];
-        pps = bestProductCoverage.toArray(pps);
-        cluster.setProducts(pps);
-
-        return cluster;
-    }
-     /**
-      * Get product coverage with this point
-      * */
-    public List<String> getProductCoverage(ClusteringPoint clusteringPoint, ClusterObj clusterObj){
-        String[] clusterProducts = clusterObj.getProducts();
-        String[] pointProducts = clusteringPoint.getProducts();
-        List<String> finalProducts = new ArrayList<String>();
-        for(int i=0;i<clusterProducts.length;i++){
-            finalProducts.add(clusterProducts[i]);
-        }
-        for(int i=0;i<pointProducts.length;i++){
-            if(!finalProducts.contains(pointProducts[i])){
-                finalProducts.add(pointProducts[i]);
-            }
-        }
-        return finalProducts;
-    }
-
-    /**
-     * Get nearest point according to distance
-     * */
-    public ClusteringPoint getDNearestPoint(ClusteringPoint p, List<ClusteringPoint> points){
-        HashMap<String,Double>ddNode = distanceMatrix.getNodeDistanceMatrix(p.getId());
-        double distanceN = Double.MAX_VALUE;
-        ClusteringPoint cp = null;
-        for(ClusteringPoint cd : points){
-            double tempDistance = distanceMatrix.getDistance(cd.getId(),p.getId());
-            if (tempDistance<distanceN) cp = cd;
-        }
-        return  cp;
-    }
-
-
-
-
     //Helper methods
 
-    /**
-     * @return  3 points that are near to cluster
-     * */
-    //Need to optimize the way of finding the 3 largest
-    //the number is very small (5) so better to same complexity for heap/selection/raw
-    public ClusteringPoint[] findProbablePoints(List<ClusteringPoint> clusterPoints, List<ClusteringPoint> pointList){
-
-        if(pointList.size()<4) {
-            ClusteringPoint[] clusteringPoints = new ClusteringPoint[pointList.size()];
-            for(int i=0;i<clusteringPoints.length;i++){
-               clusteringPoints[i] = pointList.get(i);
-            }
-            return clusteringPoints;
-        }
-        ClusteringPoint[] largest = new ClusteringPoint[3];
-        ClusteringPoint laregestF = null;
-        double distance = Double.MAX_VALUE;
-        for(ClusteringPoint point :pointList){
-            double tempD = getDistanceFromCluster(point,clusterPoints);
-            if(distance>tempD){
-                distance = tempD;
-                laregestF = point;
-            }
-        }
-        ClusteringPoint largestS=null;
-        distance = Double.MAX_VALUE;
-        for(ClusteringPoint point :pointList){
-            if(point.getId()==laregestF.getId()) continue;
-            double tempD = getDistanceFromCluster(point,clusterPoints);
-            if(distance>tempD){
-                distance = tempD;
-                largestS = point;
-            }
-        }
-        ClusteringPoint largestT=null;
-        distance = Double.MAX_VALUE;
-        for(ClusteringPoint point :pointList){
-            if(point.getId()==laregestF.getId() || point.getId()==largestS.getId()) continue;
-            double tempD = getDistanceFromCluster(point,clusterPoints);
-            if(distance>tempD){
-                distance = tempD;
-                largestT = point;
-            }
-        }
-        largest[0] = laregestF;
-        largest[1] =largestS;
-        largest[2] = largestT;
-        return largest;
-    }
-
-
-    /**
-     * Get avg distance from existing cluster
-     * */
-    public double getDistanceFromCluster(ClusteringPoint point, List<ClusteringPoint> pointList){
-        double ddd = 0d;
-        for(ClusteringPoint dd: pointList){
-            ddd += Geopoint.getDistance(point.getLocation(),dd.getLocation());
-        }
-        return (ddd/pointList.size());
-    }
-
-    /**
-     * Get Favoured Cluster in List of clusters
-     * Fav Factor Logic D--> Distance, P ---> Product Count
-     * Dmax = 15; Product Count Pmax = 17000
-     * Fav Factor = (1/2)*(Dmax/D) + (1/2) * (P/Pmax)
-     * @return
-     * */
-    public double getFavourFactor(double distance, int products){
-        double d = 15000/distance;
-        d = d/2;
-        double p = ((double)products)/17000;
-        p =p/2;
-        return  d+p;
-    }
     /**
      * Get Favoured Cluster in List of clusters
      * Fav Factor = (1/2)*(S/Smax) + (1/2) * (P/Pmax)
@@ -291,62 +134,6 @@ public class ClusterStrategyNew {
         s =s/2;
         return  s+p;
     }
-
-
-//    /**
-//     * computes the shortest Custom distance between a point and a cluster
-//     * distance d = Min(Di+Si)
-//     * Di --->distance from geohash to point,
-//     * Si--> shortest path co nnecting all the points in cluster and new point
-//     * @return Distance with this particular point
-//     * @param cp probable point that can be added to cluster
-//     * @param geohashPoint geoHash for which cluster is being calculated
-//     * @param points list of points that are already in cluster
-//     * */
-//    public double getShortestDistance(ClusteringPoint cp, ClusteringPoint geohashPoint, List<ClusteringPoint> points){
-//
-//
-//        double smallestDistace = Double.MAX_VALUE;
-//        points.add(cp);
-//        for(ClusteringPoint tp : points){
-//            double di = distanceBtPoints(tp,geohashPoint);
-//            double si = getShortestDistanceWithPoint(tp,points);
-//            double total = di+si;
-//            if(total <smallestDistace) {
-//                smallestDistace = total;
-//            }
-//        }
-//        points.remove(cp);
-//        return smallestDistace;
-//    }
-
-    /**
-     * computes the shortest Custom distance between a point and a cluster
-     * distance d = Min(Di+Si)
-     * Di --->distance from geohash to point,
-     * Si--> shortest path co nnecting all the points in cluster and new point
-     * @return Distance with this particular point
-     * @param cp probable point that can be added to cluster
-     * @param geohashPoint geoHash for which cluster is being calculated
-     * @param points list of points that are already in cluster
-     * */
-    public double getShortestDistance(String cp,String geohashPoint, List<String> points){
-
-
-        double smallestDistace = Double.MAX_VALUE;
-        points.add(cp);
-        for(String tp : points){
-            double di = distanceBtPoints(tp,geohashPoint);
-            double si = getShortestDistanceWithPoint(tp,points);
-            double total = di+si;
-            if(total <smallestDistace) {
-                smallestDistace = total;
-            }
-        }
-        points.remove(cp);
-        return smallestDistace;
-    }
-
 
     /**
      * Shortest Distance if store has only 2 points
@@ -377,45 +164,6 @@ public class ClusterStrategyNew {
         }
         return smallestDistace;
     }
-
-//
-//    /**
-//     * helper method
-//     * @return the distance between two geo points
-//     * */
-//    public double distanceBtPoints(ClusteringPoint c1, ClusteringPoint c2){
-//        return Geopoint.getDistance(c1.getLocation(), c2.getLocation());
-//    }
-
-//    /**
-//     * computes the shortest path using all possible combinations
-//     * @return Double shortest distance which connects all the distances
-//     * */
-//    public double getShortestDistanceWithPoint(ClusteringPoint cp2, List<ClusteringPoint> list){
-//        try {
-//            List<String> ss = new ArrayList<String>();
-//            for(int i=0;i<list.size();i++){
-//                if(list.get(i).getId().contentEquals(cp2.getId())) continue;
-//                ss.add(list.get(i).getId());
-//            }
-//            String[] idsString = new String[ss.size()];
-//            idsString = ss.toArray(idsString);
-//            List<List<String>> permutations = permute(idsString);
-//            double gDistance = Double.MAX_VALUE;
-//            for(List<String> possiblity : permutations){
-//
-//                double tempDist = distanceMatrix.getDistance(cp2.getId(),possiblity.get(0));
-//                for(int i=0;i<possiblity.size()-1;i++){
-//                    tempDist+=distanceMatrix.getDistance(possiblity.get(i),possiblity.get(i+1));
-//                }
-//                if(tempDist < gDistance) gDistance = tempDist;
-//            }
-//            return  gDistance;
-//        }catch (Exception e){
-//            e.printStackTrace();
-//        }
-//        return Double.MAX_VALUE;
-//    }
 
     /**
      * helper method
@@ -460,7 +208,7 @@ public class ClusterStrategyNew {
      * Create 3 possible combinations with everything
      **/
 
-    public List<List<String>> getAllClusters(List<String> stringList){
+    public List<List<String>> get3CClusters(List<String> stringList){
 
         List<List<String>> totalList = new ArrayList<List<String>>();
         for(int i=0;i<stringList.size();i++){
@@ -478,23 +226,87 @@ public class ClusterStrategyNew {
 
     }
 
-//    public List<ClusterObj> getAll2Clusters(List<ClusteringPoint> stringList){
-//
-//        List<ClusterObj> totalList = new ArrayList<ClusterObj>();
-//        for(int i=0;i<stringList.size();i++){
-//            ClusterObj clusterObj = new ClusterObj();
-//            clusterObj.addPoint(stringList.get(i));
-//            for(int j=i+1;j<stringList.size() ;j++){
-//                clusterObj.addPoint(stringList.get(j));
-//                totalList.add(clusterObj);
-//                clusterObj = new ClusterObj();
-//                clusterObj.addPoint(stringList.get(i));
-//            }
-//        }
-//        return totalList;
-//    }
 
-    public List<List<String>> getAll2Clusters(List<String> strings){
+    /**
+     *Get all 4 possible combinations
+     *
+     * */
+    public List<List<String>> get4CClusters(List<String> idList){
+
+        if(idList.size()<4) return null;
+
+        List<List<String>> totalList = new ArrayList<List<String>>();
+        for(int i=0;i<idList.size();i++){
+            List<String> tempList = new ArrayList<String>();
+            tempList.add(idList.get(i));
+            for(int j=i+1;j+2<idList.size();j++){
+                tempList.add(idList.get(j));
+                tempList.add(idList.get(j+1));
+                tempList.add(idList.get(j+2));
+                totalList.add(tempList);
+                tempList = new ArrayList<String>();
+                tempList.add(idList.get(i));
+            }
+        }
+        return totalList;
+    }
+
+    /**
+     * Get all 5 possible combinations
+     * */
+    public List<List<String>> get5CClusters(List<String> idList){
+
+        if(idList.size()<5) return null;
+
+        List<List<String>> totalList = new ArrayList<List<String>>();
+        for(int i=0;i<idList.size();i++){
+            List<String> tempList = new ArrayList<String>();
+            tempList.add(idList.get(i));
+            for(int j=i+1;j+3<idList.size();j++){
+                tempList.add(idList.get(j));
+                tempList.add(idList.get(j+1));
+                tempList.add(idList.get(j+2));
+                tempList.add(idList.get(j+3));
+                totalList.add(tempList);
+                tempList = new ArrayList<String>();
+                tempList.add(idList.get(i));
+            }
+        }
+        return totalList;
+    }
+
+
+    /**
+     * Get all possible 6 combinations
+     * */
+
+    public List<List<String>> get6CClusters(List<String> idList){
+
+        if(idList.size()<6) return null;
+
+        List<List<String>> totalList = new ArrayList<List<String>>();
+        for(int i=0;i<idList.size();i++){
+            List<String> tempList = new ArrayList<String>();
+            tempList.add(idList.get(i));
+            for(int j=i+1;j+4<idList.size();j++){
+                tempList.add(idList.get(j));
+                tempList.add(idList.get(j+1));
+                tempList.add(idList.get(j+2));
+                tempList.add(idList.get(j+3));
+                tempList.add(idList.get(j+4));
+                totalList.add(tempList);
+                tempList = new ArrayList<String>();
+                tempList.add(idList.get(i));
+            }
+        }
+        return totalList;
+    }
+
+
+    /**
+     * Get all 2 possible combinations
+     * */
+    public List<List<String>> get2CClusters(List<String> strings){
         List<List<String>> totalList = new ArrayList<List<String>>();
         for(int i=0;i<strings.size();i++){
             List<String> tempList = new ArrayList<String>();
@@ -510,45 +322,25 @@ public class ClusterStrategyNew {
 
     }
 
-//    /**
-//     * Check if the 3 point cluster is valid
-//     * */
-//    public ClusterObj checkValidCluster_old(ClusteringPoint geoHash,ClusterObj clusterObj){
-//        List<ClusteringPoint> points = clusterObj.getPoints();
-//        double shortDistance = Double.MAX_VALUE ;
-//        if(points.size()==3){
-//            shortDistance = getShortestDistance1(geoHash, points);
-//        }else if(points.size()==2){
-//            shortDistance =getShortestDistanceFor2(geoHash, points);
-//        }
-//        if(shortDistance>10) return null;
-//        if(clusterObj.getSub_cat().length<144) return null;
-//        if(clusterObj.getProducts().length<4000) return null;
-//        double rank = getFavourFactor_cov(clusterObj.getSub_cat().length, clusterObj.getProducts().length);
-//        clusterObj.setDistance(shortDistance);
-//        clusterObj.setRank(rank);
-//        return clusterObj;
-//    }
-
-
     /**
-     * Check if the 3 point cluster is valid
+     * Check if the point cluster is valid
      * */
     public ClusterObjNew checkValidCluster(Geopoint geoHash,List<String> stringList){
         double shortDistance = Double.MAX_VALUE ;
-        if(stringList.size()==3){
+        if(stringList.size()>=3){
             shortDistance = getShortestDistance1(geoHash, stringList);
         }else if(stringList.size()==2){
             shortDistance =getShortestDistanceFor2(geoHash, stringList);
         }
-        if(shortDistance>8) return null;
+        if(shortDistance>6) return null;
 
         //merge those ids and get Cat and SubCat count
         int productCount = mergerProducts(stringList);
         int subCatCount = mergerSubCat(stringList);
 
-        if(subCatCount<144) return null;
-        if(productCount<4000) return null;
+
+        //if(subCatCount<144) return null;
+        //if(productCount<4000) return null;
         double rank = getFavourFactor_cov(subCatCount,productCount);
 
         //Make the clusterObject now
@@ -556,6 +348,8 @@ public class ClusterStrategyNew {
         for(String s: stringList){
             clusterObjNew.addPoint(s);
         }
+        CatalogTree catalogTree = createOrMergeCatalogTree(null,stringList);
+        clusterObjNew.setCatalogTree(catalogTree);
         clusterObjNew.setDistance(shortDistance);
         clusterObjNew.setRank(rank);
         clusterObjNew.setProductsCount(productCount);
@@ -563,6 +357,132 @@ public class ClusterStrategyNew {
         return clusterObjNew;
     }
 
+
+
+
+    //Create or merge catalogTree
+    /**
+     * Need to optimize
+     * */
+    public CatalogTree createOrMergeCatalogTree(CatalogTree catalogTree,List<String> idList){
+        //check if it already stored
+        String hash = getHashForCHM(idList);
+        if(GeoCLusteringNew.catalogTreeMap.containsKey(hash)){
+            return  GeoCLusteringNew.catalogTreeMap.get(hash);
+        }
+
+        //get productList
+        List<String> productList = new ArrayList<String>();
+        String[]tempList = null;
+        if(idList.size()==2){
+            tempList = GeoCLusteringNew.product2MergerMap.get(hash);
+        }
+        if(idList.size()==3) {
+            tempList = GeoCLusteringNew.product3MergerMap.get(hash);
+        }
+        if(idList.size()>3){
+            tempList = GeoCLusteringNew.productMultiMergerMap.get(hash);
+        }
+        for(String s : tempList){
+            productList.add(s);
+        }
+
+        //create catalog tree
+        if(catalogTree==null) catalogTree = new CatalogTree();
+
+        //Making tree 4k loop
+        for (String ss: productList){
+            List<String> catList =  GeoCLusteringNew.map.get(ss);
+            if(catList==null){
+                continue;
+            }
+
+            //Create Super Category
+            List<SuperCategory>superCategoryList = catalogTree.getSuperCategories();
+            boolean is_super_cat_exists = false;
+            for(SuperCategory superCategory : superCategoryList){
+
+                //Check if super category exists
+                if(superCategory.getSup_cat_id().contentEquals(catList.get(0))){
+                    is_super_cat_exists = true;
+
+                    //Handle categories
+                    boolean is_cat_exists = false;
+                    List<Category> categoriesList=superCategory.getCatList();
+                    for(Category category : categoriesList){
+                       if(category.getCat_id().contentEquals(catList.get(2))){
+                           is_cat_exists = true;
+
+                           //check for case where sub cat does not exist
+                           if(catList.size()>2 &&!catList.get(2).isEmpty()) {
+                               //Handle sub categories
+                               boolean is_sub_cat_exists = false;
+                               List<SubCategory> subCategoryList = category.getSubCatList();
+                               for(SubCategory subCategory : subCategoryList){
+                                   if(subCategory.getSub_cat_id().contentEquals(catList.get(2))){
+                                       is_sub_cat_exists = true;
+                                       subCategory.addProduct(ss);
+                                   }
+                               }
+                               //Add Sub category
+                               if(!is_sub_cat_exists){
+                                   SubCategory subCategory = new SubCategory();
+                                   subCategory.setSub_cat_id(catList.get(2));
+                                   subCategory.addProduct(ss);
+                                   category.addSubCategory(subCategory);
+                               }
+
+                           }else {
+                               category.addProduct(ss);
+                           }
+                       }
+                    }
+                    //add category if it does not exist
+                    if(!is_cat_exists){
+                        Category category = new Category();
+                        category.setCat_id(catList.get(1));
+                        //some products might not have sub categories
+                        if(catList.size()>2 &&!catList.get(2).isEmpty()){
+                            SubCategory subCategory = new SubCategory();
+                            subCategory.setSub_cat_id(catList.get(2));
+                            subCategory.addProduct(ss);
+                            category.addSubCategory(subCategory);
+                        }else {
+                            category.addProduct(ss);
+                        }
+                        superCategory.addCategory(category);
+                    }
+
+                }
+            }
+            if(!is_super_cat_exists){
+                SuperCategory superCategory = new SuperCategory();
+                superCategory.setSup_cat_id(catList.get(0));
+                Category category = new Category();
+                category.setCat_id(catList.get(1));
+                //some products might not have sub categories
+                if(catList.size()>2 &&!catList.get(2).isEmpty()){
+                    SubCategory subCategory = new SubCategory();
+                    subCategory.setSub_cat_id(catList.get(2));
+                    subCategory.addProduct(ss);
+                    category.addSubCategory(subCategory);
+                }else {
+                    category.addProduct(ss);
+                }
+                superCategory.addCategory(category);
+                superCategoryList.add(superCategory);
+            }
+        }
+        GeoCLusteringNew.catalogTreeMap.put(hash,catalogTree);
+        return catalogTree;
+    }
+
+
+    /**
+     * Merge products with given ids
+     * lot of code duplicity
+     * divide them into multiple function of case of 2 and case of 3
+     * */
     public int mergerProducts(List<String> idList){
         if(idList.size()==2) {
             //check if it already present else merge and update
@@ -584,7 +504,7 @@ public class ClusterStrategyNew {
                 tempList.add(idList.get(0));
                 tempList.add(idList.get(1));
                 String hash2 = getHashForCHM(tempList);
-                String[] merge2 ={};
+                String[] merge2;
 
                 if(GeoCLusteringNew.product2MergerMap.containsKey(hash2)){
                     merge2 = GeoCLusteringNew.product2MergerMap.get(hash2);
@@ -597,44 +517,288 @@ public class ClusterStrategyNew {
                 return mergeF.length;
             }
         }
+        if(idList.size()==4){
+            String hash = getHashForCHM(idList);
+            if(GeoCLusteringNew.productMultiMergerMap.containsKey(hash)){
+                return GeoCLusteringNew.productMultiMergerMap.get(hash).length;
+            }else{
+                //atleast 4 stores are present
+                //check for 2,2 pairs
+                String[] merge1 ;
+                String[] merge2 ;
+                String[] merge3 ;
+                List<String> tempList = new ArrayList<String>();
+                tempList.add(idList.get(0));
+                tempList.add(idList.get(1));
+                String tempHash = getHashForCHM(tempList);
+                if(GeoCLusteringNew.product2MergerMap.containsKey(tempHash)){
+                   merge1 =  GeoCLusteringNew.product2MergerMap.get(tempHash);
+                }else {
+                    merge1 = mergeStrings(GeoCLusteringNew.clusterPoints.get(idList.get(0)).getProducts(),GeoCLusteringNew.clusterPoints.get(idList.get(1)).getProducts());
+                    GeoCLusteringNew.product2MergerMap.put(tempHash,merge1);
+                }
+                tempList = new ArrayList<String>();
+                tempList.add(idList.get(2));
+                tempList.add(idList.get(3));
+                tempHash = getHashForCHM(tempList);
+                if(GeoCLusteringNew.product2MergerMap.containsKey(tempHash)){
+                    merge2 =  GeoCLusteringNew.product2MergerMap.get(tempHash);
+                }else {
+                    merge2 = mergeStrings(GeoCLusteringNew.clusterPoints.get(idList.get(2)).getProducts(),GeoCLusteringNew.clusterPoints.get(idList.get(3)).getProducts());
+                    GeoCLusteringNew.product2MergerMap.put(tempHash,merge2);
+                }
+                merge3  = mergeStrings(merge1,merge2);
+                GeoCLusteringNew.productMultiMergerMap.put(hash,merge3);
+                return merge3.length;
+            }
+        }
+        if(idList.size()==5){
+            String hash = getHashForCHM(idList);
+            if(GeoCLusteringNew.productMultiMergerMap.containsKey(hash)){
+                return GeoCLusteringNew.productMultiMergerMap.get(hash).length;
+            }else{
+                //check for 2,3 pairs
+                String[] merge1 ;
+                String[] merge2 ;
+                //Get merged products for 0,1
+                List<String> tempList = new ArrayList<String>();
+                tempList.add(idList.get(0));
+                tempList.add(idList.get(1));
+                String tempHash = getHashForCHM(tempList);
+                if(GeoCLusteringNew.product2MergerMap.containsKey(tempHash)){
+                    merge1 = GeoCLusteringNew.product2MergerMap.get(tempHash);
+                }else {
+                    merge1 = mergeStrings(GeoCLusteringNew.clusterPoints.get(idList.get(0)).getProducts(),GeoCLusteringNew.clusterPoints.get(idList.get(1)).getProducts());
+                    GeoCLusteringNew.product2MergerMap.put(tempHash,merge1);
+                }
+
+                //get merged products for 2,3,4
+                tempList = new ArrayList<String>();
+                tempList.add(idList.get(2));
+                tempList.add(idList.get(3));
+                tempList.add(idList.get(4));
+                tempHash = getHashForCHM(tempList);
+                if(GeoCLusteringNew.product3MergerMap.containsKey(tempHash)){
+                    merge2 = GeoCLusteringNew.product3MergerMap.get(tempHash);
+                }else {
+                    //check for if 2 is already done
+                    tempList= new ArrayList<String>();
+                    tempList.add(idList.get(2));
+                    tempList.add(idList.get(3));
+                    String dTempHash = getHashForCHM(tempList);
+                    if(GeoCLusteringNew.product2MergerMap.containsKey(dTempHash)){
+                        merge2 = GeoCLusteringNew.product2MergerMap.get(dTempHash);
+                    }else {
+                        merge2 = mergeStrings(GeoCLusteringNew.clusterPoints.get(idList.get(2)).getProducts(),GeoCLusteringNew.clusterPoints.get(idList.get(3)).getProducts());
+                        GeoCLusteringNew.product2MergerMap.put(dTempHash,merge2);
+                    }
+                    merge2 = mergeStrings(merge2,GeoCLusteringNew.clusterPoints.get(idList.get(4)).getProducts());
+                    GeoCLusteringNew.product3MergerMap.put(tempHash,merge2);
+                }
+
+                //merge all 5 things
+                merge1 = mergeStrings(merge1,merge2);
+                GeoCLusteringNew.productMultiMergerMap.put(hash,merge1);
+                return  merge1.length;
+            }
+        }
+
+        if(idList.size()==6){
+            String hash = getHashForCHM(idList);
+            if(GeoCLusteringNew.productMultiMergerMap.containsKey(hash)){
+                return GeoCLusteringNew.productMultiMergerMap.get(hash).length;
+            }else{
+                //check for 3,3 pairs
+                String[] merge1 ;
+                String[] merge2 ;
+
+                //0,1,2 pair
+                List<String> tempList = new ArrayList<String>();
+                tempList.add(idList.get(0));
+                tempList.add(idList.get(1));
+                tempList.add(idList.get(2));
+                String tempHash = getHashForCHM(tempList);
+                if(GeoCLusteringNew.product3MergerMap.containsKey(tempHash)){
+                    merge1 = GeoCLusteringNew.product3MergerMap.get(tempHash);
+                }else {
+                    tempList = new ArrayList<String>();
+                    tempList.add(idList.get(0));
+                    tempList.add(idList.get(1));
+                    String dTempHash = getHashForCHM(tempList);
+                    if(GeoCLusteringNew.product2MergerMap.containsKey(dTempHash)){
+                        merge1 = GeoCLusteringNew.product2MergerMap.get(dTempHash);
+                    }else {
+                        merge1 = mergeStrings(GeoCLusteringNew.clusterPoints.get(idList.get(0)).getProducts(),GeoCLusteringNew.clusterPoints.get(idList.get(1)).getProducts());
+                        GeoCLusteringNew.product2MergerMap.put(dTempHash,merge1);
+                    }
+                    merge1 = mergeStrings(merge1,GeoCLusteringNew.clusterPoints.get(idList.get(2)).getProducts());
+                    GeoCLusteringNew.product3MergerMap.put(tempHash,merge1);
+                }
+
+                //3,4,5 pair
+                tempList = new ArrayList<String>();
+                tempList.add(idList.get(3));
+                tempList.add(idList.get(4));
+                tempList.add(idList.get(5));
+                tempHash = getHashForCHM(tempList);
+                if(GeoCLusteringNew.product3MergerMap.containsKey(tempHash)){
+                    merge2 = GeoCLusteringNew.product3MergerMap.get(tempHash);
+                }else {
+                    tempList = new ArrayList<String>();
+                    tempList.add(idList.get(3));
+                    tempList.add(idList.get(4));
+                    String dTempHash = getHashForCHM(tempList);
+                    if(GeoCLusteringNew.product2MergerMap.containsKey(dTempHash)){
+                        merge2 = GeoCLusteringNew.product2MergerMap.get(dTempHash);
+                    }else {
+                        merge2 = mergeStrings(GeoCLusteringNew.clusterPoints.get(idList.get(3)).getProducts(),GeoCLusteringNew.clusterPoints.get(idList.get(4)).getProducts());
+                        GeoCLusteringNew.product2MergerMap.put(dTempHash,merge2);
+                    }
+                    merge1 = mergeStrings(merge2,GeoCLusteringNew.clusterPoints.get(idList.get(2)).getProducts());
+                    GeoCLusteringNew.product3MergerMap.put(tempHash,merge2);
+                }
+                //merge all 6
+                GeoCLusteringNew.productMultiMergerMap.put(hash,merge1);
+                return  merge1.length;
+            }
+        }
         return 0;
     }
 
     public int mergerSubCat(List<String> idList){
         if(idList.size()==2) {
-            //check if it already present else merge and update
-            String hash = getHashForCHM(idList);
-            if (GeoCLusteringNew.subCat2MergerMap.containsKey(hash)) {
-                return GeoCLusteringNew.subCat2MergerMap.get(hash).length;
-            } else {
-                String[] merges = mergeStrings(GeoCLusteringNew.clusterPoints.get(idList.get(0)).getSubCat(), GeoCLusteringNew.clusterPoints.get(idList.get(1)).getSubCat());
-                GeoCLusteringNew.subCat2MergerMap.put(hash, merges);
-                return merges.length;
-            }
+           return merge2SubCat(idList).length;
         }
         if(idList.size()==3){
-            String hash = getHashForCHM(idList);
-            if(GeoCLusteringNew.subCat3MergerMap.containsKey(hash)){
-                return GeoCLusteringNew.subCat3MergerMap.get(hash).length;
+            return merge3SubCat(idList).length;
+        }
+        if(idList.size()==4){
+            List<String> tempList = new ArrayList<String>();
+            tempList.add(idList.get(0));
+            tempList.add(idList.get(1));
+            tempList.add(idList.get(2));
+            tempList.add(idList.get(3));
+            String hash = getHashForCHM(tempList);
+            if(GeoCLusteringNew.subCatMultiMergerMap.containsKey(hash)){
+                return GeoCLusteringNew.subCatMultiMergerMap.get(hash).length;
             }else {
-                List<String> tempList = new ArrayList<String>();
+                String[] merge1;
+                String[] merge2;
+
+                tempList = new ArrayList<String>();
                 tempList.add(idList.get(0));
                 tempList.add(idList.get(1));
-                String hash2 = getHashForCHM(tempList);
-                String[] merge2 ={};
+                merge1 = merge2SubCat(tempList);
 
-                if(GeoCLusteringNew.subCat2MergerMap.containsKey(hash2)){
-                    merge2 = GeoCLusteringNew.subCat2MergerMap.get(hash2);
-                }else {
-                    merge2 = mergeStrings(GeoCLusteringNew.clusterPoints.get(idList.get(0)).getSubCat(), GeoCLusteringNew.clusterPoints.get(idList.get(1)).getSubCat());
-                    GeoCLusteringNew.subCat2MergerMap.put(hash2, merge2);
-                }
-                String[] mergeF = mergeStrings(merge2,GeoCLusteringNew.clusterPoints.get(idList.get(2)).getSubCat());
-                GeoCLusteringNew.subCat3MergerMap.put(hash,mergeF);
-                return mergeF.length;
+                tempList = new ArrayList<String>();
+                tempList.add(idList.get(2));
+                tempList.add(idList.get(3));
+                merge2 = merge2SubCat(tempList);
+
+                merge1 = mergeStrings(merge1,merge2);
+                GeoCLusteringNew.subCatMultiMergerMap.put(hash, merge1);
+                return merge1.length;
             }
         }
+        if(idList.size()==5){
+            List<String> tempList = new ArrayList<String>();
+            tempList.add(idList.get(0));
+            tempList.add(idList.get(1));
+            tempList.add(idList.get(2));
+            tempList.add(idList.get(3));
+            tempList.add(idList.get(4));
+            String hash = getHashForCHM(tempList);
+            if(GeoCLusteringNew.subCatMultiMergerMap.containsKey(hash)){
+                return GeoCLusteringNew.subCatMultiMergerMap.get(hash).length;
+            }else {
+                String[] merge1;
+                String[] merge2;
+
+                tempList = new ArrayList<String>();
+                tempList.add(idList.get(0));
+                tempList.add(idList.get(1));
+                tempList.add(idList.get(2));
+                merge1 = merge3SubCat(tempList);
+
+                tempList = new ArrayList<String>();
+                tempList.add(idList.get(3));
+                tempList.add(idList.get(4));
+                merge2 = merge2SubCat(tempList);
+
+                merge1 = mergeStrings(merge1,merge2);
+                GeoCLusteringNew.subCatMultiMergerMap.put(hash,merge1);
+                return merge1.length;
+            }
+        }
+
+        if(idList.size()==6){
+            List<String> tempList = new ArrayList<String>();
+            tempList.add(idList.get(0));
+            tempList.add(idList.get(1));
+            tempList.add(idList.get(2));
+            tempList.add(idList.get(3));
+            tempList.add(idList.get(4));
+            tempList.add(idList.get(5));
+            String hash = getHashForCHM(tempList);
+            if(GeoCLusteringNew.subCatMultiMergerMap.containsKey(hash)){
+                return GeoCLusteringNew.subCatMultiMergerMap.get(hash).length;
+            }else {
+                String[] merge1;
+                String[] merge2;
+
+                tempList = new ArrayList<String>();
+                tempList.add(idList.get(0));
+                tempList.add(idList.get(1));
+                tempList.add(idList.get(2));
+                merge1 = merge3SubCat(tempList);
+
+                tempList = new ArrayList<String>();
+                tempList.add(idList.get(3));
+                tempList.add(idList.get(4));
+                tempList.add(idList.get(5));
+                merge2 = merge3SubCat(tempList);
+
+                merge1 = mergeStrings(merge1,merge2);
+                GeoCLusteringNew.subCatMultiMergerMap.put(hash,merge1);
+                return merge1.length;
+            }
+        }
+
         return 0;
+    }
+
+    public String[] merge2SubCat(List<String> idList){
+        String hash = getHashForCHM(idList);
+        if (GeoCLusteringNew.subCat2MergerMap.containsKey(hash)) {
+            return GeoCLusteringNew.subCat2MergerMap.get(hash);
+        } else {
+            String[] merges = mergeStrings(GeoCLusteringNew.clusterPoints.get(idList.get(0)).getSubCat(), GeoCLusteringNew.clusterPoints.get(idList.get(1)).getSubCat());
+            GeoCLusteringNew.subCat2MergerMap.put(hash, merges);
+            return merges;
+        }
+    }
+
+    public String[] merge3SubCat(List<String> idList){
+        String hash = getHashForCHM(idList);
+        if(GeoCLusteringNew.subCat3MergerMap.containsKey(hash)){
+            return GeoCLusteringNew.subCat3MergerMap.get(hash);
+        }else {
+            List<String> tempList = new ArrayList<String>();
+            tempList.add(idList.get(0));
+            tempList.add(idList.get(1));
+            String hash2 = getHashForCHM(tempList);
+            String[] merge2 ={};
+
+            if(GeoCLusteringNew.subCat2MergerMap.containsKey(hash2)){
+                merge2 = GeoCLusteringNew.subCat2MergerMap.get(hash2);
+            }else {
+                merge2 = mergeStrings(GeoCLusteringNew.clusterPoints.get(idList.get(0)).getSubCat(), GeoCLusteringNew.clusterPoints.get(idList.get(1)).getSubCat());
+                GeoCLusteringNew.subCat2MergerMap.put(hash2, merge2);
+            }
+            String[] mergeF = mergeStrings(merge2,GeoCLusteringNew.clusterPoints.get(idList.get(2)).getSubCat());
+            GeoCLusteringNew.subCat3MergerMap.put(hash,mergeF);
+            return mergeF;
+        }
     }
 
     public String[] mergeStrings(String[] s1, String[] s2){
@@ -705,4 +869,5 @@ public class ClusterStrategyNew {
         }
         return sb.toString().substring(1);
     }
+
 }

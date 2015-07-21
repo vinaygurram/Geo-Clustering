@@ -20,6 +20,8 @@ public class ClusterObjNew {
     private int num_stores;
     private int productsCount;
     private int subCatCount;
+    private CatalogTree catalogTree;
+
 
     //Object methods
 
@@ -96,6 +98,16 @@ public class ClusterObjNew {
         this.subCatCount = subCatCount;
     }
 
+    public CatalogTree getCatalogTree() {
+        return catalogTree;
+    }
+
+    public void setCatalogTree(CatalogTree catalogTree) {
+        this.catalogTree = catalogTree;
+    }
+
+
+
     @Override
     public String toString(){
         return new StringBuilder().append(points).append(" Pcount ").append(productsCount).append("\n").toString();
@@ -114,6 +126,7 @@ public class ClusterObjNew {
         for(String c:  points){
             jsonArray.put(c);
         }
+        cluster.put("cat_tree",catalogTree.getJSONOArray());
         cluster.put("sub_cat_count",subCatCount);
         cluster.put("product_count",productsCount);
         cluster.put("shop_ids", jsonArray);
