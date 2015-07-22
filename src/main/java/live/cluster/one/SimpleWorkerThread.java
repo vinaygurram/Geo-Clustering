@@ -27,9 +27,6 @@ public class SimpleWorkerThread implements  Runnable{
         LatLong gll = GeoHash.decodeHash(geohash);
         Geopoint geopoint = new Geopoint(gll.getLat(),gll.getLon());
         List<ClusterObjNew> clusterObjList = clusterStrategyNew.createClusters1(geopoint, points);
-        if(clusterObjList.size()>1){
-            System.out.println();
-        }
         GeoCLusteringNew.pushClusterToES(clusterObjList);
     }
 }

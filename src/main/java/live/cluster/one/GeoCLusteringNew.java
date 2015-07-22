@@ -78,7 +78,6 @@ public class GeoCLusteringNew {
                     productsCatMap.put(id,catList);
                 }
             }
-            System.out.println();
             return 1;
         }catch (Exception e){
             e.printStackTrace();
@@ -204,7 +203,7 @@ public class GeoCLusteringNew {
             HttpPost postRequest = new HttpPost(uri);
             String ssd = "{\"size\":40,\"fields\": [\"store.store_id\",\"store.location\",\"store.cat_list\",\"store.products.id\"," +
                     "\"store.products_count\",\"store.sub_cat_list\"],\"query\": {\"match_all\": {}}," +
-                    "\"filter\": {\"geo_distance\": {\"distance\":\"10km\",\"location\": \""+geohash+"\"}}}";
+                    "\"filter\": {\"geo_distance\": {\"distance\":\"6km\",\"location\": \""+geohash+"\"}}}";
             postRequest.setEntity(new StringEntity(ssd));
             //send post request
             HttpResponse response = httpClient.execute(postRequest);
@@ -321,10 +320,12 @@ public class GeoCLusteringNew {
 
                 if(pushedClusters.contains(hash)){
                     String ESAPI = "http://localhost:9200/geo_hash1/geo_cluster/";
-                    String query = "{\"script\":\"ctx._source.geo_hash\"+="+"\","+geoHash+"\"\",\"upsert\":{\"geo_hash\":"+geoHash+"}}";
-                   // query = "{\"geo_hash\":\""+geoHash+"\"}";
                     HttpPost post = new HttpPost(ESAPI);
-                    post.setEntity(new StringEntity(query));
+                    JSONObject jsonObject = new JSONObject();
+                    JSONObject geo = new JSONObject();
+                    geo.put("clusters",hash);
+                    geo.put("geo_hash",geoHash);
+                    post.setEntity(new StringEntity(geo.toString()));
 
                     HttpResponse response = httpClient.execute(post);
                     HttpEntity code = response.getEntity();
@@ -332,10 +333,11 @@ public class GeoCLusteringNew {
                 }else {
 
                     String ESAPI = "http://localhost:9200/geo_hash1/geo_cluster/";
-                    //String query = "{\"script\":\"ctx._source.geo_hash+="+","+geoHash+"\",\"upsert\":{\"geo_hash\":"+geoHash+"}}";
-                    String query = "{\"geo_hash\":\""+geoHash+"\",\"cluster_ids\":\""+hash+"\"}";
+                    JSONObject geo = new JSONObject();
+                    geo.put("clusters",hash);
+                    geo.put("geo_hash",geoHash);
                     HttpPost post = new HttpPost(ESAPI);
-                    post.setEntity(new StringEntity(query));
+                    post.setEntity(new StringEntity(geo.toString()));
 
                     HttpResponse response = httpClient.execute(post);
                     HttpEntity code = response.getEntity();
@@ -354,31 +356,27 @@ public class GeoCLusteringNew {
                      code =response.getEntity();
                     pushedClusters.add(hash);
                 }
-
-
-
-
             }catch (IOException e){
                 e.printStackTrace();
             }catch (JSONException e){
                 e.printStackTrace();
             }catch (Exception e){
                 e.printStackTrace();
-            }finally {
-                httpClient.getConnectionManager().shutdown();
             }
-
         }
     }
 
     public static void main(String[] args){
 
+        long time_s = System.currentTimeMillis();
         try {
             GeoCLusteringNew geoCLusteringNew = new GeoCLusteringNew();
-            long time_s = System.currentTimeMillis();
 
             //Make geohashes and product category map
             List<String> geoHashList = geoCLusteringNew.getBlrGeoHashes();
+            //geoHashList = new ArrayList<String>();
+            //geoHashList.add("tdr1vzcs");
+            //geoHashList.add("tdr1yrb");
             int tt = geoCLusteringNew.generateProdCatMap(geoCLusteringNew.map);
 
             ExecutorService executorService = Executors.newFixedThreadPool(20);
@@ -387,7 +385,6 @@ public class GeoCLusteringNew {
                 List<String> clusterPoints = geoCLusteringNew.getClusteringPoints(shops);
 
                 SimpleWorkerThread thread = new SimpleWorkerThread(clusterPoints,s);
-                //thread.run();
                 executorService.execute(thread);
             }
             executorService.shutdown();
@@ -395,6 +392,8 @@ public class GeoCLusteringNew {
         }catch (Exception e){
             e.printStackTrace();
         }
+        long time_e = System.currentTimeMillis();
+        System.out.println("Time taken is " + (time_e-time_s)+"ms");
     }
 
     //Helper function to create the hash

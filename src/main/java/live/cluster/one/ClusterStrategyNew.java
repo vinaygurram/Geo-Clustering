@@ -25,6 +25,9 @@ public class ClusterStrategyNew {
         this.distanceMatrix = new DistanceMatrix(geoHash,ttpoints);
 
     }
+
+    //TODO
+    //Need to re write the code
     public List<ClusterObjNew> createClusters1(Geopoint geoHash,  List<String>points){
 
         createDistanceMatrix(geoHash, points);
@@ -106,7 +109,6 @@ public class ClusterStrategyNew {
                 }
             }
             clusters = get2CClusters(points);
-            validClusters = new ArrayList<ClusterObjNew>();
             for(List<String> clusterObj : clusters){
                 ClusterObjNew temp = checkValidCluster(geoHash,clusterObj);
                 if(temp!=null){

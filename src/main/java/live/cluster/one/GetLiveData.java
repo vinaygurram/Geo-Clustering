@@ -305,6 +305,38 @@ public class GetLiveData {
     }
 
 
+    public void updateStoresWithFNV(String path){
+        try {
+
+            FileReader fileReader = new FileReader(path);
+            BufferedReader bufferedReader = new BufferedReader(fileReader);
+            String line = bufferedReader.readLine();
+            while((line = bufferedReader.readLine())!=null){
+                String[] cts = line.split("\t");
+                String fnv = cts[1];
+                String id = cts[3];
+                boolean fnvB = false;
+                if(fnv.contentEquals("FnV")){
+                    fnvB = true;
+                }
+                String ESAPI = "http://localhost:9200/stores_live/store/"+id+"/_update";
+                JSONObject jo = new JSONObject();
+                jo.put("script","ctx._source.fnv = \""+fnvB+"\"");
+
+                HttpClient httpClient = HttpClientBuilder.create().build();
+                HttpPost post = new HttpPost(ESAPI);
+                post.setEntity(new StringEntity(jo.toString()));
+
+                HttpResponse response = httpClient.execute(post);
+                long code= response.getEntity().getContentLength();
+
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+
     public static void main(String[] args){
         GetLiveData getLiveData = new GetLiveData();
         //List<Store> stores1 = getLiveData.getStoresData();;
@@ -312,7 +344,8 @@ public class GetLiveData {
         //stores1 = getLiveData.getCatOfStores(stores1);
         //getLiveData.pushDataToES(stores1);
         //getLiveData.pushPcatToES();
-        getLiveData.pushPcatToES();
+        // getLiveData.pushPcatToES();
+        getLiveData.updateStoresWithFNV("/Users/gurramvinay/Downloads/stores-fnv.txt");
     }
 
 }
