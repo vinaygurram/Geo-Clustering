@@ -19,6 +19,7 @@ public class ESShop {
     private List<String> productIDList = new ArrayList<String>();
     private int catCount ;
     private int prodCount;
+    private boolean fnv= false;
 
 
     public ESShop(String name,JSONArray pids, String id, Geopoint location,ConcurrentHashMap<String,List<String>> map){
@@ -106,6 +107,14 @@ public class ESShop {
 
         }
         catCount = catList.size();
+    }
+
+    public boolean isFnv() {
+        return fnv;
+    }
+
+    public void setFnv(boolean fnv) {
+        this.fnv = fnv;
     }
 
     @Override

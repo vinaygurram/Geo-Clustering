@@ -202,7 +202,7 @@ public class GeoCLusteringNew {
 
             HttpPost postRequest = new HttpPost(uri);
             String ssd = "{\"size\":40,\"fields\": [\"store.store_id\",\"store.location\",\"store.cat_list\",\"store.products.id\"," +
-                    "\"store.products_count\",\"store.sub_cat_list\"],\"query\": {\"match_all\": {}}," +
+                    "\"store.products_count\",\"store.sub_cat_list\",\"store.fnv\"],\"query\": {\"match_all\": {}}," +
                     "\"filter\": {\"geo_distance\": {\"distance\":\"6km\",\"location\": \""+geohash+"\"}}}";
             postRequest.setEntity(new StringEntity(ssd));
             //send post request
@@ -229,6 +229,7 @@ public class GeoCLusteringNew {
                 double lat = Double.parseDouble(ll[0]);
                 double lon = Double.parseDouble(ll[1]);
                 ESShop esShop = new ESShop(id,productsArray,id,new Geopoint(lat,lon),map);
+                if(fieldsObj.getJSONArray("store.fnv").getBoolean(0))esShop.setFnv(true);
                 reShops.add(esShop);
             }
         }catch (IOException e){
@@ -265,6 +266,7 @@ public class GeoCLusteringNew {
 
             }else {
                 cp =new ClusteringPoint(shop.getId(),shop.getProductIDList(),shop.getCatList(),shop.getLocation());
+                if(shop.isFnv())cp.setIsFnv(true);
                 GeoCLusteringNew.clusterPoints.put(shop.getId(), cp);
             }
             clusteringPoints.add(shop.getId());

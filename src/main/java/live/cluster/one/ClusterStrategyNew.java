@@ -340,6 +340,8 @@ public class ClusterStrategyNew {
         int productCount = mergerProducts(stringList);
         int subCatCount = mergerSubCat(stringList);
 
+        boolean fnvCriteria = checkFnV(stringList);
+        if(!fnvCriteria) return null;
 
         //if(subCatCount<144) return null;
         //if(productCount<4000) return null;
@@ -360,6 +362,18 @@ public class ClusterStrategyNew {
     }
 
 
+    /**
+     * Check for FnV
+     * */
+     public boolean checkFnV(List<String> idsist){
+         boolean rValue = false;
+         for(String s: idsist){
+             if(GeoCLusteringNew.clusterPoints.get(s).isFnv()){
+                 rValue = true;
+             }
+         }
+         return rValue;
+     }
 
 
     //Create or merge catalogTree

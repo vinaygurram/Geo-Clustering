@@ -12,6 +12,7 @@ public class ClusteringPoint {
     private String[] products;
     private String[] subCat;
     private boolean isClustered = false;
+    private boolean isFnv = false;
 
 
     //constructor
@@ -73,6 +74,14 @@ public class ClusteringPoint {
 
     public void setSubCat(String[] subCat) {
         this.subCat = subCat;
+    }
+
+    public boolean isFnv() {
+        return isFnv;
+    }
+
+    public void setIsFnv(boolean isFnv) {
+        this.isFnv = isFnv;
     }
 
     @Override
