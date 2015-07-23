@@ -402,21 +402,21 @@ public class GeoCLusteringNew {
             GeoCLusteringNew geoCLusteringNew = new GeoCLusteringNew();
 
             //Make geohashes and product category map
-            List<String> geoHashList ;//= geoCLusteringNew.getBlrGeoHashes();
+            List<String> geoHashList = geoCLusteringNew.getBlrGeoHashes();
 
-            geoHashList = new ArrayList<String>();
-            geoHashList.add("tdr1vzcs");
-            geoHashList.add("tdr1yrb");
+            //geoHashList = new ArrayList<String>();
+            //geoHashList.add("tdr1vzcs");
+            //geoHashList.add("tdr1yrb");
             int tt = geoCLusteringNew.generateProdCatMap(geoCLusteringNew.map);
 
-            ExecutorService executorService = Executors.newFixedThreadPool(20);
+            ExecutorService executorService = Executors.newFixedThreadPool(10);
             for(String s : geoHashList){
                 List<ESShop> shops = geoCLusteringNew.getStoresForGeoHash(s, map);
                 List<String> clusterPoints = geoCLusteringNew.getClusteringPoints(shops);
 
                 SimpleWorkerThread thread = new SimpleWorkerThread(clusterPoints,s);
-                thread.run();
-                //executorService.execute(thread);
+                //thread.run();
+                executorService.execute(thread);
             }
             executorService.shutdown();
 

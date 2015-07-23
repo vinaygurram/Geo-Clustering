@@ -66,7 +66,7 @@ public class Category{
 
     public JSONObject getJSONObject(){
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("cat_id",cat_id);
+        jsonObject.put("cat_name",cat_id);
         int product_count = 0;
         JSONArray jsonArray = new JSONArray();
 

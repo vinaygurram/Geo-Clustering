@@ -12,13 +12,13 @@ ES_MAPPINGS="{
                 \"catalog_tree\": {
                     \"type\": \"nested\",
                     \"properties\": {
-                        \"sup_cat_id\": {
+                        \"sup_cat_name\": {
                             \"type\": \"string\"
                         },
                         \"cat\": {
                             \"type\": \"nested\",
                             \"properties\": {
-                                \"cat_id\": {
+                                \"cat_name\": {
                                     \"type\": \"string\"
                                 },
                                 \"product_count\": {
@@ -27,7 +27,7 @@ ES_MAPPINGS="{
                                 \"sub_cat\": {
                                     \"type\": \"nested\",
                                     \"properties\": {
-                                        \"sub_cat_id\": {
+                                        \"sub_cat_name\": {
                                             \"type\": \"string\"
                                         },
                                         \"product_count\": {

@@ -33,9 +33,9 @@ public class ClusterStrategyNew {
     //Need to re write the code
     public List<ClusterObjNew> createClusters1(Geopoint geoHash,  List<String>points){
 
+        if(points==null || points.size()==0) return new ArrayList<ClusterObjNew>();
+
         createDistanceMatrix(geoHash, points);
-        this.productCount= getProductCoverage(points);
-        this.subCatCount= getSubCatCoverage(points);
         List<ClusterObjNew> rclusters = new ArrayList<ClusterObjNew>();
         if(points.size()==0){
             return rclusters;
@@ -123,6 +123,10 @@ public class ClusterStrategyNew {
 
             }
             rclusters = validClusters;
+            if(rclusters.size()!=0){
+                this.productCount= getProductCoverage(points);
+                this.subCatCount= getSubCatCoverage(points);
+            }
         }
         return rclusters;
     }
@@ -539,7 +543,7 @@ public class ClusterStrategyNew {
                     category.addProduct(ss);
                 }
                 superCategory.addCategory(category);
-                superCategoryList.add(superCategory);
+                catalogTree.getSuperCategories().add(superCategory);
             }
         }
         catalogTreeMap.put(hash,catalogTree);
@@ -928,10 +932,7 @@ public class ClusterStrategyNew {
         Collections.sort(strings);
         StringBuilder sb = new StringBuilder();
         for(String s : strings){
-            sb.append("" +
-                    "" +
-                    "" +
-                    "-");
+            sb.append("-");
             sb.append(s);
         }
         return sb.toString().substring(1);

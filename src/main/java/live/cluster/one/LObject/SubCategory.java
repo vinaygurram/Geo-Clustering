@@ -43,7 +43,7 @@ public class SubCategory{
 
     public JSONObject getJSON(){
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("sub_cat_id", sub_cat_id);
+        jsonObject.put("sub_cat_named", sub_cat_id);
         jsonObject.put("product_count",productList.size());
         return jsonObject;
     }

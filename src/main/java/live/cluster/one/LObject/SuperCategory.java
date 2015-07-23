@@ -63,7 +63,7 @@ public class SuperCategory{
 
     public JSONObject getJSONObject(){
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("sup_cat_id",sup_cat_id);
+        jsonObject.put("sup_cat_name",sup_cat_id);
         JSONArray catArry = new JSONArray();
         for(Category category: catList){
             catArry.put(category.getJSONObject());
