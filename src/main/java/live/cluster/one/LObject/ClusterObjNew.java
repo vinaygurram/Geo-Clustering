@@ -1,5 +1,6 @@
 package live.cluster.one.LObject;
 
+import gridbase.ClusterObj;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -21,6 +22,7 @@ public class ClusterObjNew {
     private int productsCount;
     private int subCatCount;
     private CatalogTree catalogTree;
+    private boolean status;
 
 
     //Object methods
@@ -106,7 +108,13 @@ public class ClusterObjNew {
         this.catalogTree = catalogTree;
     }
 
+    public boolean isStatus() {
+        return status;
+    }
 
+    public void setStatus(boolean status) {
+        this.status = status;
+    }
 
     @Override
     public String toString(){
@@ -132,8 +140,8 @@ public class ClusterObjNew {
         cluster.put("shop_ids", jsonArray);
         cluster.put("geohash",geoHash);
         cluster.put("stores_count",num_stores);
+        cluster.put("status",status);
         jo.put("clusterOB",cluster);
         return jo;
     }
-
 }

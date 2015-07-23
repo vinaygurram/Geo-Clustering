@@ -3,9 +3,9 @@ Clustering Design :
 Elastic search indexes
 Indexes : GeoHash Index, Clusters Index, Products Index
 GeoHash Index :
-	 id, Geo hash, List<ClusterId,rank
+	 id, Geo hash, List<ClusterId,distance,status(Off/On),rank>, totalProducts, totalSubCat
 Cluster Index :
-	id, catalog_tree, product_coverage, max_distance, store_ids
+	id, catalog_tree, product_count, sub_cat_count, store_ids
 
  Product Index :  (Same as Listing index)
 	pid, attributes, storeId
@@ -20,7 +20,7 @@ Customer APP —> Get Super cat & Cat   (Input :: Geo hash)
         :: Return tree
 Customer APP —> Get SubCat  (Input :: geoHash, CategoryId, SuperCategory Id)
         ::Get best Cluster id for from GeoHashIndex
-        :: Get catalog_tree Cluster Id from Cluster Index
+        :: Get catalog_tree using Cluster Id from Cluster Index
         :: Filter the sub_cat from catalog tree
         :: return final sub_cat list
 Customer APP  —> Get Products (Input :: ClusterId, SubCat Id)

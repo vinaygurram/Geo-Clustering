@@ -44,6 +44,9 @@ public class GeoCLusteringNew {
     public static ConcurrentHashMap<String,CatalogTree> catalogTreeMap = new ConcurrentHashMap<String,CatalogTree>();
     public static ConcurrentHashMap<String ,List<ClusterObj>> computedClusters = new ConcurrentHashMap<String, List<ClusterObj>>();
     public static ArrayList<String> pushedClusters = new ArrayList<String>();
+    public static HashMap<String,Integer> geoProductCoverage = new HashMap<String, Integer>();
+    public static HashMap<String,Integer> geoSubCatCoverage = new HashMap<String, Integer>();
+
 
 
     public int generateProdCatMap(ConcurrentHashMap<String,List<String>> productsCatMap){
@@ -308,7 +311,7 @@ public class GeoCLusteringNew {
     }
 
 
-    public static void pushClusterToES(List<ClusterObjNew> clusterObjs){
+    public static void pushClusterToES(List<ClusterObjNew> clusterObjs,int pCount, int sbCount){
         HttpClient httpClient = null;
 
         for(ClusterObjNew clusterObj : clusterObjs){
@@ -327,6 +330,8 @@ public class GeoCLusteringNew {
                     JSONObject geo = new JSONObject();
                     geo.put("clusters",hash);
                     geo.put("geo_hash",geoHash);
+                    geo.put("product_count",pCount);
+                    geo.put("sub_cat_count",sbCount);
                     post.setEntity(new StringEntity(geo.toString()));
 
                     HttpResponse response = httpClient.execute(post);
@@ -338,6 +343,8 @@ public class GeoCLusteringNew {
                     JSONObject geo = new JSONObject();
                     geo.put("clusters",hash);
                     geo.put("geo_hash",geoHash);
+                    geo.put("product_count",pCount);
+                    geo.put("sub_cat_count",sbCount);
                     HttpPost post = new HttpPost(ESAPI);
                     post.setEntity(new StringEntity(geo.toString()));
 

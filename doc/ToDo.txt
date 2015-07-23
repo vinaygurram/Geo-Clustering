@@ -1,3 +1,11 @@
-1. Complete Mapppings
-2. Create Warmers to improve the cold segments
-3. Check for the cases where there is no sub categories
+1. Include the logic that there should be one FnV store at least. (DONE)
+
+2. The logic change of product and subcat coverage area wise (1)
+
+3. Include total products and total subcat fired in the geohash index (2)
+
+4. Catalog tree refinement (3)
+
+5. Overlap of listed products and the overlap of product in stores in the cart selected. (4)
+
+6. Nested Documents update

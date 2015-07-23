@@ -18,6 +18,8 @@ import java.util.List;
 
 public class ClusterStrategyNew {
     private DistanceMatrix distanceMatrix;
+    private int productCount;
+    private int subCatCount;
 
 
     public void createDistanceMatrix(Geopoint geoHash, List<String> points){
@@ -31,6 +33,8 @@ public class ClusterStrategyNew {
     public List<ClusterObjNew> createClusters1(Geopoint geoHash,  List<String>points){
 
         createDistanceMatrix(geoHash, points);
+        this.productCount= getProductCoverage(points);
+        this.subCatCount= getSubCatCoverage(points);
         List<ClusterObjNew> rclusters = new ArrayList<ClusterObjNew>();
         if(points.size()==0){
             return rclusters;
@@ -120,6 +124,45 @@ public class ClusterStrategyNew {
             rclusters = validClusters;
         }
         return rclusters;
+    }
+
+
+    public HashMap<String,String> computeCoverage(String geoHash, List<String> idList){
+
+
+        return null;
+    }
+
+    public int getProductCoverage(List<String> idList){
+
+        String hash = getHashForCHM(idList);
+        if(GeoCLusteringNew.geoProductCoverage.containsKey(hash)){
+            return GeoCLusteringNew.geoProductCoverage.get(hash);
+        }else {
+            //compute and return
+            String[] merge;
+            merge  = mergeStrings(GeoCLusteringNew.clusterPoints.get(idList.get(0)).getProducts(),GeoCLusteringNew.clusterPoints.get(idList.get(1)).getProducts());
+            for(int i=2;i<idList.size();i++){
+                merge  = mergeStrings(merge,GeoCLusteringNew.clusterPoints.get(idList.get(i+1)).getProducts());
+            }
+            GeoCLusteringNew.geoProductCoverage.put(hash,merge.length);
+            return merge.length;
+        }
+    }
+
+    public int getSubCatCoverage(List<String> idList){
+        String hash = getHashForCHM(idList);
+        if(GeoCLusteringNew.geoSubCatCoverage.containsKey(hash)){
+           return GeoCLusteringNew.geoSubCatCoverage.get(hash);
+        }else{
+            String[] merge;
+            merge = mergeStrings(GeoCLusteringNew.clusterPoints.get(idList.get(0)).getSubCat(),GeoCLusteringNew.clusterPoints.get(idList.get(1)).getSubCat());
+            for(int i=2;i<idList.size();i++){
+                merge = mergeStrings(merge,GeoCLusteringNew.clusterPoints.get(idList.get(i)).getSubCat());
+            }
+            GeoCLusteringNew.geoSubCatCoverage.put(hash,merge.length);
+            return merge.length;
+        }
     }
 
     //Helper methods
@@ -352,12 +395,18 @@ public class ClusterStrategyNew {
         for(String s: stringList){
             clusterObjNew.addPoint(s);
         }
+
         CatalogTree catalogTree = createOrMergeCatalogTree(null,stringList);
         clusterObjNew.setCatalogTree(catalogTree);
         clusterObjNew.setDistance(shortDistance);
         clusterObjNew.setRank(rank);
         clusterObjNew.setProductsCount(productCount);
         clusterObjNew.setSubCatCount(subCatCount);
+
+
+        //set cluster status offline/online
+        boolean status = getClusterStatus(clusterObjNew);
+        clusterObjNew.setStatus(status);
         return clusterObjNew;
     }
 
@@ -375,6 +424,18 @@ public class ClusterStrategyNew {
          return rValue;
      }
 
+    /**
+     * return cluster status
+     * true if product coverage is >80% and Subcat Coverage is >80%
+     * */
+    public boolean getClusterStatus(ClusterObjNew clusterObjNew){
+        int pCount = clusterObjNew.getProductsCount();
+        int sbCount = clusterObjNew.getSubCatCount();
+        int lpCount = ((Double)((0.8)* (this.productCount))).intValue();
+        int lsCount = ((Double)((0.8)* (this.subCatCount))).intValue();
+        if(pCount<lpCount || sbCount <lsCount) return false;
+        return true;
+    }
 
     //Create or merge catalogTree
     /**
@@ -886,4 +947,20 @@ public class ClusterStrategyNew {
         return sb.toString().substring(1);
     }
 
+
+    public int getProductCount() {
+        return productCount;
+    }
+
+    public void setProductCount(int productCount) {
+        this.productCount = productCount;
+    }
+
+    public int getSubCatCount() {
+        return subCatCount;
+    }
+
+    public void setSubCatCount(int subCatCount) {
+        this.subCatCount = subCatCount;
+    }
 }
