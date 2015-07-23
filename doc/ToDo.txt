@@ -10,6 +10,8 @@
 
 6. Nested Documents update (DONE)
 
-7. correct store mappings (RUNNING)
+7. correct store mappings (DONE)
 
 9. add rank (DONE)
+
+10. Replace string merge with collections merge

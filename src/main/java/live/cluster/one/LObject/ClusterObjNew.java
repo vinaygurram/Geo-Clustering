@@ -123,25 +123,21 @@ public class ClusterObjNew {
 
 
     public JSONObject getJSON(){
-        JSONObject jo = new JSONObject();
         JSONObject cluster = new JSONObject();
 
-        cluster.put("name",geoHash);
         cluster.put("load",1);
         cluster.put("rank",rank);
-        cluster.put("distance",distance);
-        JSONArray jsonArray = new JSONArray();
+        JSONArray storeIdArry = new JSONArray();
         for(String c:  points){
-            jsonArray.put(c);
+            JSONObject storeIdObj = new JSONObject();
+            storeIdObj.put("store_id",c);
+            storeIdArry.put(storeIdObj);
         }
-        cluster.put("cat_tree",catalogTree.getJSONOArray());
+        cluster.put("catalog_tree",catalogTree.getJSONOArray());
         cluster.put("sub_cat_count",subCatCount);
         cluster.put("product_count",productsCount);
-        cluster.put("shop_ids", jsonArray);
-        cluster.put("geohash",geoHash);
+        cluster.put("stores", storeIdArry);
         cluster.put("stores_count",num_stores);
-        cluster.put("status",status);
-        jo.put("clusterOB",cluster);
-        return jo;
+        return cluster;
     }
 }

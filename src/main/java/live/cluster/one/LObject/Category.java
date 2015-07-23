@@ -67,17 +67,21 @@ public class Category{
     public JSONObject getJSONObject(){
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("cat_id",cat_id);
+        int product_count = 0;
+        JSONArray jsonArray = new JSONArray();
 
         if(products.size()==0){
-            JSONArray jsonArray = new JSONArray();
             for(SubCategory subCategory: subCatList){
+                product_count += subCategory.getProductList().size();
                 JSONObject jsonObject1 = subCategory.getJSON();
                 jsonArray.put(jsonObject1);
             }
-            jsonObject.put("sub_cat",jsonArray);
         }else {
-            jsonObject.put("sub_cat",new JSONArray());
+            if(subCatList.size()!=0) System.out.println("something is wrong");
+            product_count = products.size();
         }
+        jsonObject.put("sub_cat",jsonArray);
+        jsonObject.put("product_count",product_count);
         return jsonObject;
     }
 }

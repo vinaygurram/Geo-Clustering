@@ -27,6 +27,14 @@ public class SubCategory{
         this.sub_cat_name = sub_cat_name;
     }
 
+    public List<String> getProductList() {
+        return productList;
+    }
+
+    public void setProductList(List<String> productList) {
+        this.productList = productList;
+    }
+
     public void addProduct(String productId){
         if(!productList.contains(productId)){
             productList.add(productId);

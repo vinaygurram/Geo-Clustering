@@ -15,66 +15,6 @@ import java.util.List;
 public class ClusterStrategy {
     private DistanceMatrix distanceMatrix;
 
-    //Constructor
-    ClusterStrategy(List<String> points,String geoHash){
- //       this.distanceMatrix = new DistanceMatrix(geoHash,points);
-    }
-
-
-    public List<ClusterObj> createClusters(ClusteringPoint geoHash, List<ClusteringPoint> points){
-
-        List<ClusterObj> clusters = new ArrayList<ClusterObj>();
-        while(points.size()>5){
-            ClusterObj clusterObj = new ClusterObj();
-            //while(clusterObj.getPoints().size()<4 && clusterObj.getProductCount()<3000 &&clusterObj.getSub_cat().length<120){
-            while(clusterObj.getSub_cat().length<120){
-                clusterObj = formCluster(geoHash,clusterObj,points);
-            }
-            clusterObj.setGeoHash(GeoHash.encodeHash(geoHash.getLocation().getLatitude(),geoHash.getLocation().getLongitude()));
-            clusters.add(clusterObj);
-        }
-        ClusterObj clusterObj = new ClusterObj();
-        for(ClusteringPoint cp: points){
-            clusterObj.addPoint(cp);
-        }
-        clusterObj.setGeoHash(GeoHash.encodeHash(geoHash.getLocation().getLatitude(),geoHash.getLocation().getLongitude()));
-        clusters.add(clusterObj);
-        return clusters;
-    }
-
-    public ClusterObj formCluster(ClusteringPoint geoHash, ClusterObj cluster, List<ClusteringPoint> points){
-
-        //Consider the case of only geoHash point
-        if(cluster.getPoints().size()==0){
-            ClusteringPoint nearestPoint = getDNearestPoint(geoHash,points);
-            points.remove(nearestPoint);
-            cluster.addPoint(nearestPoint);
-            cluster.setDistance(Geopoint.getDistance(nearestPoint.getLocation(),geoHash.getLocation()));
-            return cluster;
-        }
-
-        //Cluster has some points
-        //find probable points
-        ClusteringPoint[] tempPointList = findProbablePoints(cluster.getPoints(),points);
-
-        //find best clustering point out of those using shortest distance
-        //Choosing the best possbile point in the cluster
-        ClusteringPoint goodClusteringPoint =null;
-        double leastDistance =Double.MAX_VALUE;
-        for(ClusteringPoint p : tempPointList){
-            double dd = getShortestDistance(p,geoHash,cluster.getPoints());
-            if(dd<leastDistance){
-                leastDistance = dd;
-                goodClusteringPoint = p;
-            }
-        }
-        //Add it to Cluster
-        cluster.setDistance(leastDistance);
-        cluster.addPoint(goodClusteringPoint);
-        points.remove(goodClusteringPoint);
-
-        return cluster;
-    }
 
     /**
     * Get nearest point according to distance
