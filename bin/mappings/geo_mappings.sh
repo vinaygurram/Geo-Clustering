@@ -6,7 +6,8 @@ INDEX_TYPE="hash_type"
 INDEX_MAPPINS="{
     \"settings\": {
         \"index\": {
-            \"number_of_shards\": 1
+            \"number_of_shards\": 1,
+            \"index.mapper.dynamic\": false
         }
     },
     \"mappings\": {
@@ -26,6 +27,9 @@ INDEX_MAPPINS="{
                         },
                         \"state\": {
                             \"type\": \"boolean\"
+                        },
+                        \"rank\" : {
+                            \"type\" : \"double\"
                         }
                     }
                 },
@@ -102,11 +106,11 @@ PARTIAL_DATA2="{
 }"
 
 #DELETE if exists
-#curl -s -XDELETE ${ES_HOST}"/"${INDEX_NAME}
+curl -s -XDELETE ${ES_HOST}"/"${INDEX_NAME}
 echo ""
 
 #Create Mappings
-#curl -s -XPOST ${ES_HOST}"/"${INDEX_NAME} -d "${INDEX_MAPPINS}"
+curl -s -XPOST ${ES_HOST}"/"${INDEX_NAME} -d "${INDEX_MAPPINS}"
 echo ""
 
 #add sample data
@@ -116,7 +120,7 @@ echo ""
 echo ""
 
 #add partial update
-curl -s -XPOST ${ES_HOST}"/"${INDEX_NAME}"/"${INDEX_TYPE}"/AU66fv0PHW5Wh-tZq_24/_update" -d "${PARTIAL_DATA2}"
+#curl -s -XPOST ${ES_HOST}"/"${INDEX_NAME}"/"${INDEX_TYPE}"/AU66fv0PHW5Wh-tZq_24/_update" -d "${PARTIAL_DATA2}"
 
 #reset data
 #curl -s -XPOST ${ES_HOST}"/"${INDEX_NAME}"/"${INDEX_TYPE}"/AU66fv0PHW5Wh-tZq_24" -d "${SAMPLE_DATA}"
