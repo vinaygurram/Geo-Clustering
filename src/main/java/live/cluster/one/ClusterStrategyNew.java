@@ -143,7 +143,7 @@ public class ClusterStrategyNew {
             String[] merge;
             merge  = mergeStrings(GeoCLusteringNew.clusterPoints.get(idList.get(0)).getProducts(),GeoCLusteringNew.clusterPoints.get(idList.get(1)).getProducts());
             for(int i=2;i<idList.size();i++){
-                merge  = mergeStrings(merge,GeoCLusteringNew.clusterPoints.get(idList.get(i+1)).getProducts());
+                merge  = mergeStrings(merge,GeoCLusteringNew.clusterPoints.get(idList.get(i)).getProducts());
             }
             GeoCLusteringNew.geoProductCoverage.put(hash,merge.length);
             return merge.length;

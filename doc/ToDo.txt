@@ -1,11 +1,13 @@
 1. Include the logic that there should be one FnV store at least. (DONE)
 
-2. The logic change of product and subcat coverage area wise (1)
+2. The logic change of product and subcat coverage area wise (1) (DONE)
 
-3. Include total products and total subcat fired in the geohash index (2)
+3. Include total products and total subcat fired in the geohash index (2) (DONE)
 
-4. Catalog tree refinement (3)
+4. Catalog tree refinement (3) (RUNNING)
 
 5. Overlap of listed products and the overlap of product in stores in the cart selected. (4)
 
-6. Nested Documents update
+6. Nested Documents update (RUNNING)
+
+7. correct store mappings
