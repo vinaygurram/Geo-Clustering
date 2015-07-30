@@ -1,8 +1,8 @@
 1. Include the logic that there should be one FnV store at least. (DONE)
 
-2. The logic change of product and subcat coverage area wise  (DONE)
+2. The logic change of product and sub cat coverage area wise  (DONE)
 
-3. Include total products and total subcat fired in the geohash index  (DONE)
+3. Include total products and total sub cat fired in the geo hash index  (DONE)
 
 4. Catalog tree refinement  (RUNNING)
 
@@ -14,4 +14,8 @@
 
 9. add rank (DONE)
 
-10. Replace string merge with collections merge
+10. Replace string merge with Set merge
+
+11. Adding geo hashes to Zone data  (Sudip)
+
+12. Correct catalog tree and send the data again.(TODO)

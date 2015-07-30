@@ -1,6 +1,5 @@
 package live.cluster.one;
 
-import com.github.davidmoten.geo.GeoHash;
 import gridbase.Geopoint;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -16,11 +15,7 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * Created by gurramvinay on 7/9/15.
