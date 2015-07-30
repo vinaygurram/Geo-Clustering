@@ -68,6 +68,18 @@ public class ClusterStrategyNew {
         }else {
             List<ClusterObjNew> validClusters = new ArrayList<ClusterObjNew>();
 
+            //Create clusters with 1 shops
+            for(String s: points){
+
+                List<String> thisList = new ArrayList<String>();
+                thisList.add(s);
+                ClusterObjNew temp = checkValidCluster(geoHash,thisList);
+                if(temp!=null){
+                    temp.setGeoHash(GeoHash.encodeHash(geoHash.getLatitude(),geoHash.getLongitude()));
+                    validClusters.add(temp);
+                }
+            }
+
             //create clusters with 3 shops
             List<List<String>> clusters =get3CClusters(points);
             for(List<String> clusterObj : clusters){
@@ -371,6 +383,10 @@ public class ClusterStrategyNew {
      * */
     public ClusterObjNew checkValidCluster(Geopoint geoHash,List<String> stringList){
         double shortDistance = Double.MAX_VALUE ;
+
+        if(stringList.size()==1){
+            shortDistance = Geopoint.getDistance(geoHash,clusterPoints.get(stringList.get(0)).getLocation());
+        }
         if(stringList.size()>=3){
             shortDistance = getShortestDistance1(geoHash, stringList);
         }else if(stringList.size()==2){
@@ -387,7 +403,7 @@ public class ClusterStrategyNew {
 
         //if(subCatCount<144) return null;
         //if(productCount<4000) return null;
-        double rank = getFavourFactor_cov(subCatCount,productCount);
+        //double rank = getFavourFactor_cov(subCatCount,productCount);
 
         //Make the clusterObject now
         ClusterObjNew clusterObjNew = new ClusterObjNew();
@@ -398,7 +414,8 @@ public class ClusterStrategyNew {
         CatalogTree catalogTree = createOrMergeCatalogTree(null,stringList);
         clusterObjNew.setCatalogTree(catalogTree);
         clusterObjNew.setDistance(shortDistance);
-        clusterObjNew.setRank(rank);
+        //clusterObjNew.setRank(rank);
+        clusterObjNew.setRank(1);
         clusterObjNew.setProductsCount(productCount);
         clusterObjNew.setSubCatCount(subCatCount);
 
@@ -449,6 +466,9 @@ public class ClusterStrategyNew {
         //get productList
         List<String> productList = new ArrayList<String>();
         String[]tempList = new String[0];
+        if(idList.size()==1){
+            tempList = clusterPoints.get(idList.get(0)).getProducts();
+        }
         if(idList.size()==2){
             tempList = product2MergerMap.get(hash);
         }
@@ -557,6 +577,9 @@ public class ClusterStrategyNew {
      * divide them into multiple function of case of 2 and case of 3
      * */
     public int mergerProducts(List<String> idList){
+        if(idList.size()==1){
+            return clusterPoints.get(idList.get(0)).getProducts().length;
+        }
         if(idList.size()==2) {
             //check if it already present else merge and update
             String hash = getHashForCHM(idList);
@@ -740,6 +763,9 @@ public class ClusterStrategyNew {
     }
 
     public int mergerSubCat(List<String> idList){
+        if(idList.size()==1){
+            return clusterPoints.get(idList.get(0)).getSubCat().length;
+        }
         if(idList.size()==2) {
            return merge2SubCat(idList).length;
         }

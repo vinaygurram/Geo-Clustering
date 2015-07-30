@@ -4,7 +4,7 @@
 
 3. Include total products and total sub cat fired in the geo hash index  (DONE)
 
-4. Catalog tree refinement  (RUNNING)
+4. Catalog tree refinement  (TODO)
 
 5. Overlap of listed products and the overlap of product in stores in the cart selected.(TODO)
 
@@ -14,8 +14,10 @@
 
 9. add rank (DONE)
 
-10. Replace string merge with Set merge
+10. Replace string merge with Set merge(TODO)
 
 11. Adding geo hashes to Zone data  (Sudip)
 
 12. Correct catalog tree and send the data again.(TODO)
+
+13. Get Data from Listing Index and try to fulfill it.

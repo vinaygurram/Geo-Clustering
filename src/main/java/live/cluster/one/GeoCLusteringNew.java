@@ -231,7 +231,9 @@ public class GeoCLusteringNew {
                 double lat = Double.parseDouble(ll[0]);
                 double lon = Double.parseDouble(ll[1]);
                 ESShop esShop = new ESShop(id,productsArray,id,new Geopoint(lat,lon),map);
-                if(fieldsObj.getJSONArray("fnv").getBoolean(0))esShop.setFnv(true);
+                if(fieldsObj.keySet().contains("fnv")){
+                    if(fieldsObj.getJSONArray("fnv").getBoolean(0))esShop.setFnv(true);
+                }
                 reShops.add(esShop);
             }
         }catch (IOException e){
@@ -415,7 +417,6 @@ public class GeoCLusteringNew {
                 List<String> clusterPoints = geoCLusteringNew.getClusteringPoints(shops);
 
                 SimpleWorkerThread thread = new SimpleWorkerThread(clusterPoints,s);
-                //thread.run();
                 executorService.execute(thread);
             }
             executorService.shutdown();
