@@ -399,7 +399,7 @@ public class ClusterStrategyNew {
         int subCatCount = mergerSubCat(stringList);
 
         boolean fnvCriteria = checkFnV(stringList);
-        if(!fnvCriteria) return null;
+        //if(!fnvCriteria) return null;
 
         //if(subCatCount<144) return null;
         //if(productCount<4000) return null;

@@ -1,0 +1,29 @@
+Queries :
+Unique Sub categories in the 3km radius ::
+{
+  "size": 0,
+  "query": {
+    "filtered": {
+      "query": {
+        "match_all": {}
+      },
+      "filter": {
+        "geo_distance": {
+          "distance": "10km",
+          "store_details.location": "13.00721,77.59867"
+        }
+      }
+    }
+  },
+  "aggregations": {
+    "sub_cat": {
+      "terms": {
+        "field": "product_details.sub_category_id"
+      }
+    }
+  }
+}
+
+Uniquer Products in the 3km radius ::
+
+

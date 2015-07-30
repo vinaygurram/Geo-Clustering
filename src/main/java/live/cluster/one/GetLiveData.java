@@ -13,6 +13,7 @@ import live.cluster.one.LObject.*;
 
 import java.io.*;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -331,6 +332,21 @@ public class GetLiveData {
         }
     }
 
+    //
+
+    public void getListingAnalytics(){
+        try {
+            String LISTING_URI ="";
+            URL url = new URL(LISTING_URI);
+            HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
+
+
+
+        }catch (Exception e){
+
+        }
+
+    }
 
     public static void main(String[] args){
         GetLiveData getLiveData = new GetLiveData();
