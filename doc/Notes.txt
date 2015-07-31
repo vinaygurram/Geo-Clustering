@@ -27,3 +27,7 @@ Unique Sub categories in the 3km radius ::
 Uniquer Products in the 3km radius ::
 
 
+tdr4phxs0000  --> check why 1 index is not happening.
+only 700
+
+

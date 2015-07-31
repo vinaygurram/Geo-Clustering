@@ -20,4 +20,7 @@
 
 12. Correct catalog tree and send the data again.(TODO)
 
-13. Get Data from Listing Index and try to fulfill it.
+13. Get Product Coverage and Sub category coverage in 3km radius. (TODO)
+
+14. Ruby task to update the production listing index (Not needed)
+

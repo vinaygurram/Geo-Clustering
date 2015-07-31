@@ -404,9 +404,10 @@ public class GeoCLusteringNew {
             GeoCLusteringNew geoCLusteringNew = new GeoCLusteringNew();
 
             //Make geohashes and product category map
-            List<String> geoHashList = geoCLusteringNew.getBlrGeoHashes();
+            List<String> geoHashList ;//= geoCLusteringNew.getBlrGeoHashes();
 
-            //geoHashList = new ArrayList<String>();
+            geoHashList = new ArrayList<String>();
+            geoHashList.add("tdr4phx");
             //geoHashList.add("tdr1vzcs");
             //geoHashList.add("tdr1yrb");
             int tt = geoCLusteringNew.generateProdCatMap(geoCLusteringNew.map);
@@ -418,7 +419,8 @@ public class GeoCLusteringNew {
 
                 if(clusterPoints.size()>2){
                     SimpleWorkerThread thread = new SimpleWorkerThread(clusterPoints,s);
-                    executorService.execute(thread);
+                    thread.run();
+                    //executorService.execute(thread);
                 }
             }
             executorService.shutdown();

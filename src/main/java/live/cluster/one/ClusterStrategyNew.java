@@ -75,7 +75,7 @@ public class ClusterStrategyNew {
                 thisList.add(s);
                 ClusterObjNew temp = checkValidCluster(geoHash,thisList);
                 if(temp!=null){
-                    temp.setGeoHash(GeoHash.encodeHash(geoHash.getLatitude(),geoHash.getLongitude()));
+                    temp.setGeoHash(GeoHash.encodeHash(geoHash.getLatitude(),geoHash.getLongitude(),7));
                     validClusters.add(temp);
                 }
             }
@@ -85,7 +85,7 @@ public class ClusterStrategyNew {
             for(List<String> clusterObj : clusters){
                 ClusterObjNew temp = checkValidCluster(geoHash,clusterObj);
                 if(temp!=null){
-                    temp.setGeoHash(GeoHash.encodeHash(geoHash.getLatitude(),geoHash.getLongitude()));
+                    temp.setGeoHash(GeoHash.encodeHash(geoHash.getLatitude(),geoHash.getLongitude(),7));
                     validClusters.add(temp);
                 }
 
@@ -96,7 +96,7 @@ public class ClusterStrategyNew {
                 for(List<String> clusterObj : clusters){
                     ClusterObjNew temp = checkValidCluster(geoHash,clusterObj);
                     if(temp!=null){
-                        temp.setGeoHash(GeoHash.encodeHash(geoHash.getLatitude(),geoHash.getLongitude()));
+                        temp.setGeoHash(GeoHash.encodeHash(geoHash.getLatitude(),geoHash.getLongitude(),7));
                         validClusters.add(temp);
                     }
                 }
@@ -107,7 +107,7 @@ public class ClusterStrategyNew {
                     for(List<String> clusterObj : clusters){
                         ClusterObjNew temp = checkValidCluster(geoHash,clusterObj);
                         if(temp!=null){
-                            temp.setGeoHash(GeoHash.encodeHash(geoHash.getLatitude(),geoHash.getLongitude()));
+                            temp.setGeoHash(GeoHash.encodeHash(geoHash.getLatitude(),geoHash.getLongitude(),7));
                             validClusters.add(temp);
                         }
                     }
@@ -118,7 +118,7 @@ public class ClusterStrategyNew {
                         for(List<String> clusterObj : clusters){
                             ClusterObjNew temp = checkValidCluster(geoHash,clusterObj);
                             if(temp!=null){
-                                temp.setGeoHash(GeoHash.encodeHash(geoHash.getLatitude(),geoHash.getLongitude()));
+                                temp.setGeoHash(GeoHash.encodeHash(geoHash.getLatitude(),geoHash.getLongitude(),7));
                                 validClusters.add(temp);
                             }
                         }
@@ -129,7 +129,7 @@ public class ClusterStrategyNew {
             for(List<String> clusterObj : clusters){
                 ClusterObjNew temp = checkValidCluster(geoHash,clusterObj);
                 if(temp!=null){
-                    temp.setGeoHash(GeoHash.encodeHash(geoHash.getLatitude(),geoHash.getLongitude()));
+                    temp.setGeoHash(GeoHash.encodeHash(geoHash.getLatitude(),geoHash.getLongitude(),7));
                     validClusters.add(temp);
                 }
 

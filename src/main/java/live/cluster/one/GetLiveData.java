@@ -334,11 +334,20 @@ public class GetLiveData {
 
     //
 
-    public void getListingAnalytics(){
+    public void getListingAnalytics(List<String> geoHashList){
+        URL url;
+        HttpURLConnection httpURLConnection;
         try {
-            String LISTING_URI ="";
-            URL url = new URL(LISTING_URI);
-            HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
+            for(String geoHash : geoHashList){
+
+                String LISTING_URI ="";
+                url = new URL(LISTING_URI);
+                httpURLConnection = (HttpURLConnection) url.openConnection();
+
+
+            }
+
+
 
 
 
