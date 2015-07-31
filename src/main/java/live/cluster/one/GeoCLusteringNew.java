@@ -404,10 +404,10 @@ public class GeoCLusteringNew {
             GeoCLusteringNew geoCLusteringNew = new GeoCLusteringNew();
 
             //Make geohashes and product category map
-            List<String> geoHashList ;//= geoCLusteringNew.getBlrGeoHashes();
+            List<String> geoHashList = geoCLusteringNew.getBlrGeoHashes();
 
-            geoHashList = new ArrayList<String>();
-            geoHashList.add("tdr4phx");
+            //geoHashList = new ArrayList<String>();
+            //geoHashList.add("tdr4phx");
             //geoHashList.add("tdr1vzcs");
             //geoHashList.add("tdr1yrb");
             int tt = geoCLusteringNew.generateProdCatMap(geoCLusteringNew.map);

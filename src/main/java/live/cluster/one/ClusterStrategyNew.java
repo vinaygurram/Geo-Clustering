@@ -22,7 +22,6 @@ public class ClusterStrategyNew {
     private int productCount;
     private int subCatCount;
 
-
     public void createDistanceMatrix(Geopoint geoHash, List<String> points){
         List<String> ttpoints = new ArrayList<String>(points);
         this.distanceMatrix = new DistanceMatrix(geoHash,ttpoints);
@@ -36,111 +35,81 @@ public class ClusterStrategyNew {
         if(points==null || points.size()==0) return new ArrayList<ClusterObjNew>();
 
         createDistanceMatrix(geoHash, points);
-        List<ClusterObjNew> rclusters = new ArrayList<ClusterObjNew>();
-        if(points.size()==0){
-            return rclusters;
+        List<ClusterObjNew> validClusters = new ArrayList<ClusterObjNew>();
+        String encodedGeoHash = GeoHash.encodeHash(geoHash.getLatitude(),geoHash.getLongitude(),7);
+        ClusterObjNew temp;
+        //Create clusters with 1 shops
+        for(String s: points){
+
+            List<String> thisList = new ArrayList<String>();
+            thisList.add(s);
+            temp = checkValidCluster(geoHash,thisList);
+            if(temp!=null){
+                temp.setGeoHash(encodedGeoHash);
+                validClusters.add(temp);
+            }
         }
-        if(points.size()<3){
-            ClusterObj clusterObj = new ClusterObj();
-            if(points.size()==1){
-//                clusterObj.addPoint(GeoCLusteringNew.clusterPoints.get(points.get(0)));
-//                double dist = Geopoint.getDistance(geoHash.getLocation(),points.get(0).getLocation());
-//                double rank = getFavourFactor_cov(clusterObj.getSub_cat().length,clusterObj.getProducts().length);
-//                clusterObj.setDistance(dist);
-//                //clusterObj.setRank(1.0);
-//                clusterObj.setGeoHash(GeoHash.encodeHash(geoHash.getLocation().getLatitude(),geoHash.getLocation().getLongitude()));
-//                rclusters.add(clusterObj);
-                rclusters = new ArrayList<ClusterObjNew>();
-                return rclusters;
-            }
-            if(points.size()==2){
-//                clusterObj.addPoint(points.get(0));
-//                double dist = getShortestDistance(points.get(1),geoHash,clusterObj.getPoints());
-//                clusterObj.addPoint(points.get(1));
-//                clusterObj.setDistance(dist);
-//                clusterObj.setGeoHash(GeoHash.encodeHash(geoHash.getLocation().getLatitude(),geoHash.getLocation().getLongitude()));
-//                double rank = getFavourFactor_cov(clusterObj.getSub_cat().length,clusterObj.getProducts().length);
-//                //clusterObj.setRank(1.0);
-//                rclusters.add(clusterObj);
-                rclusters = new ArrayList<ClusterObjNew>();
-                return rclusters;
-            }
-        }else {
-            List<ClusterObjNew> validClusters = new ArrayList<ClusterObjNew>();
 
-            //Create clusters with 1 shops
-            for(String s: points){
-
-                List<String> thisList = new ArrayList<String>();
-                thisList.add(s);
-                ClusterObjNew temp = checkValidCluster(geoHash,thisList);
-                if(temp!=null){
-                    temp.setGeoHash(GeoHash.encodeHash(geoHash.getLatitude(),geoHash.getLongitude(),7));
-                    validClusters.add(temp);
-                }
+        //Create clusters with 2 shops
+        List<List<String>>clusters = get2CClusters(points);
+        for(List<String> clusterObj : clusters){
+            temp = checkValidCluster(geoHash,clusterObj);
+            if(temp!=null){
+                temp.setGeoHash(encodedGeoHash);
+                validClusters.add(temp);
             }
 
-            //create clusters with 3 shops
-            List<List<String>> clusters =get3CClusters(points);
+        }
+        //create clusters with 3 shops
+        clusters =get3CClusters(points);
+        for(List<String> clusterObj : clusters){
+            temp = checkValidCluster(geoHash,clusterObj);
+            if(temp!=null){
+                temp.setGeoHash(encodedGeoHash);
+                validClusters.add(temp);
+            }
+
+        }
+        //create clusters with 4 shops
+        if(points.size()>3){
+            clusters = get4CClusters(points);
             for(List<String> clusterObj : clusters){
-                ClusterObjNew temp = checkValidCluster(geoHash,clusterObj);
+                temp = checkValidCluster(geoHash,clusterObj);
                 if(temp!=null){
-                    temp.setGeoHash(GeoHash.encodeHash(geoHash.getLatitude(),geoHash.getLongitude(),7));
+                    temp.setGeoHash(encodedGeoHash);
                     validClusters.add(temp);
                 }
-
             }
-            //create clusters with 4 shops
-            if(points.size()>3){
-                clusters = get4CClusters(points);
+            if(points.size()>4){
+
+                //create clusters with 5 shops
+                clusters = get5CClusters(points);
                 for(List<String> clusterObj : clusters){
-                    ClusterObjNew temp = checkValidCluster(geoHash,clusterObj);
+                    temp = checkValidCluster(geoHash,clusterObj);
                     if(temp!=null){
-                        temp.setGeoHash(GeoHash.encodeHash(geoHash.getLatitude(),geoHash.getLongitude(),7));
+                        temp.setGeoHash(encodedGeoHash);
                         validClusters.add(temp);
                     }
                 }
-                if(points.size()>4){
 
-                    //create clusters with 5 shops
-                    clusters = get5CClusters(points);
+                if(points.size()>5){
+                    //create clusters with 6 shops
+                    clusters = get6CClusters(points);
                     for(List<String> clusterObj : clusters){
-                        ClusterObjNew temp = checkValidCluster(geoHash,clusterObj);
+                        temp = checkValidCluster(geoHash,clusterObj);
                         if(temp!=null){
-                            temp.setGeoHash(GeoHash.encodeHash(geoHash.getLatitude(),geoHash.getLongitude(),7));
+                            temp.setGeoHash(encodedGeoHash);
                             validClusters.add(temp);
                         }
                     }
-
-                    if(points.size()>5){
-                        //create clusters with 6 shops
-                        clusters = get6CClusters(points);
-                        for(List<String> clusterObj : clusters){
-                            ClusterObjNew temp = checkValidCluster(geoHash,clusterObj);
-                            if(temp!=null){
-                                temp.setGeoHash(GeoHash.encodeHash(geoHash.getLatitude(),geoHash.getLongitude(),7));
-                                validClusters.add(temp);
-                            }
-                        }
-                    }
                 }
-            }
-            clusters = get2CClusters(points);
-            for(List<String> clusterObj : clusters){
-                ClusterObjNew temp = checkValidCluster(geoHash,clusterObj);
-                if(temp!=null){
-                    temp.setGeoHash(GeoHash.encodeHash(geoHash.getLatitude(),geoHash.getLongitude(),7));
-                    validClusters.add(temp);
-                }
-
-            }
-            rclusters = validClusters;
-            if(rclusters.size()!=0){
-                this.productCount= getProductCoverage(points);
-                this.subCatCount= getSubCatCoverage(points);
             }
         }
-        return rclusters;
+        if(validClusters.size()!=0){
+            this.productCount= getProductCoverage(points);
+            this.subCatCount= getSubCatCoverage(points);
+        }
+        return validClusters;
     }
 
 
@@ -197,7 +166,7 @@ public class ClusterStrategyNew {
     public double getShortestDistanceFor2(Geopoint geohashPoint, List<String> points){
 
         double dbp = distanceMatrix.getDistance(points.get(0),points.get(1));
-        String geoString  = GeoHash.encodeHash(geohashPoint.getLatitude(),geohashPoint.getLongitude());
+        String geoString  = GeoHash.encodeHash(geohashPoint.getLatitude(),geohashPoint.getLongitude(),7);
         double dfg = distanceMatrix.getDistance(geoString,points.get(0));
         double dsg = distanceMatrix.getDistance(geoString,points.get(1));
         dfg = dfg + dbp;
@@ -208,7 +177,7 @@ public class ClusterStrategyNew {
     //For SLogic
     public double getShortestDistance1(Geopoint geohashPoint, List<String> points){
         double smallestDistace = Double.MAX_VALUE;
-        String geoString  = GeoHash.encodeHash(geohashPoint.getLatitude(),geohashPoint.getLongitude());
+        String geoString  = GeoHash.encodeHash(geohashPoint.getLatitude(),geohashPoint.getLongitude(),7);
         for(String tp : points){
             double di = distanceBtPoints(tp,geoString);
 
@@ -266,6 +235,8 @@ public class ClusterStrategyNew {
 
     public List<List<String>> get3CClusters(List<String> stringList){
 
+        if(stringList.size()<3) return new ArrayList<List<String>>();
+
         List<List<String>> totalList = new ArrayList<List<String>>();
         for(int i=0;i<stringList.size();i++){
             List<String> tempList = new ArrayList<String>();
@@ -289,7 +260,7 @@ public class ClusterStrategyNew {
      * */
     public List<List<String>> get4CClusters(List<String> idList){
 
-        if(idList.size()<4) return null;
+        if(idList.size()<4) return new ArrayList<List<String>>();
 
         List<List<String>> totalList = new ArrayList<List<String>>();
         for(int i=0;i<idList.size();i++){
@@ -312,7 +283,7 @@ public class ClusterStrategyNew {
      * */
     public List<List<String>> get5CClusters(List<String> idList){
 
-        if(idList.size()<5) return null;
+        if(idList.size()<5) return new ArrayList<List<String>>();
 
         List<List<String>> totalList = new ArrayList<List<String>>();
         for(int i=0;i<idList.size();i++){
@@ -338,7 +309,7 @@ public class ClusterStrategyNew {
 
     public List<List<String>> get6CClusters(List<String> idList){
 
-        if(idList.size()<6) return null;
+        if(idList.size()<6) return new ArrayList<List<String>>();
 
         List<List<String>> totalList = new ArrayList<List<String>>();
         for(int i=0;i<idList.size();i++){
@@ -363,6 +334,8 @@ public class ClusterStrategyNew {
      * Get all 2 possible combinations
      * */
     public List<List<String>> get2CClusters(List<String> strings){
+
+        if(strings.size()<2) return new ArrayList<List<String>>();
         List<List<String>> totalList = new ArrayList<List<String>>();
         for(int i=0;i<strings.size();i++){
             List<String> tempList = new ArrayList<String>();
