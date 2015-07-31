@@ -30,5 +30,6 @@ public class SimpleWorkerThread implements  Runnable{
         int pCount = clusterStrategyNew.getProductCount();
         int sbCount  = clusterStrategyNew.getSubCatCount();
         GeoCLusteringNew.pushClusterToES(clusterObjList,pCount,sbCount);
+        System.out.println("count - "+GeoCLusteringNew.count++);
     }
 }

@@ -45,6 +45,7 @@ public class GeoCLusteringNew {
     public static ArrayList<String> pushedClusters = new ArrayList<String>();
     public static HashMap<String,Integer> geoProductCoverage = new HashMap<String, Integer>();
     public static HashMap<String,Integer> geoSubCatCoverage = new HashMap<String, Integer>();
+    public static int count=0;
 
 
 
@@ -325,7 +326,7 @@ public class GeoCLusteringNew {
                 String geoHash = clusterObj.getGeoHash();
 
                 if(pushedClusters.contains(hash)){
-                    String ESAPI = "http://localhost:9200/geo_hash/hash_type/"+geoHash+"/_update";
+                    String ESAPI = "http://localhost:9200/geo_hash1/hash_type/";
                     HttpPost post = new HttpPost(ESAPI);
 
                     JSONObject fObject = new JSONObject();
@@ -333,19 +334,20 @@ public class GeoCLusteringNew {
                     fObject.put("script","ctx._source.clusters += obj");
                     JSONObject thisCluster = new JSONObject();
                     thisCluster.put("cluster_id", hash);
+                    thisCluster.put("geo_hash", geoHash);
                     thisCluster.put("distance", clusterObj.getDistance());
                     thisCluster.put("status", clusterObj.isStatus());
                     thisCluster.put("rank",clusterObj.getRank());
                     JSONObject object = new JSONObject();
                     object.put("obj",thisCluster);
                     fObject.put("params",object);
-                    post.setEntity(new StringEntity(fObject.toString()));
+                    post.setEntity(new StringEntity(thisCluster.toString()));
                     HttpResponse response = httpClient.execute(post);
                     HttpEntity code = response.getEntity();
 
                 }else {
 
-                    String ESAPI = "http://localhost:9200/live_geo_clusters/geo_cluster/"+hash;
+                    String ESAPI = "http://localhost:9200/live_geo_clusters1/geo_cluster/"+hash;
                     String uri = ESAPI;
                     HttpPost postRequest = new HttpPost(uri);
                     String ssd = clusterObj.getJSON().toString();
@@ -355,7 +357,7 @@ public class GeoCLusteringNew {
                     HttpEntity code =response.getEntity();
                     pushedClusters.add(hash);
 
-                    ESAPI = "http://localhost:9200/geo_hash/hash_type/"+geoHash+"/_update";
+                    ESAPI = "http://localhost:9200/geo_hash1/hash_type/";
 
                     //UPSERT doc
                     JSONObject fObject = new JSONObject();
@@ -365,6 +367,7 @@ public class GeoCLusteringNew {
                     JSONArray clusters = new JSONArray();
                     JSONObject thisCluster = new JSONObject();
                     thisCluster.put("cluster_id", hash);
+                    thisCluster.put("geo_hash", geoHash);
                     thisCluster.put("distance", clusterObj.getDistance());
                     thisCluster.put("status", clusterObj.isStatus());
                     thisCluster.put("rank",clusterObj.getRank());
@@ -382,7 +385,7 @@ public class GeoCLusteringNew {
                     fObject1.put("upsert",fObject);
 
                     HttpPost post = new HttpPost(ESAPI);
-                    post.setEntity(new StringEntity(fObject1.toString()));
+                    post.setEntity(new StringEntity(thisCluster.toString()));
 
                     response = httpClient.execute(post);
                     code = response.getEntity();
@@ -417,9 +420,8 @@ public class GeoCLusteringNew {
                 List<ESShop> shops = geoCLusteringNew.getStoresForGeoHash(s, map);
                 List<String> clusterPoints = geoCLusteringNew.getClusteringPoints(shops);
 
-                if(clusterPoints.size()>2){
+                if(clusterPoints.size()>0){
                     SimpleWorkerThread thread = new SimpleWorkerThread(clusterPoints,s);
-                    //thread.run();
                     executorService.execute(thread);
                 }
             }
