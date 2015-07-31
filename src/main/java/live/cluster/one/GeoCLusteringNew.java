@@ -412,15 +412,15 @@ public class GeoCLusteringNew {
             //geoHashList.add("tdr1yrb");
             int tt = geoCLusteringNew.generateProdCatMap(geoCLusteringNew.map);
 
-            ExecutorService executorService = Executors.newFixedThreadPool(5);
+            ExecutorService executorService = Executors.newCachedThreadPool();
             for(String s : geoHashList){
                 List<ESShop> shops = geoCLusteringNew.getStoresForGeoHash(s, map);
                 List<String> clusterPoints = geoCLusteringNew.getClusteringPoints(shops);
 
                 if(clusterPoints.size()>2){
                     SimpleWorkerThread thread = new SimpleWorkerThread(clusterPoints,s);
-                    thread.run();
-                    //executorService.execute(thread);
+                    //thread.run();
+                    executorService.execute(thread);
                 }
             }
             executorService.shutdown();
