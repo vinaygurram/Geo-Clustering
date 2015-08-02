@@ -73,6 +73,12 @@ http://www.w3.org/2001/XMLSchema-instance ">
             <scope>compile</scope>
         </dependency>
 
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>5.1.35</version>
+        </dependency>
+
 
     </dependencies>
 

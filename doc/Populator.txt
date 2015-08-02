@@ -1,0 +1,5 @@
+Getting The Data from Different Inventories ::
+
+1. Collect all stores from Sellers
+
+2. Update store

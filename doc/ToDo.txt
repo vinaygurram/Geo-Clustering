@@ -1,26 +1,10 @@
-1. Include the logic that there should be one FnV store at least. (DONE)
+1. Catalog tree refinement  (TODO)
 
-2. The logic change of product and sub cat coverage area wise  (DONE)
+2. Replace string merge with Set merge(TODO)
 
-3. Include total products and total sub cat fired in the geo hash index  (DONE)
+3. Get Product Coverage and Sub category coverage in 3km radius. (TODO)
 
-4. Catalog tree refinement  (TODO)
+4. Ruby task to update the production listing index (Not needed)
 
-5. Overlap of listed products and the overlap of product in stores in the cart selected.(TODO)
-
-6. Nested Documents update (DONE)
-
-7. correct store mappings (DONE)
-
-9. add rank (DONE)
-
-10. Replace string merge with Set merge(TODO)
-
-11. Adding geo hashes to Zone data  (Sudip)
-
-12. Correct catalog tree and send the data again.(TODO)
-
-13. Get Product Coverage and Sub category coverage in 3km radius. (TODO)
-
-14. Ruby task to update the production listing index (Not needed)
+5. Update the current data ;;
 

@@ -333,30 +333,6 @@ public class GetLiveData {
     }
 
     //
-
-    public void getListingAnalytics(List<String> geoHashList){
-        URL url;
-        HttpURLConnection httpURLConnection;
-        try {
-            for(String geoHash : geoHashList){
-
-                String LISTING_URI ="";
-                url = new URL(LISTING_URI);
-                httpURLConnection = (HttpURLConnection) url.openConnection();
-
-
-            }
-
-
-
-
-
-        }catch (Exception e){
-
-        }
-
-    }
-
     public static void main(String[] args){
         GetLiveData getLiveData = new GetLiveData();
         //List<Store> stores1 = getLiveData.getStoresData();;
