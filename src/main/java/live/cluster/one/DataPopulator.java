@@ -157,9 +157,11 @@ public class DataPopulator {
                 }
                 if(listingObject.getStore_name()==null) listingObject.setStore_name("NOT Present");
                 String[] catPath = getCategoryPath(id);
-                listingObject.setSup_cat_id(catPath[0]);
-                listingObject.setCat_id(catPath[1]);
-                if(catPath.length>2) listingObject.setSub_cat_id(catPath[2]);
+                if(catPath.length>0){
+                    listingObject.setSup_cat_id(catPath[0]);
+                    listingObject.setCat_id(catPath[1]);
+                    if(catPath.length>2) listingObject.setSub_cat_id(catPath[2]);
+                }
                 rObjects.add(listingObject);
             }
         }catch (Exception e){

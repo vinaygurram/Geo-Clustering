@@ -20,9 +20,10 @@ public class ListingAnalytics {
 
     private int getSubCat(String geoHash) throws UnsupportedEncodingException {
         try {
-            String query = "{ \"size\": 0, \"query\": { \"filtered\": { \"query\": { \"match_all\": {} }, \"filter\": " +
-                    "{ \"geo_distance\": { \"distance\": \"3km\", \"store_details.location\": \""+geoHash+"\" } } } }," +
-                    " \"aggregations\": { \"sub_cat\": { \"terms\": { \"field\": \"product.sub_category_id\" } } } }";
+            String query = "{\"size\":0,\"query\":{\"filtered\":{\"query\":{\"match_all\":{}},\"filter\":{\"bool\":" +
+                    "{\"must\":[{\"geo_distance\":{\"distance\":\"3km\",\"store.location\":\""+geoHash+"\"}}," +
+                    "{\"term\":{\"product.state\":\"available\"}}]}}}},\"aggregations\":{\"sub_cat\":{\"cardinality\":" +
+                    "{\"field\":\"product.sub_cat_id\"}}}}";
             String ES_API = "http://localhost:9200/listing/_search";
             HttpClient httpClient = HttpClientBuilder.create().build();
             HttpPost httpPost = new HttpPost(ES_API);
@@ -41,9 +42,11 @@ public class ListingAnalytics {
     private int getProducts(String geoHash){
 
         try {
-            String query = "{ \"size\": 0, \"query\": { \"filtered\": { \"query\": { \"match_all\": {} }, \"filter\": " +
-                    "{ \"geo_distance\": { \"distance\": \"3km\", \"store_details.location\": \""+geoHash+"\" } } } }," +
-                    " \"aggregations\": { \"sub_cat\": { \"terms\": { \"field\": \"product.id\" } } } }";
+            String query = "{\"size\":0,\"query\":{\"filtered\":{\"query\":{\"match_all\":{}},\"filter\":{\"bool\":" +
+                    "{\"must\":[{\"geo_distance\":{\"distance\":\"3km\",\"store.location\":\""+geoHash+"\"}}," +
+                    "{\"term\":{\"product.state\":\"available\"}}]}}}},\"aggregations\":{\"sub_cat\":{\"cardinality\":" +
+                    "{\"field\":\"product.id\"}}}}";
+
             String ES_API = "http://localhost:9200/listing/_search";
             HttpClient httpClient = HttpClientBuilder.create().build();
             HttpPost httpPost = new HttpPost(ES_API);

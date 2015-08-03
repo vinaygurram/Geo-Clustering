@@ -12,8 +12,8 @@ public class ListingObject {
     public String store_name;
     public String store_state;
     public Geopoint location;
-    public String sup_cat_id;
-    public String cat_id;
+    public String sup_cat_id="";
+    public String cat_id = "";
     public String sub_cat_id ="";
     public String state;
 
