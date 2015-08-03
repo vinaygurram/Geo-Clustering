@@ -36,7 +36,7 @@ public class DataPopulator {
 
     private final String SELLER_STORES_API = "http://seller-engine.olastore.com/stores";
     private Connection connection;
-    private HashMap<String,String[]> productMap = new HashMap<String, String[]>();
+    private  static HashMap<String,String[]> productMap = new HashMap<String, String[]>();
 
     public DataPopulator(Connection connection){
         this.connection  = connection;
@@ -176,12 +176,12 @@ public class DataPopulator {
     }
 
     private String[] getCategoryPath(String productId){
+        String[] idList = {};
         if(productMap.containsKey(productId)){
            return productMap.get(productId);
-        }
-        //Make a call to catalog and get products category path
-        String[] idList = {};
-        try {
+        }else {
+            //Make a call to catalog and get products category path
+            try {
             URL url = new URL("http://catalog-engine.olastore.com/v1/category/tree/product/"+productId+"/path");
             HttpURLConnection httpURLConnection = (HttpURLConnection)url.openConnection();
             String resultString = IOUtils.toString(httpURLConnection.getInputStream());
@@ -193,6 +193,9 @@ public class DataPopulator {
         }catch (Exception e){
             e.printStackTrace();
         }
+
+        }
+
         return idList;
     }
 
