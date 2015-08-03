@@ -15,9 +15,8 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+
+import java.io.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -53,10 +52,10 @@ public class GeoCLusteringNew {
         int m = 0;
         HttpClient httpClient = HttpClientBuilder.create().build();
         try {
-            while (m<19000){
+            while (m<16000){
                 String query = "{query:{match_all:{}},size:1000,from:"+m+"}";
                 m = m+1000;
-                HttpPost httpPost = new HttpPost("http://localhost:9200/products_list_new/_search");
+                HttpPost httpPost = new HttpPost("http://localhost:9200/products/_search");
                 httpPost.setEntity(new StringEntity(query));
                 HttpResponse response = httpClient.execute(httpPost);
 
@@ -72,12 +71,11 @@ public class GeoCLusteringNew {
                 for(int i=0;i<jsonArray.length();i++){
                     JSONObject tempJO = jsonArray.getJSONObject(i);
                     tempJO = tempJO.getJSONObject("_source");
-                    tempJO = tempJO.getJSONObject("product");
                     String id = tempJO.getString("id");
                     List<String> catList= new ArrayList<String>();
-                    catList.add(tempJO.getString("spcat"));
-                    catList.add(tempJO.getString("cat"));
-                    catList.add(tempJO.getString("sbcat"));
+                    catList.add(tempJO.getString("sup_cat_id"));
+                    catList.add(tempJO.getString("cat_id"));
+                    catList.add(tempJO.getString("sub_cat_id"));
                     productsCatMap.put(id,catList);
                 }
             }
@@ -408,6 +406,17 @@ public class GeoCLusteringNew {
 
             //Make geohashes and product category map
             List<String> geoHashList = geoCLusteringNew.getBlrGeoHashes();
+            FileWriter fileWriter = new FileWriter(new File("src/main/resources/coverage3kms.csv"));
+
+            ListingAnalytics listingAnalytics = new ListingAnalytics(fileWriter);
+            listingAnalytics.writeCSV(geoHashList);
+            boolean abc =true;
+
+            fileWriter.close();
+
+            if(abc){
+                return;
+            }
 
             //geoHashList = new ArrayList<String>();
             //geoHashList.add("tdr4phx");
