@@ -12,6 +12,9 @@ public class ListingObject {
     public String store_name;
     public String store_state;
     public Geopoint location;
+    public String sup_cat_id;
+    public String cat_id;
+    public String sub_cat_id ="";
     public String state;
 
 
@@ -65,6 +68,30 @@ public class ListingObject {
         this.store_state = store_state;
     }
 
+    public String getSup_cat_id() {
+        return sup_cat_id;
+    }
+
+    public void setSup_cat_id(String sup_cat_id) {
+        this.sup_cat_id = sup_cat_id;
+    }
+
+    public String getCat_id() {
+        return cat_id;
+    }
+
+    public void setCat_id(String cat_id) {
+        this.cat_id = cat_id;
+    }
+
+    public String getSub_cat_id() {
+        return sub_cat_id;
+    }
+
+    public void setSub_cat_id(String sub_cat_id) {
+        this.sub_cat_id = sub_cat_id;
+    }
+
     //Common Methods
     public boolean equals(Object object){
         if(!(object instanceof ListingObject)) return false;
@@ -84,6 +111,9 @@ public class ListingObject {
         jsonObject1 = new JSONObject();
         jsonObject1.put("id",productId);
         jsonObject1.put("state",state);
+        jsonObject1.put("sup_cat_id",sup_cat_id);
+        jsonObject1.put("sub_cat_id",sub_cat_id);
+        jsonObject1.put("cat_id",cat_id);
         jsonObject.put("product",jsonObject1);
         return  jsonObject.toString();
     }

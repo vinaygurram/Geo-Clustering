@@ -4,6 +4,7 @@ import gridbase.Geopoint;
 import live.cluster.one.DBObjects.JDCBC;
 import live.cluster.one.DBObjects.ListingObject;
 import live.cluster.one.DBObjects.Store;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
@@ -21,6 +22,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -34,6 +36,7 @@ public class DataPopulator {
 
     private final String SELLER_STORES_API = "http://seller-engine.olastore.com/stores";
     private Connection connection;
+    private HashMap<String,String[]> productMap = new HashMap<String, String[]>();
 
     public DataPopulator(Connection connection){
         this.connection  = connection;
@@ -126,13 +129,13 @@ public class DataPopulator {
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
         try {
-            preparedStatement = connection.prepareStatement("SELECT id,store_id,state FROM inventories ORDER BY  id limit ?,?");
+            preparedStatement = connection.prepareStatement("SELECT variant_id,store_id,state FROM inventories ORDER BY  id limit ?,?");
             preparedStatement.setInt(1, from);
             preparedStatement.setInt(2, from+10000);
             resultSet = preparedStatement.executeQuery();
 
             while(resultSet.next()){
-                String id = resultSet.getString("id");
+                String id = resultSet.getString("variant_id");
                 String store_id = resultSet.getString("store_id");
                 String state = resultSet.getString("state");
                 ListingObject listingObject = new ListingObject();
@@ -153,6 +156,10 @@ public class DataPopulator {
                     listingObject.setStore_state("unavailable");
                 }
                 if(listingObject.getStore_name()==null) listingObject.setStore_name("NOT Present");
+                String[] catPath = getCategoryPath(id);
+                listingObject.setSup_cat_id(catPath[0]);
+                listingObject.setCat_id(catPath[1]);
+                if(catPath.length>2) listingObject.setSub_cat_id(catPath[2]);
                 rObjects.add(listingObject);
             }
         }catch (Exception e){
@@ -168,7 +175,28 @@ public class DataPopulator {
         return rObjects;
     }
 
-    private void pushListingObjectsToES(List<ListingObject> listingObjects){
+    private String[] getCategoryPath(String productId){
+        if(productMap.containsKey(productId)){
+           return productMap.get(productId);
+        }
+        //Make a call to catalog and get products category path
+        String[] idList = {};
+        try {
+            URL url = new URL("http://catalog-engine.olastore.com/v1/category/tree/product/"+productId+"/path");
+            HttpURLConnection httpURLConnection = (HttpURLConnection)url.openConnection();
+            String resultString = IOUtils.toString(httpURLConnection.getInputStream());
+            JSONObject result = new JSONObject(resultString);
+            JSONArray pPath = result.getJSONArray("primary_path");
+            JSONObject thisPath = pPath.getJSONObject(0);
+            idList = thisPath.getString("node_id_path").split(">");
+            productMap.put(productId,idList);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return idList;
+    }
+
+    private synchronized void pushListingObjectsToES(List<ListingObject> listingObjects){
         String uri = "http://localhost:9200";
         String indexName = "listing";
         String indexType = "list";
@@ -191,10 +219,33 @@ public class DataPopulator {
         }
     }
 
+    public void pushCatalogMap(){
+
+        for(String s: productMap.keySet()){
+            JSONObject jo = new JSONObject();
+            String[] catArray = productMap.get(s);
+            jo.put("id",s);
+            jo.put("sup_cat_id",catArray[0]);
+            jo.put("cat_id",catArray[1]);
+            jo.put("sub_cat_id","");
+            if(catArray.length>2)jo.put("sub_cat_id",catArray[2]);
+            try {
+                HttpClient httpClient = HttpClientBuilder.create().build();
+                HttpPost httpPost = new HttpPost("http://localhost:9200/products/product/"+s);
+                httpPost.setEntity(new StringEntity(jo.toString()));
+                httpClient.execute(httpPost);
+
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+    }
+
     public static void main(String[] args){
         DataPopulator dataPopulator = new DataPopulator(JDCBC.getConnection());
         dataPopulator.populateListingIndex();
-        //dataPopulator.populateStoresIndex();
+        dataPopulator.pushCatalogMap();
+        dataPopulator.populateStoresIndex();
     }
 
 }

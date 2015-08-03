@@ -22,7 +22,10 @@ ES_MAPPINGS="{
                     \"type\" : \"object\",
                     \"properties\" : {
                         \"id\" : {\"type\" : \"string\"},
-                        \"state\" : {\"type\" : \"string\"}
+                        \"state\" : {\"type\" : \"string\"},
+                        \"sup_cat_id\" : {\"type\" : \"string\"},
+                        \"sub_cat_id\" : {\"type\" : \"string\"},
+                        \"cat_id\" : {\"type\" : \"string\"}
                     }
                 }
             }

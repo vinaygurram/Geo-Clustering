@@ -27,6 +27,26 @@ Unique Sub categories in the 3km radius ::
 Uniquer Products in the 3km radius ::
 
 
+Total Products in a shop
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "term": {
+            "store.id": "100026"
+          }
+        },
+        {
+          "term": {
+            "product.state": "available"
+          }
+        }
+      ]
+    }
+  }
+}
+
 tdr4phxs0000  --> check why 1 index is not happening.
 only 700
 

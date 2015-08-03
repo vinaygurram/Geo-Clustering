@@ -8,3 +8,5 @@
 
 5. Update the current data ;;
 
+6. Replace InputStream to String by IOUtils.toString
+
