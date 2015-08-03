@@ -115,6 +115,10 @@ public class ClusterStrategyNew {
 
     public int getProductCoverage(List<String> idList){
 
+        if(idList.size()==1){
+            return clusterPoints.get(idList.get(0)).getProducts().length;
+        }
+
         String hash = getHashForCHM(idList);
         if(geoProductCoverage.containsKey(hash)){
             return geoProductCoverage.get(hash);
@@ -131,6 +135,9 @@ public class ClusterStrategyNew {
     }
 
     public int getSubCatCoverage(List<String> idList){
+        if(idList.size()==1){
+            return clusterPoints.get(idList.get(0)).getSubCat().length;
+        }
         String hash = getHashForCHM(idList);
         if(geoSubCatCoverage.containsKey(hash)){
            return geoSubCatCoverage.get(hash);

@@ -5,6 +5,7 @@ import com.github.davidmoten.geo.GeoHash;
 import gridbase.*;
 import live.cluster.one.LObject.CatalogTree;
 import live.cluster.one.LObject.ClusterObjNew;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -12,11 +13,14 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -44,6 +48,7 @@ public class GeoCLusteringNew {
     public static ArrayList<String> pushedClusters = new ArrayList<String>();
     public static HashMap<String,Integer> geoProductCoverage = new HashMap<String, Integer>();
     public static HashMap<String,Integer> geoSubCatCoverage = new HashMap<String, Integer>();
+    public static ConcurrentHashMap<String,ESShop> esShopList = new ConcurrentHashMap<String, ESShop>();
     public static int count=0;
 
 
@@ -76,7 +81,7 @@ public class GeoCLusteringNew {
                     catList.add(tempJO.getString("sup_cat_id"));
                     catList.add(tempJO.getString("cat_id"));
                     catList.add(tempJO.getString("sub_cat_id"));
-                    productsCatMap.put(id,catList);
+                    productsCatMap.put(id, catList);
                 }
             }
             return 1;
@@ -199,42 +204,80 @@ public class GeoCLusteringNew {
         StringBuffer result = new StringBuffer();
         try {
             String uri = ESAPI+"/_search";
+            uri = "http://localhost:9200/listing/_search";
             httpClient = HttpClientBuilder.create().build();
 
             HttpPost postRequest = new HttpPost(uri);
             String ssd = "{\"size\":40,\"fields\": [\"store.store_id\",\"store.location\",\"store.cat_list\",\"store.products.id\"," +
                     "\"store.products_count\",\"store.sub_cat_list\",\"fnv\"],\"query\": {\"match_all\": {}}," +
                     "\"filter\": {\"geo_distance\": {\"distance\":\"6km\",\"location\": \""+geohash+"\"}}}";
+
+            ssd ="{\"size\":0,\"query\":{\"filtered\":{\"filter\":{\"geo_distance\":{\"distance\":\"6km\"," +
+                    "\"store.location\":\""+geohash+"\"}}}},\"aggregations\":{\"stores_unique\":{\"terms\":{\"field\":\"store.id\"}}}}";
+
             postRequest.setEntity(new StringEntity(ssd));
             //send post request
             HttpResponse response = httpClient.execute(postRequest);
+            JSONObject jsonObject = new JSONObject(EntityUtils.toString(response.getEntity()));
+            jsonObject = jsonObject.getJSONObject("aggregations");
+            jsonObject = jsonObject.getJSONObject("stores_unique");
+            JSONArray stores = jsonObject.getJSONArray("buckets");
+            for(int i=0;i<stores.length();i++){
 
-            BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
-            String line;
-            while ((line = rd.readLine()) != null) {
-                result.append(line);
-            }
+                //Get location first
+                String id = stores.getJSONObject(i).getString("key");
+                ESShop esShop = null;
+                if(esShopList.containsKey(id)){
+                   esShop = esShopList.get(id);
+                }else {
+                    URL url = new URL("http://localhost:9200/stores/store/"+id);
+                    HttpURLConnection httpURLConnection = (HttpURLConnection)url.openConnection();
+                    JSONObject response1 = new JSONObject(IOUtils.toString(httpURLConnection.getInputStream()));
+                    response1 = response1.getJSONObject("_source");
+                    String lat_lng =response1.getString("location");
+                    String[] latlng = lat_lng.split(",");
+                    double lat = Double.parseDouble(latlng[0]);
+                    double lng = Double.parseDouble(latlng[1]);
 
-            JSONObject jsonObject = new JSONObject(result.toString());
-            JSONArray jsonArray = jsonObject.getJSONObject("hits").getJSONArray("hits");
-            if(jsonArray.length()>1){
-               // System.out.println();
-            }
-            for(int i=0;i<jsonArray.length();i++){
-                JSONObject jsonObject1 = jsonArray.getJSONObject(i);
-                JSONObject fieldsObj = jsonObject1.getJSONObject("fields");
-                String id = fieldsObj.getJSONArray("store.store_id").getString(0);
-                JSONArray productsArray = fieldsObj.getJSONArray("store.products.id");
-                String location = fieldsObj.getJSONArray("store.location").getString(0);
-                String[] ll = location.split(",");
-                double lat = Double.parseDouble(ll[0]);
-                double lon = Double.parseDouble(ll[1]);
-                ESShop esShop = new ESShop(id,productsArray,id,new Geopoint(lat,lon),map);
-                if(fieldsObj.keySet().contains("fnv")){
-                    if(fieldsObj.getJSONArray("fnv").getBoolean(0))esShop.setFnv(true);
+                    if(id.contentEquals("100089")){
+                        System.out.println(2);
+                    }
+
+                    //Get product list
+                    String ssd1 = "{\"size\":\"7000\",\"fields\":[\"product.id\"],\"query\":{\"filtered\":{\"filter\":{\"bool\":{\"must\":[" +
+                            "{\"term\":{\"store.id\":\""+id+"\"}},{\"term\":{\"product.state\":\"available\"}}]}}}}}";
+                    HttpPost httpPost = new HttpPost("http://localhost:9200/listing/_search");
+                    httpPost.setEntity(new StringEntity(ssd1));
+                    HttpResponse tempResponse = httpClient.execute(httpPost);
+                    JSONObject response2 = new JSONObject(EntityUtils.toString(tempResponse.getEntity()));
+                    response2 = response2.getJSONObject("hits");
+                    JSONArray hitsArray = response2.getJSONArray("hits");
+                    JSONArray productList = new JSONArray();
+                    for(int j=0;j<hitsArray.length();j++){
+                        productList.put(hitsArray.getJSONObject(j).getJSONObject("fields").getJSONArray("product.id").getString(0));
+                    }
+                    esShop = new ESShop("",productList,id,new Geopoint(lat,lng),map);
+                    esShopList.put(id,esShop);
                 }
                 reShops.add(esShop);
+
             }
+
+//            for(int i=0;i<jsonArray.length();i++){
+//                JSONObject jsonObject1 = jsonArray.getJSONObject(i);
+//                JSONObject fieldsObj = jsonObject1.getJSONObject("fields");
+//                String id = fieldsObj.getJSONArray("store.store_id").getString(0);
+//                JSONArray productsArray = fieldsObj.getJSONArray("store.products.id");
+//                String location = fieldsObj.getJSONArray("store.location").getString(0);
+//                String[] ll = location.split(",");
+//                double lat = Double.parseDouble(ll[0]);
+//                double lon = Double.parseDouble(ll[1]);
+//                ESShop esShop = new ESShop(id,productsArray,id,new Geopoint(lat,lon),map);
+//                if(fieldsObj.keySet().contains("fnv")){
+//                    if(fieldsObj.getJSONArray("fnv").getBoolean(0))esShop.setFnv(true);
+//                }
+//                reShops.add(esShop);
+//            }
         }catch (IOException e){
             e.printStackTrace();
         }catch (JSONException e){
@@ -406,17 +449,17 @@ public class GeoCLusteringNew {
 
             //Make geohashes and product category map
             List<String> geoHashList = geoCLusteringNew.getBlrGeoHashes();
-            FileWriter fileWriter = new FileWriter(new File("src/main/resources/coverage3kms.csv"));
-
-            ListingAnalytics listingAnalytics = new ListingAnalytics(fileWriter);
-            listingAnalytics.writeCSV(geoHashList);
-            boolean abc =true;
-
-            fileWriter.close();
-
-            if(abc){
-                return;
-            }
+//            FileWriter fileWriter = new FileWriter(new File("src/main/resources/coverage3kms.csv"));
+//
+//            ListingAnalytics listingAnalytics = new ListingAnalytics(fileWriter);
+//            listingAnalytics.writeCSV(geoHashList);
+//            boolean abc =true;
+//
+//            fileWriter.close();
+//
+//            if(abc){
+//                return;
+//            }
 
             //geoHashList = new ArrayList<String>();
             //geoHashList.add("tdr4phx");
@@ -431,6 +474,7 @@ public class GeoCLusteringNew {
 
                 if(clusterPoints.size()>0){
                     SimpleWorkerThread thread = new SimpleWorkerThread(clusterPoints,s);
+                    //thread.run();
                     executorService.execute(thread);
                 }
             }
