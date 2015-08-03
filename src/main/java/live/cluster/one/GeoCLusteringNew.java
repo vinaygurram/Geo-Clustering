@@ -424,7 +424,7 @@ public class GeoCLusteringNew {
             //geoHashList.add("tdr1yrb");
             int tt = geoCLusteringNew.generateProdCatMap(geoCLusteringNew.map);
 
-            ExecutorService executorService = Executors.newCachedThreadPool();
+            ExecutorService executorService = Executors.newFixedThreadPool(8);
             for(String s : geoHashList){
                 List<ESShop> shops = geoCLusteringNew.getStoresForGeoHash(s, map);
                 List<String> clusterPoints = geoCLusteringNew.getClusteringPoints(shops);

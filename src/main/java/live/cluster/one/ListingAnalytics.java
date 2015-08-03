@@ -11,9 +11,6 @@ import org.json.JSONObject;
 import java.io.FileWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by gurramvinay on 8/3/15.
@@ -78,36 +75,21 @@ public class ListingAnalytics {
 
     public int writeCSV(List<String> geoHashList) {
         try {
-            ExecutorService executorService = Executors.newFixedThreadPool(5);
+            int i=0;
             fileWriter.write("geo_hash,product_count,sub_cat_count");
             fileWriter.write("\n");
             for (String s : geoHashList) {
-                SThread temp = new SThread(s);
-                executorService.execute(temp);
+                int productCount = getProducts(s);
+                int subCatCount = getSubCat(s);
+                fileWriter.write(s + "," + productCount + "," + subCatCount);
+                fileWriter.write("\n");
+                System.out.println(i++);
             }
-            executorService.awaitTermination(1, TimeUnit.DAYS);
         } catch (Exception e) {
             e.printStackTrace();
         }
         return 0;
     }
 
-    class SThread implements Runnable {
-        String geo;
-        public SThread(String s ){
-            geo = s;
-        }
-        public  void run(){
-            try {
-                int productCount = getProducts(geo);
-                int subCatCount = getSubCat(geo);
-                fileWriter.write(geo + "," + productCount + "," + subCatCount);
-                fileWriter.write("\n");
-            }catch (Exception e){
-                e.printStackTrace();
-            }
-
-        }
-    }
 
 }
