@@ -372,7 +372,7 @@ public class GeoCLusteringNew {
 
                     JSONObject updateObject = new JSONObject();
 
-                    updateObject.put("script", "ctx._source.clusters += obj;ctx._source.count +=1");
+                    updateObject.put("script", "ctx._source.clusters += obj;ctx._source.clusters_count += 1");
                     JSONObject thisCluster = new JSONObject();
                     thisCluster.put("cluster_id", hash);
                     thisCluster.put("distance", clusterObj.getDistance());
@@ -404,20 +404,20 @@ public class GeoCLusteringNew {
                     upsertObject.put("id", geoHash);
                     upsertObject.put("product_count", pCount);
                     upsertObject.put("sub_cat_count", sbCount);
+                    upsertObject.put("clusters_count", 1);
                     JSONArray clusters = new JSONArray();
                     JSONObject thisCluster = new JSONObject();
                     thisCluster.put("cluster_id", hash);
                     thisCluster.put("distance", clusterObj.getDistance());
                     thisCluster.put("status", clusterObj.isStatus());
                     thisCluster.put("rank",clusterObj.getRank());
-                    thisCluster.put("count","1");
                     clusters.put(thisCluster);
                     upsertObject.put("clusters", clusters);
 
 
                     //Update object
                     JSONObject fObject1 = new JSONObject();
-                    fObject1.put("script","ctx._source.clusters += obj;ctx._source.count +=1");
+                    fObject1.put("script","ctx._source.clusters += obj;ctx._source.clusters_count += 1");
 
                     JSONObject object = new JSONObject();
                     object.put("obj",thisCluster);
