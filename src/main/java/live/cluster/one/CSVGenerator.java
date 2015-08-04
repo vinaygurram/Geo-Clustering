@@ -21,16 +21,16 @@ public class CSVGenerator {
 
         try {
 
-            FileWriter fileWriter = new FileWriter("src/main/resources/esData.csv");
+            FileWriter fileWriter = new FileWriter("src/main/resources/geo_hash.csv");
             //fileWriter.write("id,geoHash,rank,sub_cat_count,product_count,distance,stores_count,shop_ids");
-            fileWriter.write("id,sub_cat_count,product_count,cluster_ids,distances");
+            fileWriter.write("id,sub_cat_count,product_count,stores,stores_count");
             fileWriter.write("\n");
             HttpClient httpClient = HttpClientBuilder.create().build();
             int from =0;
             while(from<461000){
                 String query = "{\"size\": 10000,\"from\":"+from+",\"fields\":[\"clusterOB.distance\",\"clusterOB.product_count\",\"clusterOB.geohash\",\"clusterOB.rank\",\"clusterOB.sub_cat_count\",\"store.shop_ids\",\"clusterOB.stores_count\",\"clusterOB.shop_ids\"], \"query\": {\"match_all\": {}}}";
                 //query = "{\"size\": 10000,\"from\":"+from+",\"fields\":[\"clusterOB.distance\",\"clusterOB.product_count\",\"clusterOB.geohash\",\"clusterOB.rank\",\"clusterOB.sub_cat_count\",\"store.shop_ids\",\"clusterOB.stores_count\",\"clusterOB.shop_ids\"], \"query\": {\"match_all\": {}}}";
-                query = "{\"size\": 10000, \"query\": { \"match_all\": {} }, \"fields\": [ \"sub_cat_count\", \"clusters.cluster_id\", \"id\", \"product_count\",\"clusters.distance\" ] }";
+                query = "{\"size\": 10000, \"query\": { \"match_all\": {} }, \"fields\": [ \"sub_cat_count\", \"product_count\",\"stores_count\" ] }";
                 String ES_API = "http://localhost:9200/live_geo_clusters_new3/_search";
                 ES_API = "http://localhost:9200/geo_hash/_search";
 
@@ -69,17 +69,8 @@ public class CSVGenerator {
                     String pCount  = jsonObject1.getJSONArray("product_count").getInt(0)+"";
                     JSONArray clusters  = jsonObject1.getJSONArray("clusters.cluster_id");
                     String clusterId="";
-                    for(int k=0;k<clusters.length();k++){
-                        clusterId +="##"+clusters.getString(k);
-                    }
-                    clusterId = clusterId.substring(1);
-                    JSONArray distanceArray = jsonObject1.getJSONArray("clusters.distance");
-                    String distances = "";
-                    for(int k=0;k<distanceArray.length();k++){
-                        distances += "-"+distanceArray.getDouble(k);
-                    }
-                    distances = distances.substring(1);
-                    fileWriter.write(id+","+suCount+","+pCount+","+clusterId+","+distances);
+
+                    fileWriter.write(id+","+suCount+","+pCount+","+clusterId);
                     fileWriter.write("\n");
                 }
                 from+=10000;
@@ -96,15 +87,15 @@ public class CSVGenerator {
 
         try {
 
-            FileWriter fileWriter = new FileWriter("src/main/resources/esData1.csv");
+            FileWriter fileWriter = new FileWriter("src/main/resources/clusters.csv");
             //fileWriter.write("id,geoHash,rank,sub_cat_count,product_count,distance,stores_count,shop_ids");
-            fileWriter.write("id,sub_cat_count,product_count,store_ids");
+            fileWriter.write("sub_cat_count,product_count,stores,stores_count");
             fileWriter.write("\n");
             HttpClient httpClient = HttpClientBuilder.create().build();
             int from =0;
             while(from<30000){
-                String query = "{ \"size\": 10000, \"query\": { \"match_all\": {} }, \"fields\": [ \"sub_cat_count\", \"product_count\", \"stores.store_id\" ] }";
-                String ES_API = "http://localhost:9200/live_geo_clusters/_search";
+                String query = "{ \"size\": 10000, \"query\": { \"match_all\": {} }, \"fields\": [ \"sub_cat_count\", \"product_count\",\"stores_count\" ] }";
+                String ES_API = "http://localhost:9200/live_geo_clusters1/_search";
 
                 HttpPost httpPost = new HttpPost(ES_API);
                 httpPost.setEntity(new StringEntity(query));
@@ -139,13 +130,8 @@ public class CSVGenerator {
                     String id = jsonArray.getJSONObject(i).getString("_id");
                     String suCount  = jsonObject1.getJSONArray("sub_cat_count").getInt(0)+"";
                     String pCount  = jsonObject1.getJSONArray("product_count").getInt(0)+"";
-                    JSONArray stores  = jsonObject1.getJSONArray("stores.store_id");
-                    String clusterId="";
-                    for(int k=0;k<stores.length();k++){
-                        clusterId +="##"+stores.getString(k);
-                    }
-                    clusterId = clusterId.substring(2);
-                    fileWriter.write(id+","+suCount+","+pCount+","+clusterId);
+                    String stores_count  = jsonObject1.getJSONArray("stores_count").getInt(0)+"";
+                    fileWriter.write(suCount+","+pCount+","+id+","+stores_count);
                     fileWriter.write("\n");
                 }
                 from+=10000;

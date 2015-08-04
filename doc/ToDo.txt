@@ -6,7 +6,5 @@
 
 4. Ruby task to update the production listing index (Not needed)
 
-5. Update the current data ;;
-
-6. Replace InputStream to String by IOUtils.toString
+5. Send the data to Neeraj
 
