@@ -372,7 +372,7 @@ public class ClusterStrategyNew {
         }else if(stringList.size()==2){
             shortDistance =getShortestDistanceFor2(geoHash, stringList);
         }
-        if(shortDistance>6) return null;
+        if(shortDistance>7) return null;
 
         //merge those ids and get Cat and SubCat count
         int productCount = mergerProducts(stringList);
