@@ -1,4 +1,4 @@
-package live.cluster.one;
+package clusters.create;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -10,8 +10,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

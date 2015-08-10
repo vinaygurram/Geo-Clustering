@@ -1,4 +1,4 @@
-package live.cluster.one;
+package clusters.create;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;

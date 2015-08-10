@@ -1,6 +1,6 @@
-package live.cluster.one.DBObjects;
+package clusters.create.DBObjects;
 
-import live.cluster.one.LObject.Geopoint;
+import clusters.create.LObject.Geopoint;
 import org.json.JSONObject;
 
 /**

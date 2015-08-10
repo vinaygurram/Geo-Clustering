@@ -1,4 +1,4 @@
-package live.cluster.one.DBObjects;
+package clusters.create.DBObjects;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

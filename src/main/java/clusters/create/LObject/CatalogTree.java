@@ -1,7 +1,6 @@
-package live.cluster.one.LObject;
+package clusters.create.LObject;
 
 import org.json.JSONArray;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;

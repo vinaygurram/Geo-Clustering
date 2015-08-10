@@ -1,7 +1,7 @@
-package live.cluster.one.LObject;
+package clusters.create.LObject;
 
+import clusters.create.GeoCLusteringNew;
 import com.github.davidmoten.geo.GeoHash;
-import live.cluster.one.GeoCLusteringNew;
 
 import java.util.HashMap;
 import java.util.List;
@@ -49,7 +49,7 @@ public class DistanceMatrix {
     synchronized private void computeDistancMatrix(Geopoint geoHashString,List<String> clusteringPoints){
         for(String cp: clusteringPoints){
             //geoHash Calculation
-            dMatrix.put(getHash(GeoHash.encodeHash(geoHashString.getLatitude(),geoHashString.getLongitude(),7),cp,true),Geopoint.getDistance(geoHashString,GeoCLusteringNew.clusterPoints.get(cp).getLocation()));
+            dMatrix.put(getHash(GeoHash.encodeHash(geoHashString.getLatitude(),geoHashString.getLongitude(),7),cp,true),Geopoint.getDistance(geoHashString, GeoCLusteringNew.clusterPoints.get(cp).getLocation()));
 
             for(String tp: clusteringPoints){
                 if(!cp.contentEquals(tp)){

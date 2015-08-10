@@ -1,9 +1,9 @@
-package live.cluster.one;
+package clusters.create;
 
+import clusters.create.LObject.ClusterObjNew;
 import com.github.davidmoten.geo.GeoHash;
 import com.github.davidmoten.geo.LatLong;
-import live.cluster.one.LObject.ClusterObjNew;
-import live.cluster.one.LObject.Geopoint;
+import clusters.create.LObject.Geopoint;
 
 import java.util.ArrayList;
 import java.util.List;

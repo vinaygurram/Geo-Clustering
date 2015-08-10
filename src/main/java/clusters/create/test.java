@@ -1,8 +1,8 @@
-package live.cluster.one;
+package clusters.create;
 
 
-import live.cluster.one.LObject.ClusterObj;
-import live.cluster.one.LObject.ClusteringPoint;
+import clusters.create.LObject.ClusterObj;
+import clusters.create.LObject.ClusteringPoint;
 
 import java.util.ArrayList;
 import java.util.Collections;

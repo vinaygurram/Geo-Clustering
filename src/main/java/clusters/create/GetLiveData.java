@@ -1,5 +1,9 @@
-package live.cluster.one;
+package clusters.create;
 
+import clusters.create.LObject.Geopoint;
+import clusters.create.LObject.PCat;
+import clusters.create.LObject.Product;
+import clusters.create.LObject.Store;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
@@ -7,8 +11,6 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.json.JSONArray;
 import org.json.JSONObject;
-
-import live.cluster.one.LObject.*;
 
 import java.io.*;
 import java.net.HttpURLConnection;
