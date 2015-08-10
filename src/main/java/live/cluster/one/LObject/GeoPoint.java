@@ -1,7 +1,7 @@
-package gridbase;
+package live.cluster.one.LObject;
 
 /**
- * Created by gurramvinay on 6/19/15.
+ * Created by gurramvinay on 8/10/15.
  */
 public class Geopoint {
     private double longitude;

@@ -1,13 +1,13 @@
-package gridbase;
+package live.cluster.one.LObject;
 
 import org.json.JSONArray;
+
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Created by gurramvinay on 6/19/15.
+ * Created by gurramvinay on 8/10/15.
  */
 public class ESShop {
     private String name;

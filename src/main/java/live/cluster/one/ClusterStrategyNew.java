@@ -1,7 +1,6 @@
 package live.cluster.one;
 
 import com.github.davidmoten.geo.GeoHash;
-import gridbase.*;
 import live.cluster.one.LObject.*;
 
 import java.util.ArrayList;

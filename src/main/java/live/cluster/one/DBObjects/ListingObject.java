@@ -1,6 +1,6 @@
 package live.cluster.one.DBObjects;
 
-import gridbase.Geopoint;
+import live.cluster.one.LObject.Geopoint;
 import org.json.JSONObject;
 
 /**

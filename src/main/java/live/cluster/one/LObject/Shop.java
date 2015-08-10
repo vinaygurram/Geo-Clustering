@@ -1,10 +1,7 @@
-package gridbase;
+package live.cluster.one.LObject;
 
 import java.util.BitSet;
 
-/**
- * Created by gurramvinay on 6/19/15.
- */
 public class Shop {
 
     private double lat;

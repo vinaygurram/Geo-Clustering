@@ -2,11 +2,10 @@ package live.cluster.one;
 
 import com.github.davidmoten.geo.GeoHash;
 import com.github.davidmoten.geo.LatLong;
-import gridbase.*;
 import live.cluster.one.LObject.ClusterObjNew;
+import live.cluster.one.LObject.Geopoint;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 /**

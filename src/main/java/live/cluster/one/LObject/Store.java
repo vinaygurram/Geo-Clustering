@@ -1,5 +1,4 @@
 package live.cluster.one.LObject;
-import gridbase.Geopoint;
 import org.json.JSONArray;
 import org.json.JSONObject;
 

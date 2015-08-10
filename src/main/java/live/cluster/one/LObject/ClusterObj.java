@@ -1,6 +1,5 @@
-package gridbase;
+package live.cluster.one.LObject;
 
-import live.cluster.one.LObject.CatalogTree;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -8,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by gurramvinay on 6/30/15.
+ * Created by gurramvinay on 8/10/15.
  */
 public class ClusterObj {
 

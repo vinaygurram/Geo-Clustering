@@ -1,9 +1,9 @@
-package gridbase;
+package live.cluster.one.LObject;
 
 import java.util.List;
 
 /**
- * Created by gurramvinay on 6/26/15.
+ * Created by gurramvinay on 8/10/15.
  */
 public class ClusteringPoint {
 

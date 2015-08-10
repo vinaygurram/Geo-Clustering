@@ -1,7 +1,8 @@
 package live.cluster.one;
 
-import gridbase.ClusterObj;
-import gridbase.ClusteringPoint;
+
+import live.cluster.one.LObject.ClusterObj;
+import live.cluster.one.LObject.ClusteringPoint;
 
 import java.util.ArrayList;
 import java.util.Collections;

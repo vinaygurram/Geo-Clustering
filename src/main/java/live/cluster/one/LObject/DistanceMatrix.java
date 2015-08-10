@@ -1,15 +1,13 @@
-package gridbase;
+package live.cluster.one.LObject;
 
 import com.github.davidmoten.geo.GeoHash;
-import com.github.davidmoten.geo.LatLong;
 import live.cluster.one.GeoCLusteringNew;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
-
 /**
- * Created by gurramvinay on 6/30/15.
+ * Created by gurramvinay on 8/10/15.
  */
 public class DistanceMatrix {
 
@@ -53,16 +51,16 @@ public class DistanceMatrix {
             //geoHash Calculation
             dMatrix.put(getHash(GeoHash.encodeHash(geoHashString.getLatitude(),geoHashString.getLongitude(),7),cp,true),Geopoint.getDistance(geoHashString,GeoCLusteringNew.clusterPoints.get(cp).getLocation()));
 
-           for(String tp: clusteringPoints){
-               if(!cp.contentEquals(tp)){
-                   String hashId = getHash(tp,cp,true);
-                   String hashId2 = getHash(tp,cp,false);
-                   if(dMatrix.containsKey(hashId) || dMatrix.containsKey(hashId2)){
-                   }else {
-                       dMatrix.put(hashId,Geopoint.getDistance(GeoCLusteringNew.clusterPoints.get(cp).getLocation(),GeoCLusteringNew.clusterPoints.get(tp).getLocation()));
-                   }
-               }
-           }
+            for(String tp: clusteringPoints){
+                if(!cp.contentEquals(tp)){
+                    String hashId = getHash(tp,cp,true);
+                    String hashId2 = getHash(tp,cp,false);
+                    if(dMatrix.containsKey(hashId) || dMatrix.containsKey(hashId2)){
+                    }else {
+                        dMatrix.put(hashId,Geopoint.getDistance(GeoCLusteringNew.clusterPoints.get(cp).getLocation(),GeoCLusteringNew.clusterPoints.get(tp).getLocation()));
+                    }
+                }
+            }
         }
     }
 

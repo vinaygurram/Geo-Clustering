@@ -1,9 +1,9 @@
 package live.cluster.one;
 
-import gridbase.Geopoint;
 import live.cluster.one.DBObjects.JDCBC;
 import live.cluster.one.DBObjects.ListingObject;
 import live.cluster.one.DBObjects.Store;
+import live.cluster.one.LObject.Geopoint;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;

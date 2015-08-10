@@ -1,9 +1,5 @@
-package gridbase;
+package live.cluster.one.LObject;
 
-/**
- * Simple Boud
- * Created by gurramvinay on 6/19/15.
- */
 public class BoundingBox {
 
     private Geopoint topLeft;

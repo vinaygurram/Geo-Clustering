@@ -1,6 +1,5 @@
 package live.cluster.one;
 
-import gridbase.Geopoint;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
@@ -13,7 +12,6 @@ import live.cluster.one.LObject.*;
 
 import java.io.*;
 import java.net.HttpURLConnection;
-import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;

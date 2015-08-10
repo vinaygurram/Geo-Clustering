@@ -33,7 +33,7 @@ public class CSVGenerator {
             HttpClient httpClient = HttpClientBuilder.create().build();
 
             String API = "http://localhost:9200/geo_hash/_search";
-            String query = "{\"from\": 0,\"size\" :40218,\"query\":{\"match_all\":{}}}";
+            String query = "{\"from\": 0,\"size\" :40318,\"query\":{\"match_all\":{}}}";
 
             HttpPost httpPost = new HttpPost(API);
             httpPost.setEntity(new StringEntity(query));

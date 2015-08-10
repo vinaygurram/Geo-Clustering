@@ -1,6 +1,5 @@
 package live.cluster.one.LObject;
 
-import gridbase.ClusterObj;
 import org.json.JSONArray;
 import org.json.JSONObject;
 

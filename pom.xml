@@ -85,6 +85,13 @@ http://www.w3.org/2001/XMLSchema-instance ">
             <version>2.4</version>
         </dependency>
 
+        <dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+            <version>2.7.2</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
 
     </dependencies>
 
