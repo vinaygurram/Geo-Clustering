@@ -2,7 +2,11 @@ package clusters.create.LObject;
 
 import clusters.create.GeoCLusteringNew;
 import com.github.davidmoten.geo.GeoHash;
+import org.apache.commons.io.IOUtils;
+import org.json.JSONObject;
 
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
@@ -62,6 +66,27 @@ public class DistanceMatrix {
                 }
             }
         }
+    }
+
+
+    public void getGoogleDistanceBetweenPoints(Geopoint g1, Geopoint g2) {
+
+        try {
+            String API= "https://maps.googleapis.com/maps/api/distancematrix/json?" +
+                    "key=AIzaSyDonh7jhpT3yEUXTNCj_o1a_Fo5NSPpdUA&" +
+                    "origins="+g1.getLatitude()+","+g1.getLongitude()+"&" +
+                    "destinations="+g1.getLatitude()+","+g2.getLongitude()+"&mode=driving";
+            URL url = new URL(API);
+            HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+
+            String result = IOUtils.toString(urlConnection.getInputStream());
+
+
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
     }
 
 }

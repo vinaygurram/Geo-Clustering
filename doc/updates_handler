@@ -1,0 +1,44 @@
+Handling the Updates ::
+
+All Updates ::
+1. Inventory Update (Changing product is_available or not)
+2. Inventory Add (Adding a product to the store)
+3. Category Path Change (Change in the path)
+4. Catalog Updates  (Making product hidden/current/delete)
+5. Update Listing Location (Changing Location of store)
+5. Store update (Same as above but for stores;;)
+6. Update device ping
+7. Update device state
+8. Price updates
+
+
+How to handle in the clusters ::
+//Lets write in ruby we will make changes later
+1. Inventory update (for a store)
+   * Find all clusters containing the store (DONE)
+   * do query for the store combinations
+   * will also need to check for updates of category tree (create a new tree)
+   * update the clusters & geo hash index
+   * (Should we put the geo hash level product sub categories and categories ) (Probably not)
+2.Inventory add
+    * Find all clusters containing the store
+    * do aggregation for the store combinations
+    * update the clusters & geo hash index
+    * (Should we put the geo hash level product sub categories and categories ) (Probably not)
+3. Category Path Change
+
+4. Catalog updates
+    * Find all clusters containing the store
+    * do aggregation for the store combinations
+    * update the clusters & geo hash index
+5. Update Listing Location
+    * Rerun the cluster logic (Because addition of stores also happens)
+5. Update Store Location
+    * Rerun the cluster logic (Because addition of stores also happens)
+6. Update Device Ping
+
+7 Update device state
+   * what to do?
+8. Price updates
+   * Nothing to do
+

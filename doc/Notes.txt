@@ -50,4 +50,16 @@ Total Products in a shop
 tdr4phxs0000  --> check why 1 index is not happening.
 only 700
 
+Checking stores for updates ::
 
+Query ::
+{
+  "_source": [
+    "stores.store_id"
+  ],
+  "query": {
+    "term": {
+      "stores.store_id": "100022"
+    }
+  }
+}
