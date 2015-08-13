@@ -63,3 +63,63 @@ Query ::
     }
   }
 }
+
+
+Getting all cluster data from listing index ::
+{
+  "size": 0,
+  "query": {
+    "terms": {
+      "store.id": [
+        "100016",
+        "100055"
+      ]
+    }
+  },
+  "aggregations": {
+    "product_coverage": {
+      "cardinality": {
+        "field": "product.id"
+      }
+    },
+    "sub_cat_coverage": {
+      "cardinality": {
+        "field": "product.sub_cat_id"
+      }
+    },
+    "super_categories": {
+      "terms": {
+        "field": "product.sup_cat_id",
+        "size": 0
+      },
+      "aggregations": {
+        "categories": {
+          "terms": {
+            "field": "product.cat_id",
+            "size": 0
+          },
+          "aggregations": {
+            "sub_categories": {
+              "terms": {
+                "field": "product.sub_cat_id",
+                "size": 0
+              },
+              "aggregations": {
+                "products_count": {
+                  "cardinality": {
+                    "field": "product.id"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+
+
+
+
