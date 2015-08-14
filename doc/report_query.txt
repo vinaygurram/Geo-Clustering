@@ -1,0 +1,41 @@
+{
+  "size": 0,
+  "query": {
+    "filtered": {
+      "filter": {
+        "bool": {
+          "must": [
+            {
+              "geo_distance": {
+                "store_details.location": "tdr1ujb",
+                "distance": "10km"
+              }
+            },
+            {
+              "term": {
+                "product_details.available": true
+              }
+            },
+            {
+              "term": {
+                "product_details.status": "current"
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  "aggregations": {
+    "unique_products": {
+      "terms": {
+        "field": "product_details.id"
+      }
+    },
+    "stores_aggs": {
+      "cardinality": {
+        "field": "store_details.id"
+      }
+    }
+  }
+}

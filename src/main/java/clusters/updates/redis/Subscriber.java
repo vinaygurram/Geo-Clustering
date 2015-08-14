@@ -161,6 +161,7 @@ public class Subscriber extends JedisPubSub {
 
             }
         }
+        return null;
 
 
     }
