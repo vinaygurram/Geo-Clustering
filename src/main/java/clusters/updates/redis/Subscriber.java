@@ -23,23 +23,16 @@ public class Subscriber extends JedisPubSub {
 
     @Override
     public void onMessage(String channel,  String message){
-        //making channels
-        if(channel.contentEquals("inventory_add")){
+        if(channel.contentEquals("store_update")) {
+            JSONObject messageObject = new JSONObject(message);
+            System.out.println("online stores are "+ messageObject.getJSONObject("online_stores"));
+            System.out.println("offline stores are "+ messageObject.getJSONObject("offline_stores"));
+            System.out.println("inventory change in stores "+ messageObject.getJSONObject("inventory_update"));
 
-            logger.info("add ");
-            logger.info("message received "+ message);
-        }
-        if(channel.contentEquals("inventory_update")){
-            logger.info("update ");
-            logger.info("message received "+ message);
+            //handle online stores ;; make the clusters online
 
-        }
-        if(channel.contentEquals("inventory_delete")){
-            logger.info("delete ");
-            logger.info("message received "+ message);
 
         }
-
     }
     @Override
         public void onPMessage(String pattern, String channel, String message) {

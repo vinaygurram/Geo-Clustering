@@ -4,9 +4,7 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 public class RedisPubSub
 {
-    public static final String inventoryAddChannel= "inventory_add";
-    public static final String inventoryUpdateChannel= "inventory_update";
-    public static final String inventoryDeleteChannel= "inventory_delete";
+    public static final String storeUpdateChannel= "store_update";
 
     public static void main(String[] args) throws Exception
     {      
@@ -19,8 +17,8 @@ public class RedisPubSub
             {
                 try
                 {
-                    System.out.println("Subscribing to " +inventoryAddChannel);
-                    subscriberJedis.subscribe(subscriber,inventoryAddChannel,inventoryUpdateChannel,inventoryDeleteChannel);
+                    System.out.println("Subscribing to " +storeUpdateChannel);
+                    subscriberJedis.subscribe(subscriber,storeUpdateChannel);
                     System.out.println("Subscription ended.");
                 }
                 catch (Exception e)
@@ -29,6 +27,11 @@ public class RedisPubSub
                 }
             }
         }).start();
+        Jedis publisherJedis = jedispool.getResource();
+        new Publisher(publisherJedis).start(storeUpdateChannel);
+        subscriber.unsubscribe();
+        jedispool.returnResource(subscriberJedis);
+        jedispool.returnResource(publisherJedis);
         jedispool.returnResource(subscriberJedis);
     }
 }

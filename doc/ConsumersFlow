@@ -14,12 +14,25 @@ Events expecting from the listing index :
 
 1. inventory add/update/delete  :: give me store ids; recalculate the product and sub cat coverage for clusters containing this stores
 2. product status :: give me stores then clusters recalculate the product and sub cat coverage for clusters containing this stores
-3. store updates (only addition of stores;) rebuild the clusters and upsert;;
+3. store updates (only addition of stores;) will automatically handle in the night;; moving forward :: rebuild the clusters and upsert;;
 4. device ping (store status ) give me store ids (make clusters online/offline)
 5. device update (store status) give me store ids (make clusters online/offline)
-6. category path :
+6. category path : only change in sub cat and product coverage
 
 
+
+topic name ::store_update
+topic_message structure ::
+
+"online" : {
+  "store_ids" : ""
+},
+"offline" : {
+  "store_ids" : ""
+},
+"inventory_update" : {
+   "store_ids" :
+}
 
 
 

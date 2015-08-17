@@ -1,13 +1,2 @@
-1. Catalog tree refinement  (TODO)
-
-2. Replace string merge with Set merge(TODO)
-
-3. Get Product Coverage and Sub category coverage in 3km radius. (TODO)
-
-4. Ruby task to update the production listing index (Not needed)
-
-5. Send the data to Neeraj
-
-6. see why 1000224 single clusters are not forming
-
-7. Read URLs and indexNames from config file
+ 1. write a java demon to check for updates
+ 2. create topics for updates

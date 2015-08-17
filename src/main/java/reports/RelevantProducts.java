@@ -30,10 +30,15 @@ public class RelevantProducts {
 
 
     private static int GEO_PRECISION = 7;
-    private static double BLR_TOP_LEFT_LAT =13.1245;
-    private static double BLR_TOP_LEFT_LON =77.3664;
-    private static double BLR_BOT_RIGHT_LAT =12.8342;
-    private static double BLR_BOT_RIGHT_LON =77.8155;
+    private static double BIG_BLR_TOP_LEFT_LAT =13.1245;
+    private static double BIG_BLR_TOP_LEFT_LON =77.3664;
+    private static double BIG_BLR_BOT_RIGHT_LAT =12.8342;
+    private static double BIG_BLR_BOT_RIGHT_LON =77.8155;
+
+    private static double BLR_TOP_LEFT_LAT =13.1109114;
+    private static double BLR_TOP_LEFT_LON =77.4625397;
+    private static double BLR_BOT_RIGHT_LAT =12.824522500000002;
+    private static double BLR_BOT_RIGHT_LON =77.7495575;
 
     private List<String> createBangaloreHashes(){
         BoundingBox bbox = getBangaloreBox();
@@ -205,17 +210,16 @@ public class RelevantProducts {
         LatLong latLong = GeoHash.decodeHash(geoHash);
 
         try {
-            String geo_api = "http://geokit.olastore.com/localities?lat="+latLong.getLat()+"&lng="+latLong.getLon()+"";
-            //String geo_api = "http://geokit.olahack.in/localities?lat="+latLong.getLat()+"&lng="+latLong.getLon()+"";
+            //String geo_api = "http://geokit.olastore.com/localities?lat="+latLong.getLat()+"&lng="+latLong.getLon()+"";
+            String geo_api = "http://geokit.qa.olahack.in/localities?lat="+latLong.getLat()+"&lng="+latLong.getLon()+"";
             HttpClient httpClient = HttpClientBuilder.create().build();
             HttpGet httpGet = new HttpGet(geo_api);
-            System.out.println(geo_api);
             HttpResponse httpResponse = httpClient.execute(httpGet);
             JSONObject result = new JSONObject(EntityUtils.toString(httpResponse.getEntity()));
             if(result.getString("status").contentEquals("SUCCESS")){
-                if(result.has("locality") && result.get("locality")!=null){
-                    //return result.getJSONObject("locality").getString("name");
-                    return result.getJSONArray("locality").getJSONObject(0).getString("name");
+                if(result.has("locality") && !result.isNull("locality")){
+                    return result.getJSONObject("locality").getString("name");
+                    //return result.getJSONArray("locality").getJSONObject(0).getString("name");
                 }
             }
         }catch (Exception e){
@@ -225,11 +229,43 @@ public class RelevantProducts {
     }
 
 
+    public void generateLocalityReport(String filepath){
+        FileWriter fileWriter = null;
+       try {
+           fileWriter = new FileWriter(new File(filepath));
+           fileWriter.write("geo_hash,locality");
+           fileWriter.write("\n");
+
+           List<String> blrHashes = createBangaloreHashes();
+           int i=0;
+           for(String geo_hash: blrHashes){
+               System.out.print(i++);
+               String locality = getZone(geo_hash);
+               if(!(locality.isEmpty() || locality.contentEquals(""))){
+                   System.out.println("locality is "+locality);
+                   fileWriter.write(geo_hash+","+locality);
+                   fileWriter.write("\n");
+               }
+           }
+       }catch (Exception e){
+           e.printStackTrace();
+       }finally {
+           try {
+               fileWriter.close();
+           }catch (Exception e){
+               e.printStackTrace();
+           }
+
+       }
+    }
+
+
     public static void main(String[] args){
         RelevantProducts relevantProducts = new RelevantProducts();
-        Set<String> nonFnvRelPidSet = relevantProducts.generateProductSetFromCSV(args[0],false);
-        Set<String> fnvPidSet = relevantProducts.generateProductSetFromCSV(args[1],true);
-        relevantProducts.createZoneRelProducList(fnvPidSet,nonFnvRelPidSet);
+        //Set<String> nonFnvRelPidSet = relevantProducts.generateProductSetFromCSV(args[0],false);
+        //Set<String> fnvPidSet = relevantProducts.generateProductSetFromCSV(args[1],true);
+        //relevantProducts.createZoneRelProducList(fnvPidSet,nonFnvRelPidSet);
+        relevantProducts.generateLocalityReport("src/main/resources/locality_report.csv");
 
 
     }

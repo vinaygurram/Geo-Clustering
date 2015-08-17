@@ -28,10 +28,17 @@ import java.util.concurrent.Executors;
  */
 public class GeoCLusteringNew {
     private static int GEO_PRECISION = 7;
-    private static double BLR_TOP_LEFT_LAT =13.1245;
-    private static double BLR_TOP_LEFT_LON =77.3664;
-    private static double BLR_BOT_RIGHT_LAT =12.8342;
-    private static double BLR_BOT_RIGHT_LON =77.8155;
+
+    private static double BIG_BLR_TOP_LEFT_LAT =13.1245;
+    private static double BIG_BLR_TOP_LEFT_LON =77.3664;
+    private static double BIG_BLR_BOT_RIGHT_LAT =12.8342;
+    private static double BIG_BLR_BOT_RIGHT_LON =77.8155;
+
+    private static double BLR_TOP_LEFT_LAT =13.1109114;
+    private static double BLR_TOP_LEFT_LON =77.4625397;
+    private static double BLR_BOT_RIGHT_LAT =12.824522500000002;
+    private static double BLR_BOT_RIGHT_LON =77.7495575;
+
     public  static ConcurrentHashMap<String,List<String>> map = new ConcurrentHashMap<String, List<String>>();
     public static ConcurrentHashMap<String ,ClusteringPoint> clusterPoints = new ConcurrentHashMap<String, ClusteringPoint>();
     public static ConcurrentHashMap<String,String[]> product3MergerMap = new ConcurrentHashMap<String, String[]>();
