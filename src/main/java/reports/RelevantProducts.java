@@ -240,6 +240,10 @@ public class RelevantProducts {
            int i=0;
            for(String geo_hash: blrHashes){
                System.out.print(i++);
+               if(i>100){
+                   Thread.sleep(300);
+                   i=0;
+               }
                String locality = getZone(geo_hash);
                if(!(locality.isEmpty() || locality.contentEquals(""))){
                    System.out.println("locality is "+locality);

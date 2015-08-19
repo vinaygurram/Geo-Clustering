@@ -21,18 +21,15 @@ Events expecting from the listing index :
 
 
 
-topic name ::store_update
+topic name :: cluster_store_update
 topic_message structure ::
 
-"online" : {
-  "store_ids" : ""
-},
-"offline" : {
-  "store_ids" : ""
-},
-"inventory_update" : {
-   "store_ids" :
+{
+"type" : "online/offline/active/inactive/product_change",
+"store_id" : "100034"
 }
+
+Total Product coverage and sub category coverage for a geo hash will get updated only when clusters are rebuild.
 
 
 

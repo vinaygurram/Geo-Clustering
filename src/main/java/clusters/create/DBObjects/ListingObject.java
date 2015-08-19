@@ -102,19 +102,19 @@ public class ListingObject {
 
     public String toString(){
         JSONObject jsonObject = new JSONObject();
-        JSONObject jsonObject1 = new JSONObject();
-        jsonObject1.put("id",store_id);
-        jsonObject1.put("name",store_name);
-        jsonObject1.put("state",store_state);
-        jsonObject1.put("location",location.getLatitude()+","+location.getLongitude());
-        jsonObject.put("store",jsonObject1);
-        jsonObject1 = new JSONObject();
-        jsonObject1.put("id",productId);
-        jsonObject1.put("state",state);
-        jsonObject1.put("sup_cat_id",sup_cat_id);
-        jsonObject1.put("sub_cat_id",sub_cat_id);
-        jsonObject1.put("cat_id",cat_id);
-        jsonObject.put("product",jsonObject1);
+        JSONObject productObject = new JSONObject();
+        productObject.put("id", store_id);
+        productObject.put("name", store_name);
+        productObject.put("state", store_state);
+        productObject.put("location", location.getLatitude() + "," + location.getLongitude());
+        jsonObject.put("store",productObject);
+        productObject = new JSONObject();
+        productObject.put("id", productId);
+        productObject.put("state", state);
+        productObject.put("sup_cat_id", sup_cat_id);
+        productObject.put("sub_cat_id", sub_cat_id);
+        productObject.put("cat_id", cat_id);
+        jsonObject.put("product",productObject);
         return  jsonObject.toString();
     }
 
@@ -122,7 +122,7 @@ public class ListingObject {
         String ss = "";
         ss += "{\"index\" : {\"_id\":\""+store_id+"-"+productId+"\"}}";
         ss +="\n";
-        ss+= toString();
+        ss+= this.toString();
         ss+= "\n";
         return ss;
     }

@@ -9,36 +9,6 @@ ES_MAPPINGS="{
     \"mappings\": {
         \"geo_cluster\": {
             \"properties\": {
-                \"catalog_tree\": {
-                    \"type\": \"nested\",
-                    \"properties\": {
-                        \"sup_cat_name\": {
-                            \"type\": \"string\"
-                        },
-                        \"cat\": {
-                            \"type\": \"nested\",
-                            \"properties\": {
-                                \"cat_name\": {
-                                    \"type\": \"string\"
-                                },
-                                \"product_count\": {
-                                    \"type\": \"integer\"
-                                },
-                                \"sub_cat\": {
-                                    \"type\": \"nested\",
-                                    \"properties\": {
-                                        \"sub_cat_name\": {
-                                            \"type\": \"string\"
-                                        },
-                                        \"product_count\": {
-                                            \"type\": \"integer\"
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
                 \"stores\": {
                     \"properties\": {
                         \"id\": {
@@ -55,11 +25,11 @@ ES_MAPPINGS="{
                 \"sub_cat_count\": {
                     \"type\": \"integer\"
                 },
-                \"load\": {
-                    \"type\": \"integer\"
-                },
                 \"rank\": {
                     \"type\": \"double\"
+                },
+                \"is_online\" : {
+                    \"type\" : \"boolean\"
                 }
             }
         }

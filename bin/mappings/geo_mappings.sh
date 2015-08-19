@@ -24,12 +24,6 @@ INDEX_MAPPINS="{
                         },
                         \"distance\": {
                             \"type\": \"double\"
-                        },
-                        \"state\": {
-                            \"type\": \"boolean\"
-                        },
-                        \"rank\" : {
-                            \"type\" : \"double\"
                         }
                     }
                 },
