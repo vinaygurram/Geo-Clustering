@@ -16,6 +16,7 @@ public class ListingObject {
     public String cat_id = "";
     public String sub_cat_id ="";
     public String state;
+    public String available;
 
 
     //Getters and Setters
@@ -89,7 +90,16 @@ public class ListingObject {
     }
 
     public void setSub_cat_id(String sub_cat_id) {
+
         this.sub_cat_id = sub_cat_id;
+    }
+
+    public String getAvailable() {
+        return available;
+    }
+
+    public void setAvailable(String available) {
+        this.available = available;
     }
 
     //Common Methods
@@ -101,20 +111,25 @@ public class ListingObject {
     }
 
     public String toString(){
+
         JSONObject jsonObject = new JSONObject();
         JSONObject productObject = new JSONObject();
-        productObject.put("id", store_id);
-        productObject.put("name", store_name);
-        productObject.put("state", store_state);
-        productObject.put("location", location.getLatitude() + "," + location.getLongitude());
-        jsonObject.put("store",productObject);
-        productObject = new JSONObject();
+        JSONObject storeObject = new JSONObject();
+
+        storeObject.put("id",store_id);
+        storeObject.put("state",store_state);
+        storeObject.put("location", location.getLatitude() + "," + location.getLongitude());
+
         productObject.put("id", productId);
         productObject.put("state", state);
+        productObject.put("available",available);
         productObject.put("sup_cat_id", sup_cat_id);
         productObject.put("sub_cat_id", sub_cat_id);
         productObject.put("cat_id", cat_id);
-        jsonObject.put("product",productObject);
+
+
+        jsonObject.put("product_details",productObject);
+        jsonObject.put("store_details",storeObject);
         return  jsonObject.toString();
     }
 

@@ -3,9 +3,11 @@ package clusters.create;
 import clusters.create.LObject.*;
 import com.github.davidmoten.geo.Coverage;
 import com.github.davidmoten.geo.GeoHash;
+import com.github.davidmoten.geo.LatLong;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
@@ -107,6 +109,29 @@ public class GeoCLusteringNew {
         return new BoundingBox(topleft,botright);
     }
 
+    public String getZone(String geoHash){
+
+        LatLong latLong = GeoHash.decodeHash(geoHash);
+
+        try {
+            //String geo_api = "http://geokit.olastore.com/localities?lat="+latLong.getLat()+"&lng="+latLong.getLon()+"";
+            String geo_api = "http://geokit.qa.olahack.in/localities?lat="+latLong.getLat()+"&lng="+latLong.getLon()+"";
+            HttpClient httpClient = HttpClientBuilder.create().build();
+            HttpGet httpGet = new HttpGet(geo_api);
+            HttpResponse httpResponse = httpClient.execute(httpGet);
+            JSONObject result = new JSONObject(EntityUtils.toString(httpResponse.getEntity()));
+            if(result.getString("status").contentEquals("SUCCESS")){
+                if(result.has("locality") && !result.isNull("locality")){
+                    return result.getJSONObject("locality").getString("name");
+                    //return result.getJSONArray("locality").getJSONObject(0).getString("name");
+                }
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return "";
+    }
+
     public List<String> getBlrGeoHashes(){
         BoundingBox bbox = getBangaloreBox();
         Set<String> hashes = getGeoHashOfBoundingBox(bbox,GEO_PRECISION);
@@ -115,7 +140,10 @@ public class GeoCLusteringNew {
         List<String> geohashList = new ArrayList<String>();
         while(iterator.hasNext()){
             String thisHash = iterator.next();
-            geohashList.add(thisHash);
+            String zone = getZone(thisHash);
+            if(!(zone.isEmpty() || zone.contentEquals(""))){
+                geohashList.add(thisHash);
+            }
             i++;
         }
         System.out.println("total number of hashes "+i);

@@ -37,6 +37,9 @@ public class DataPopulator {
     private final String SELLER_STORES_API = "http://seller-engine.olastore.com/stores";
     private Connection connection;
     private  static HashMap<String,String[]> productMap = new HashMap<String, String[]>();
+    private  static HashMap<String,String[]> product2Map = new HashMap<String, String[]>();
+    private  static HashMap<String,String[]> product3Map = new HashMap<String, String[]>();
+    private  static HashMap<String,String> productStatusMap = new HashMap<String, String>();
 
     public DataPopulator(Connection connection){
         this.connection  = connection;
@@ -47,7 +50,7 @@ public class DataPopulator {
         try {
             URL url;
             for(int i=1;i<5;i++){
-                url = new URL(SELLER_STORES_API+"?page="+i);
+                url = new URL(SELLER_STORES_API+"?city_code=BAN&page="+i);
                 HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
                 JSONObject result = responseToJSON(httpURLConnection.getInputStream());
                 JSONArray storesArray = result.getJSONArray("stores");
@@ -118,10 +121,37 @@ public class DataPopulator {
 
     public void populateListingIndex(){
         List<Store> storeList = getStoresData();
-        for(int i=0;i<1183322;i+=10000){
+        for(int i=0;i<1839945;i+=10000){
             List<ListingObject> listingObjects = createListingData(i,storeList);
             pushListingObjectsToES(listingObjects);
         }
+    }
+
+    private List<String> getCityStores(String city){
+        List<String> storeIds = new ArrayList<>();
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        city = city.toUpperCase();
+        try {
+            preparedStatement = connection.prepareStatement("SELECT id FROM `stores` WHERE city_code = \""+city+"\"");
+            resultSet = preparedStatement.executeQuery();
+            while(resultSet.next()){
+                String id = resultSet.getString("id");
+                storeIds.add(id);
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }finally {
+            try {
+                if(!resultSet.isClosed())  resultSet.close();
+                if(!preparedStatement.isClosed()) preparedStatement.close();
+
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+        return storeIds;
+
     }
 
     private List<ListingObject> createListingData(int from,List<Store> storeList){
@@ -139,9 +169,7 @@ public class DataPopulator {
                 String store_id = resultSet.getString("store_id");
                 String state = resultSet.getString("state");
                 ListingObject listingObject = new ListingObject();
-                listingObject.setProductId(id);
-                listingObject.setState(state);
-                listingObject.setStore_id(store_id);
+
                 boolean found = false;
                 for(Store store: storeList){
                     if(store.getId().contentEquals(store_id)){
@@ -151,10 +179,18 @@ public class DataPopulator {
                         listingObject.setStore_state(store.getState());
                     }
                 }
+
                 if(!found){
-                    listingObject.setLocation(new Geopoint(0,0));
-                    listingObject.setStore_state("unavailable");
+                    continue;
                 }
+
+
+                listingObject.setProductId(id);
+                listingObject.setAvailable(state);
+                listingObject.setStore_id(store_id);
+
+
+
                 if(listingObject.getStore_name()==null) listingObject.setStore_name("NOT Present");
                 String[] catPath = getCategoryPath(id);
                 if(catPath.length>0){
@@ -162,7 +198,47 @@ public class DataPopulator {
                     listingObject.setCat_id(catPath[1]);
                     if(catPath.length>2) listingObject.setSub_cat_id(catPath[2]);
                 }
+                listingObject.setState(productStatusMap.get(id));
                 rObjects.add(listingObject);
+
+                //adding extra objects if sec paths are available
+                if(product2Map.containsKey(id)){
+                    ListingObject listingObject1 = new ListingObject();
+                    catPath = product2Map.get(id);
+                    if(catPath.length>0){
+
+                        listingObject1.setAvailable(state);
+                        listingObject1.setStore_id(store_id);
+                        listingObject1.setLocation(listingObject.getLocation());
+                        listingObject1.setStore_name(listingObject.getStore_name());
+                        listingObject1.setStore_state(listingObject.getStore_state());
+                        listingObject1.setState(productStatusMap.get(id));
+
+
+                        listingObject1.setSup_cat_id(catPath[0]);
+                        listingObject1.setCat_id(catPath[1]);
+                        if(catPath.length>2) listingObject1.setSub_cat_id(catPath[2]);
+                    }
+                    listingObject1.setProductId(id+"_1");
+                    rObjects.add(listingObject1);
+                }
+                if(product3Map.containsKey(id)){
+                    ListingObject listingObject1 = new ListingObject();
+                    catPath = product3Map.get(id);
+                    if(catPath.length>0){
+                        listingObject1.setAvailable(state);
+                        listingObject1.setStore_id(store_id);
+                        listingObject1.setLocation(listingObject.getLocation());
+                        listingObject1.setStore_name(listingObject.getStore_name());
+                        listingObject1.setStore_state(listingObject.getStore_state());
+                        listingObject1.setState(productStatusMap.get(id));
+                        listingObject.setSup_cat_id(catPath[0]);
+                        listingObject.setCat_id(catPath[1]);
+                        if(catPath.length>2) listingObject.setSub_cat_id(catPath[2]);
+                    }
+                    listingObject1.setProductId(id+"_2");
+                    rObjects.add(listingObject1);
+                }
             }
         }catch (Exception e){
             e.printStackTrace();
@@ -174,27 +250,48 @@ public class DataPopulator {
                 e.printStackTrace();
             }
         }
+        System.out.println("docs processed "+ (from+10000));
         return rObjects;
     }
 
-    private String[] getCategoryPath(String productId){
+    public String[] getCategoryPath(String productId){
         String[] idList = {};
         if(productMap.containsKey(productId)){
-           return productMap.get(productId);
+            return productMap.get(productId);
         }else {
             //Make a call to catalog and get products category path
             try {
-            URL url = new URL("http://catalog-engine.olastore.com/v1/category/tree/product/"+productId+"/path");
-            HttpURLConnection httpURLConnection = (HttpURLConnection)url.openConnection();
-            String resultString = IOUtils.toString(httpURLConnection.getInputStream());
-            JSONObject result = new JSONObject(resultString);
-            JSONArray pPath = result.getJSONArray("primary_path");
-            JSONObject thisPath = pPath.getJSONObject(0);
-            idList = thisPath.getString("node_id_path").split(">");
-            productMap.put(productId,idList);
-        }catch (Exception e){
-            e.printStackTrace();
-        }
+                //URL url = new URL("http://catalog-engine.olastore.com/v1/category/tree/product/"+productId+"/path");
+                URL url = new URL("http://catalog-engine.olastore.com/v1/catalog/products?productIds="+productId+"&filters=derived,category");
+                HttpURLConnection httpURLConnection = (HttpURLConnection)url.openConnection();
+                String resultString = IOUtils.toString(httpURLConnection.getInputStream());
+                JSONObject result = new JSONObject(resultString);
+                result = result.getJSONObject("products");
+                JSONObject productObject = result.getJSONObject(productId);
+
+                JSONArray pPath = productObject.getJSONObject("categoryData").getJSONArray("primary");
+                JSONObject thisPath = pPath.getJSONObject(0);
+                idList = thisPath.getString("nodeIdPath").split(">");
+                productMap.put(productId,idList);
+
+                JSONArray sPath = productObject.getJSONObject("categoryData").getJSONArray("secondary");
+                if(sPath.length()>0){
+                    thisPath = sPath.getJSONObject(0);
+                    idList = thisPath.getString("nodeIdPath").split(">");
+                    product2Map.put(productId,idList);
+
+                    if(sPath.length()>1){
+                        thisPath = sPath.getJSONObject(1);
+                        idList = thisPath.getString("nodeIdPath").split(">");
+                        product3Map.put(productId,idList);
+                    }
+                }
+                String status = productObject.getString("productStatus");
+                productStatusMap.put(productId,status);
+
+            }catch (Exception e){
+                e.printStackTrace();
+            }
 
         }
 
@@ -202,6 +299,7 @@ public class DataPopulator {
     }
 
     private synchronized void pushListingObjectsToES(List<ListingObject> listingObjects){
+        if(listingObjects.size()==0) return;
         String uri = "http://localhost:9200";
         String indexName = "listing";
         String indexType = "list";
@@ -249,8 +347,8 @@ public class DataPopulator {
     public static void main(String[] args){
         DataPopulator dataPopulator = new DataPopulator(JDCBC.getConnection());
         dataPopulator.populateListingIndex();
-        dataPopulator.pushCatalogMap();
-        dataPopulator.populateStoresIndex();
+        //dataPopulator.pushCatalogMap();
+        //dataPopulator.populateStoresIndex();
     }
 
 }

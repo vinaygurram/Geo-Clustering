@@ -4,7 +4,7 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 public class RedisPubSub
 {
-    public static final String storeUpdateChannel= "store_update";
+    public static final String storeUpdateChannel= "cluster_store_update";
 
     public static void main(String[] args) throws Exception
     {      

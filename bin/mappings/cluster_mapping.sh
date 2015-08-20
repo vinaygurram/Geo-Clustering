@@ -30,6 +30,9 @@ ES_MAPPINGS="{
                 },
                 \"is_online\" : {
                     \"type\" : \"boolean\"
+                },
+                \"is_active\" :{
+                    \"type\" : \"boolean\"
                 }
             }
         }
