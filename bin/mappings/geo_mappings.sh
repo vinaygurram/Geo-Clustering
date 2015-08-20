@@ -27,12 +27,6 @@ INDEX_MAPPINS="{
                         }
                     }
                 },
-                \"product_count\": {
-                    \"type\": \"integer\"
-                },
-                \"sub_cat_count\": {
-                    \"type\": \"integer\"
-                },
                 \"clusters_count\" : {
                     \"type\" : \"integer\"
                 }

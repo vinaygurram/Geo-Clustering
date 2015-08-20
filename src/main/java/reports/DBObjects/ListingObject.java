@@ -1,4 +1,4 @@
-package clusters.create.DBObjects;
+package reports.DBObjects;
 
 import clusters.create.LObject.Geopoint;
 import org.json.JSONObject;
@@ -123,9 +123,9 @@ public class ListingObject {
         productObject.put("id", productId);
         productObject.put("state", state);
         productObject.put("available",available);
-        productObject.put("sup_cat_id", sup_cat_id);
-        productObject.put("sub_cat_id", sub_cat_id);
-        productObject.put("cat_id", cat_id);
+        productObject.put("sup_category_id", sup_cat_id);
+        productObject.put("sub_category_id", sub_cat_id);
+        productObject.put("category_id", cat_id);
 
 
         jsonObject.put("product_details",productObject);

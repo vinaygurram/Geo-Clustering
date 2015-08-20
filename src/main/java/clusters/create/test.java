@@ -1,7 +1,6 @@
 package clusters.create;
 
 
-import clusters.create.LObject.ClusterObj;
 import clusters.create.LObject.ClusteringPoint;
 
 import java.util.ArrayList;

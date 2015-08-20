@@ -1,8 +1,6 @@
 package clusters.create;
 
 import clusters.create.LObject.Geopoint;
-import clusters.create.LObject.PCat;
-import clusters.create.LObject.Product;
 import clusters.create.LObject.Store;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;

@@ -1,4 +1,4 @@
-package clusters.create.DBObjects;
+package reports.DBObjects;
 
 import clusters.create.LObject.Geopoint;
 import org.json.JSONObject;

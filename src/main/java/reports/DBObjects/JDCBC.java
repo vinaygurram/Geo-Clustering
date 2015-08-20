@@ -1,4 +1,4 @@
-package clusters.create.DBObjects;
+package reports.DBObjects;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

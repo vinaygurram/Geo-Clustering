@@ -1,9 +1,8 @@
 package clusters.create;
 
-import clusters.create.DBObjects.JDCBC;
-import clusters.create.DBObjects.ListingObject;
-import clusters.create.DBObjects.Store;
-import clusters.create.LObject.Geopoint;
+import reports.DBObjects.JDCBC;
+import reports.DBObjects.ListingObject;
+import reports.DBObjects.Store;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -121,7 +120,7 @@ public class DataPopulator {
 
     public void populateListingIndex(){
         List<Store> storeList = getStoresData();
-        for(int i=0;i<1839945;i+=10000){
+        for(int i=0;i<1839945;i+=5000){
             List<ListingObject> listingObjects = createListingData(i,storeList);
             pushListingObjectsToES(listingObjects);
         }
@@ -161,7 +160,7 @@ public class DataPopulator {
         try {
             preparedStatement = connection.prepareStatement("SELECT variant_id,store_id,state FROM inventories ORDER BY  id limit ?,?");
             preparedStatement.setInt(1, from);
-            preparedStatement.setInt(2, from+10000);
+            preparedStatement.setInt(2, from+5000);
             resultSet = preparedStatement.executeQuery();
 
             while(resultSet.next()){
@@ -250,7 +249,7 @@ public class DataPopulator {
                 e.printStackTrace();
             }
         }
-        System.out.println("docs processed "+ (from+10000));
+        System.out.println("docs processed "+ (from+5000));
         return rObjects;
     }
 

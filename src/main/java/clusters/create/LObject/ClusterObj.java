@@ -7,74 +7,31 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by gurramvinay on 8/10/15.
+ * Created by gurramvinay on 6/30/15.
  */
 public class ClusterObj {
 
     //Fields
     private String name;
-    private List<ClusteringPoint> points = new ArrayList<ClusteringPoint>();
-    private String[] products = {};
+    private List<String> points = new ArrayList<String>();
     private double distance ;
     private String geoHash;
     private double rank;
     private int num_stores;
-    private String[] sub_cat={};
+    private int productsCount;
+    private int subCatCount;
+    private boolean status;
+
 
     //Object methods
 
-    public void addPoint(ClusteringPoint p){
+    public void addPoint(String p){
         //add to points
         points.add(p);
         num_stores++;
 
-        //Update products
-//        if(products==null){
-//            products = p.getProducts();
-//        }else{
-//            products = mergeShopProducts(products,p.getProducts());
-//        }
-//
-//        //update sub categories
-//        if(sub_cat==null){
-//            sub_cat = p.getSubCat();
-//        }else {
-//            sub_cat = mergeShopProducts(sub_cat,p.getSubCat());
-//       }
     }
 
-    /**
-     * Merges products and returns them
-     * Optimization :: Use bitset
-     * Optimization :: merge arrays it will be faster
-     * */
-    public String[] mergeShopProducts(String[] s1, String[] s2){
-
-        if(s2==null){
-            return s1;
-        }
-        if(s1==null){
-            return s2;
-        }
-        List<String> shops = new ArrayList<String>(100);
-        for(int i=0;i<s1.length;i++){
-            shops.add(s1[i]);
-        }
-
-        for(String s: s2){
-
-            boolean repeated = false;
-            for(String d: s1){
-                if(s.contentEquals(d)) repeated = true;
-            }
-            if(!repeated) shops.add(s);
-        }
-        String[] rStrings = new String[shops.size()];
-        for(int i=0;i<shops.size();i++){
-            rStrings[i] = shops.get(i);
-        }
-        return rStrings;
-    }
 
     //Getter and Setters
     public String getName() {
@@ -85,22 +42,13 @@ public class ClusterObj {
         this.name = name;
     }
 
-    public List<ClusteringPoint> getPoints() {
+    public List<String> getPoints() {
         return points;
     }
 
-    public void setPoints(List<ClusteringPoint> points) {
+    public void setPoints(List<String> points) {
         this.points = points;
     }
-
-    public String[] getProducts() {
-        return products;
-    }
-
-    public void setProducts(String[] products) {
-        this.products = products;
-    }
-
 
     public double getDistance() {
         return distance;
@@ -116,15 +64,6 @@ public class ClusterObj {
 
     public void setGeoHash(String geoHash) {
         this.geoHash = geoHash;
-    }
-
-    public String[] getSub_cat() {
-        return sub_cat;
-    }
-
-    public void setSub_cat(String[] sub_cat) {
-
-        this.sub_cat = sub_cat;
     }
 
     public int getNum_stores() {
@@ -143,31 +82,50 @@ public class ClusterObj {
         this.rank = rank;
     }
 
+    public int getProductsCount() {
+        return productsCount;
+    }
+
+    public void setProductsCount(int productsCount) {
+        this.productsCount = productsCount;
+    }
+
+    public int getSubCatCount() {
+        return subCatCount;
+    }
+
+    public void setSubCatCount(int subCatCount) {
+        this.subCatCount = subCatCount;
+    }
+    public boolean isStatus() {
+        return status;
+    }
+
+    public void setStatus(boolean status) {
+        this.status = status;
+    }
+
     @Override
     public String toString(){
-        return new StringBuilder().append(points).append(" Pcount ").append(products.length).append("\n").toString();
+        return new StringBuilder().append(points).append(" Pcount ").append(productsCount).append("\n").toString();
     }
 
 
     public JSONObject getJSON(){
-        JSONObject jo = new JSONObject();
         JSONObject cluster = new JSONObject();
 
-        cluster.put("name",geoHash);
         cluster.put("load",1);
         cluster.put("rank",rank);
-        cluster.put("distance",distance);
-        JSONArray jsonArray = new JSONArray();
-        for(ClusteringPoint c:  points){
-            jsonArray.put(c.getId());
+        JSONArray storeIdArry = new JSONArray();
+        for(String c:  points){
+            JSONObject storeIdObj = new JSONObject();
+            storeIdObj.put("store_id",c);
+            storeIdArry.put(storeIdObj);
         }
-        cluster.put("sub_cat_count",sub_cat.length);
-        cluster.put("product_count",products.length);
-        cluster.put("shop_ids", jsonArray);
-        cluster.put("geohash",geoHash);
+        cluster.put("sub_cat_count",subCatCount);
+        cluster.put("product_count",productsCount);
+        cluster.put("stores", storeIdArry);
         cluster.put("stores_count",num_stores);
-        jo.put("clusterOB",cluster);
-        return jo;
+        return cluster;
     }
-
 }

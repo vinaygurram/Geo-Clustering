@@ -1,6 +1,6 @@
 package clusters.create;
 
-import clusters.create.LObject.ClusterObjNew;
+import clusters.create.LObject.ClusterObj;
 import com.github.davidmoten.geo.GeoHash;
 import com.github.davidmoten.geo.LatLong;
 import clusters.create.LObject.Geopoint;
@@ -22,13 +22,14 @@ public class SimpleWorkerThread implements  Runnable{
     }
 
     public void run() {
-        ClusterStrategyNew clusterStrategyNew = new ClusterStrategyNew();
+        ClusterStrategy clusterStrategyNew = new ClusterStrategy();
         LatLong gll = GeoHash.decodeHash(geohash);
         Geopoint geopoint = new Geopoint(gll.getLat(),gll.getLon());
-        List<ClusterObjNew> clusterObjList = clusterStrategyNew.createClusters1(geopoint, points);
-        int pCount = clusterStrategyNew.getProductCount();
-        int sbCount  = clusterStrategyNew.getSubCatCount();
-        GeoCLusteringNew.pushClusterToES(clusterObjList,pCount,sbCount);
-        System.out.println("count - "+GeoCLusteringNew.count++);
+        List<ClusterObj> clusterObjList = clusterStrategyNew.createClusters(geopoint, points);
+        GeoClustering.pushClusterToES(clusterObjList);
     }
+
+
+
+
 }
