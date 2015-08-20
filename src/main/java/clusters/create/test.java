@@ -1,8 +1,5 @@
 package clusters.create;
 
-
-import clusters.create.LObject.ClusteringPoint;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -28,39 +25,6 @@ public class test {
         return totalList;
     }
 
-    public List<ClusterObj> getAllClusters(List<ClusteringPoint> stringList){
-
-        List<ClusterObj> totalList = new ArrayList<ClusterObj>();
-        for(int i=0;i<stringList.size();i++){
-            ClusterObj clusterObj = new ClusterObj();
-            clusterObj.addPoint(stringList.get(i));
-            //List<ClusteringPoint> tempList = new ArrayList<ClusteringPoint>();
-            //tempList.add(stringList.get(i));
-            for(int j=i+1;j+1<stringList.size() ;j++){
-                clusterObj.addPoint(stringList.get(j));
-                clusterObj.addPoint(stringList.get(j+1));
-                totalList.add(clusterObj);
-                clusterObj = new ClusterObj();
-                clusterObj.addPoint(stringList.get(i));
-            }
-        }
-        return totalList;
-    }
-    public List<ClusterObj> getAll2Clusters(List<ClusteringPoint> stringList){
-
-        List<ClusterObj> totalList = new ArrayList<ClusterObj>();
-        for(int i=0;i<stringList.size();i++){
-            ClusterObj clusterObj = new ClusterObj();
-            clusterObj.addPoint(stringList.get(i));
-            for(int j=i+1;j<stringList.size() ;j++){
-                clusterObj.addPoint(stringList.get(j));
-                totalList.add(clusterObj);
-                clusterObj = new ClusterObj();
-                clusterObj.addPoint(stringList.get(i));
-            }
-        }
-        return totalList;
-    }
 
     public List<List<String>> getAll2Strings(List<String> strings){
         List<List<String>> totalList = new ArrayList<List<String>>();

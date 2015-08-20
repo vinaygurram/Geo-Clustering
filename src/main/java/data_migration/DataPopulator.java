@@ -1,4 +1,4 @@
-package clusters.create;
+package data_migration;
 
 import reports.DBObjects.JDCBC;
 import reports.DBObjects.ListingObject;
@@ -158,7 +158,7 @@ public class DataPopulator {
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
         try {
-            preparedStatement = connection.prepareStatement("SELECT variant_id,store_id,state FROM inventories ORDER BY  id limit ?,?");
+            preparedStatement = connection.prepareStatement("SELECT variant_id,store_id,state FROM inventories WHERE state = \"available\" ORDER BY  id limit ?,?");
             preparedStatement.setInt(1, from);
             preparedStatement.setInt(2, from+5000);
             resultSet = preparedStatement.executeQuery();
