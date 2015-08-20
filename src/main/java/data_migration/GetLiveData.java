@@ -1,7 +1,6 @@
 package data_migration;
 
-import clusters.create.LObject.Geopoint;
-import clusters.create.LObject.Store;
+import clusters.create.objects.Geopoint;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;

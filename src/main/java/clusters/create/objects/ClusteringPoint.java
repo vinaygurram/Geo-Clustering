@@ -1,6 +1,8 @@
-package clusters.create.LObject;
+package clusters.create.objects;
 
 /**
+ * Generic Object used to from the cluster
+ * Independent of other schema
  * Created by gurramvinay on 8/10/15.
  */
 public class ClusteringPoint {

@@ -1,4 +1,4 @@
-package clusters.create.LObject;
+package clusters.create.objects;
 
 import clusters.create.GeoClustering;
 import com.github.davidmoten.geo.GeoHash;
@@ -10,6 +10,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 /**
+ * Generic Class to Calculate all the distances for all the clustering points
+ * It will be computed once and remain constant for the execution.
+ * GOOGLE Distances can be implemented here
  * Created by gurramvinay on 8/10/15.
  */
 public class DistanceMatrix {

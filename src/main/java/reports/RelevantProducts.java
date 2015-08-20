@@ -1,7 +1,7 @@
 package reports;
 
-import clusters.create.LObject.BoundingBox;
-import clusters.create.LObject.Geopoint;
+import clusters.create.objects.BoundingBox;
+import clusters.create.objects.Geopoint;
 import com.github.davidmoten.geo.Coverage;
 import com.github.davidmoten.geo.GeoHash;
 import com.github.davidmoten.geo.LatLong;

@@ -1,6 +1,6 @@
 package reports.DBObjects;
 
-import clusters.create.LObject.Geopoint;
+import clusters.create.objects.Geopoint;
 import org.json.JSONObject;
 
 /**

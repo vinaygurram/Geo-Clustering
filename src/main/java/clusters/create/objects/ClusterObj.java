@@ -1,12 +1,12 @@
-package clusters.create.LObject;
+package clusters.create.objects;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-
 import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * Cluster Object with all the properties required
  * Created by gurramvinay on 6/30/15.
  */
 public class ClusterObj {

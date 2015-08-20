@@ -1,5 +1,9 @@
-package clusters.create.LObject;
+package clusters.create.objects;
 
+
+/**
+ * Bounding box class to define areas
+ * */
 public class BoundingBox {
 
     private Geopoint topLeft;

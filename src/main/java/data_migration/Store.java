@@ -1,5 +1,5 @@
-package clusters.create.LObject;
-import data_migration.Product;
+package data_migration;
+import clusters.create.objects.Geopoint;
 import org.json.JSONArray;
 import org.json.JSONObject;
 

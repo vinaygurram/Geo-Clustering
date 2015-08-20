@@ -1,6 +1,6 @@
 package clusters.create;
 
-import clusters.create.LObject.*;
+import clusters.create.objects.*;
 import com.github.davidmoten.geo.Coverage;
 import com.github.davidmoten.geo.GeoHash;
 import com.github.davidmoten.geo.LatLong;
@@ -25,6 +25,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
+ * Main class to create clusters
+ * It will have all the utility Objects
  * Created by gurramvinay on 6/16/15.
  */
 public class GeoClustering {

@@ -1,6 +1,6 @@
 package clusters.create;
 
-import clusters.create.LObject.*;
+import clusters.create.objects.*;
 import com.github.davidmoten.geo.GeoHash;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -16,7 +16,7 @@ import java.util.List;
 
 /**
  * Created by gurramvinay on 6/26/15.
- * defining strategy to create the goe hash based cluster.
+ * defining strategy to create the geo hash based cluster.
  * Covers point selection criteria, Sample Space for Cluster, Max Distance Coverage,Cluster Selection Criteria
  * low level distance matraix is computer for each geo hash
  */

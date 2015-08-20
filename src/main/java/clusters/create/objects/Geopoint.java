@@ -1,6 +1,8 @@
-package clusters.create.LObject;
+package clusters.create.objects;
 
 /**
+ * Generic Object to denote the location of any object
+ * It has both latitude and longitude
  * Created by gurramvinay on 8/10/15.
  */
 public class Geopoint {
@@ -13,7 +15,6 @@ public class Geopoint {
         this.longitude = lon;
     }
 
-    //Object methods
     //Object methods
     public static double getDistance(Geopoint l1,Geopoint l2){
 
