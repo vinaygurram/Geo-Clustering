@@ -23,6 +23,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Main class to create clusters
@@ -48,6 +50,7 @@ public class GeoClustering {
     public static ArrayList<String> pushedClusters = new ArrayList<String>();
     public static HashMap<String,Integer> clusterProductCoverage = new HashMap<String, Integer>();
     public static HashMap<String,Integer> clusterSubCatCoverage = new HashMap<String, Integer>();
+    public static AtomicInteger jobsRun = new AtomicInteger();
 
 
     private Set<String> getGeoHashOfBoundingBox(BoundingBox box, int precision){
@@ -68,7 +71,7 @@ public class GeoClustering {
         LatLong latLong = GeoHash.decodeHash(geoHash);
 
         try {
-            String geo_api = "http://geokit.qa.olahack.in/localities?lat="+latLong.getLat()+"&lng="+latLong.getLon()+"";
+            String geo_api = "http://geokit.qa.olahack.in/localities?lat="+latLong.getLat()+"&lng="+latLong.getLon();
             HttpClient httpClient = HttpClientBuilder.create().build();
             HttpGet httpGet = new HttpGet(geo_api);
             HttpResponse httpResponse = httpClient.execute(httpGet);
@@ -90,9 +93,19 @@ public class GeoClustering {
         Iterator<String> iterator = hashes.iterator();
         int i=0;
         List<String> geohashList = new ArrayList<String>();
+        int count = 0;
         while(iterator.hasNext()){
             String thisHash = iterator.next();
+            count++;
             String zone = getZone(thisHash);
+            if(count>1000){
+                try {
+                    Thread.sleep(500);
+                    count = 0;
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
             if(!(zone.isEmpty() || zone.contentEquals(""))){
                 geohashList.add(thisHash);
             }
@@ -115,7 +128,7 @@ public class GeoClustering {
 
             HttpPost postRequest = new HttpPost(uri);
             String ssd ="{\"size\":0,\"query\":{\"filtered\":{\"filter\":{\"geo_distance\":{\"distance\":\"6km\"," +
-                    "\"store.location\":\""+geohash+"\"}}}},\"aggregations\":{\"stores_unique\":{\"terms\":{\"field\":\"store.id\"}}}}";
+                    "\"store_details.location\":\""+geohash+"\"}}}},\"aggregations\":{\"stores_unique\":{\"terms\":{\"field\":\"store_details.id\"}}}}";
 
             postRequest.setEntity(new StringEntity(ssd));
             HttpResponse response = httpClient.execute(postRequest);
@@ -126,7 +139,7 @@ public class GeoClustering {
             for(int i=0;i<stores.length();i++){
 
                 //Get location
-                String id = stores.getJSONObject(i).getString("key");
+                String id = stores.getJSONObject(i).getInt("key")+"";
                 ClusteringPoint clusteringPoint;
                 if(clusterPoints.containsKey(id)){
                 }else {
@@ -156,7 +169,7 @@ public class GeoClustering {
         return reShops;
     }
 
-    public static synchronized void pushClusterToES(List<ClusterObj> clusterObjs){
+    public static void pushClusterToES(List<ClusterObj> clusterObjs){
         HttpClient httpClient;
 
         for(ClusterObj clusterObj : clusterObjs){
@@ -209,7 +222,7 @@ public class GeoClustering {
 
                 HttpResponse response = httpClient.execute(post);
                 int code = response.getStatusLine().getStatusCode();
-                if(code!=200 || code!= 201){
+                if(code!=200 && code!= 201){
                     System.out.println(code+"--3");
                 }
 
@@ -224,7 +237,7 @@ public class GeoClustering {
                     //send post request
                     response = httpClient.execute(postRequest);
                     code = response.getStatusLine().getStatusCode();
-                    if(code!=200 || code!= 201){
+                    if(code!=200 && code!= 201){
                         System.out.println(code+"--2");
 
                     }
@@ -246,11 +259,12 @@ public class GeoClustering {
         try {
             GeoClustering geoClustering = new GeoClustering();
             List<String> geoHashList = geoClustering.getBlrGeoHashes();
+            //List<String> geoHashList = new ArrayList<>();
             //geoHashList = new ArrayList<String>();
             //geoHashList.add("tdr4phx");
             //geoHashList.add("tdr1vzcs");
             //geoHashList.add("tdr1yrb");
-            ExecutorService executorService = Executors.newFixedThreadPool(8);
+            ExecutorService executorService = Executors.newFixedThreadPool(10);
             for(String geoHash : geoHashList){
                 List<String> clusterPoints = geoClustering.getClusetringPointsForGeoHash(geoHash);
                 if(clusterPoints.size()>0){
@@ -259,12 +273,12 @@ public class GeoClustering {
                 }
             }
             executorService.shutdown();
-
+            executorService.awaitTermination(1, TimeUnit.DAYS);
+            long time_e = System.currentTimeMillis();
+            System.out.println("Time taken is " + (time_e-time_s)+"ms");
         }catch (Exception e){
             e.printStackTrace();
         }
-        long time_e = System.currentTimeMillis();
-        System.out.println("Time taken is " + (time_e-time_s)+"ms");
     }
 
 }

@@ -378,7 +378,6 @@ public class ClusterStrategy {
             HttpPost httpPost = new HttpPost(ES_LISTING_SEARCH_END_POINT);
             httpPost.setEntity(new StringEntity(query));
             HttpResponse httpResponse = httpClient.execute(httpPost);
-            System.out.println("status is "+ httpResponse.getStatusLine().toString());
             int status_code = httpResponse.getStatusLine().getStatusCode();
             if(status_code==200){
                 JSONObject result = new JSONObject(EntityUtils.toString(httpResponse.getEntity()));

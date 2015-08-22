@@ -345,9 +345,9 @@ public class DataPopulator {
 
     public static void main(String[] args){
         DataPopulator dataPopulator = new DataPopulator(JDCBC.getConnection());
-        dataPopulator.populateListingIndex();
+        //dataPopulator.populateListingIndex();
         //dataPopulator.pushCatalogMap();
-        //dataPopulator.populateStoresIndex();
+        dataPopulator.populateStoresIndex();
     }
 
 }
