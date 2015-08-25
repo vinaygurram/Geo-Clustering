@@ -18,7 +18,7 @@ import java.util.List;
  * Created by gurramvinay on 6/26/15.
  * defining strategy to create the geo hash based cluster.
  * Covers point selection criteria, Sample Space for Cluster, Max Distance Coverage,Cluster Selection Criteria
- * low level distance matraix is computer for each geo hash
+ * distance matrix is computed for each geo hash
  */
 
 public class ClusterStrategy {

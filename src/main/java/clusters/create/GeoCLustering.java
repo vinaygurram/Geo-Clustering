@@ -4,6 +4,7 @@ import clusters.create.objects.*;
 import com.github.davidmoten.geo.Coverage;
 import com.github.davidmoten.geo.GeoHash;
 import com.github.davidmoten.geo.LatLong;
+import com.mongodb.DBObject;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -12,6 +13,10 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
+import org.jongo.Find;
+import org.jongo.Jongo;
+import org.jongo.MongoCursor;
+import org.jongo.ResultHandler;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -86,32 +91,48 @@ public class GeoClustering {
         }
         return "";
     }
+    public String getZoneFromMongo(String geoHash){
+
+        String zoneString = "";
+        try {
+            LatLong latLong = GeoHash.decodeHash(geoHash);
+            Jongo jongo = MongoJClient.getJongoClietn();
+            String query = "{polygons:{\"$geoIntersects\":{\"$geometry\":{\"type\":\"Point\",\"coordinates\":["+latLong.getLon()+","+latLong.getLat()+"]}}}}";
+            Find result = jongo.getCollection(MongoJClient.MONGO_COLLECTION).find(query);
+            MongoCursor<String> zones = result.map(new ResultHandler<String>() {
+                @Override
+                public String map(DBObject dbObject) {
+                    if(dbObject.containsField("name")){
+                        return (String)dbObject.get("name");
+                    }
+                    return "";
+                }
+            });
+            if(zones.hasNext()){
+                zoneString = zones.next();
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return zoneString;
+    }
 
     public List<String> getBlrGeoHashes(){
         BoundingBox bbox = getBangaloreBox();
         Set<String> hashes = getGeoHashOfBoundingBox(bbox,GEO_PRECISION);
         Iterator<String> iterator = hashes.iterator();
-        int i=0;
+        int valitGeoHashCount=0;
         List<String> geohashList = new ArrayList<String>();
-        int count = 0;
         while(iterator.hasNext()){
             String thisHash = iterator.next();
-            count++;
-            String zone = getZone(thisHash);
-            if(count>1000){
-                try {
-                    Thread.sleep(500);
-                    count = 0;
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
-            }
+            String zone = getZoneFromMongo(thisHash);
             if(!(zone.isEmpty() || zone.contentEquals(""))){
                 geohashList.add(thisHash);
+                valitGeoHashCount++;
             }
-            i++;
         }
-        System.out.println("total number of hashes "+i);
+        MongoJClient.close();
+        System.out.println("total number of hashes "+valitGeoHashCount);
         return geohashList;
     }
 
@@ -256,6 +277,7 @@ public class GeoClustering {
     public static void main(String[] args){
 
         long time_s = System.currentTimeMillis();
+        System.out.println("start time is "+time_s);
         try {
             GeoClustering geoClustering = new GeoClustering();
             List<String> geoHashList = geoClustering.getBlrGeoHashes();

@@ -121,5 +121,5 @@ Getting all cluster data from listing index ::
 
 
 
-
+{"size":0,"query":{"filtered":{"filter":{"bool":{"must":[{"geo_distance":{"store_details.location":"geoHash","distance":"radius"km"}},{"term":{"product_details.available":true}},{"term":{"product_details.status":"current"}}]}}}},"aggregations":{"unique_products":{"terms":{"field":"product_details.id","size":0}},"stores_count":{"cardinality":{"field":"store_details.id"}},"sub_cat_count":{"cardinality":{"field":"product_details.sub_category_id"}}}}
 
