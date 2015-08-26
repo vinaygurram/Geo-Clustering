@@ -63,18 +63,19 @@ public class GeoClustering {
     public static final String nfnvFilePath = "src/main/resources/popular_nfnc.csv";
     public static final String fnvFilePath = "src/main/resources/fnv_pids.csv";
 
-    private final static String ES_API= "http://localhost:9200";
+    public final static String ES_REST_API = "http://localhost:9200";
+    public final static String GEOKIT_API = "http://geokit.qa.olahack.in/localities";
 
-    private static final String GEO_HASH_INDEX = "geo_hash_6";
-    private static final String GEO_HASH_INDEX_TYPE = "hash_type";
-    private static final String CLUSTERS_INDEX = "live_geo_clusters_6";
-    private static final String CLUSTERS_INDEX_TYPE = "geo_cluster";
-    private static final String LISTING_INDEX = "listing";
-    private static final String STORES_INDEX = "stores";
-    private static final String STORES_INDEX_TYPE = "store";
+    public static final String GEO_HASH_INDEX = "geo_hash_6";
+    public static final String GEO_HASH_INDEX_TYPE = "hash_type";
+    public static final String CLUSTERS_INDEX = "live_geo_clusters_6";
+    public static final String CLUSTERS_INDEX_TYPE = "geo_cluster";
+    public static final String LISTING_INDEX = "listing";
+    public static final String STORES_INDEX = "stores";
+    public static final String STORES_INDEX_TYPE = "store";
 
-    private static final String SEARCH_END_POINT= "_search";
-    private static final String BULK_END_POINT = "-bulk";
+    public static final String ES_SEARCH_END_POINT = "_search";
+    public static final String ES_BULK_END_POINT = "_bulk";
 
     private  static int bulkDocCount = 0;
     private static StringBuilder bulkDoc = new StringBuilder();
@@ -99,7 +100,7 @@ public class GeoClustering {
         LatLong latLong = GeoHash.decodeHash(geoHash);
 
         try {
-            String geo_api = "http://geokit.qa.olahack.in/localities?lat="+latLong.getLat()+"&lng="+latLong.getLon();
+            String geo_api = GEOKIT_API+"?lat="+latLong.getLat()+"&lng="+latLong.getLon();
             HttpClient httpClient = HttpClientBuilder.create().build();
             HttpGet httpGet = new HttpGet(geo_api);
             HttpResponse httpResponse = httpClient.execute(httpGet);
@@ -155,7 +156,7 @@ public class GeoClustering {
             //    valitGeoHashCount++;
             //}
         }
-       // MongoJClient.close();
+        // MongoJClient.close();
         System.out.println("total number of hashes "+geohashList.size());
         return geohashList;
     }
@@ -168,7 +169,7 @@ public class GeoClustering {
         List<String> reShops = new ArrayList<String>();
         HttpClient httpClient = null;
         try {
-            String uri = "http://localhost:9200/listing/_search";
+            String uri = ES_REST_API +"/"+LISTING_INDEX+"/"+ ES_SEARCH_END_POINT;
             httpClient = HttpClientBuilder.create().build();
 
             HttpPost postRequest = new HttpPost(uri);
@@ -192,7 +193,7 @@ public class GeoClustering {
                 }else {
 
                     try {
-                        URL url = new URL("http://localhost:9200/stores/store/"+id);
+                        URL url = new URL(ES_REST_API +"/"+STORES_INDEX+"/"+STORES_INDEX_TYPE+"/"+id);
                         HttpURLConnection httpURLConnection = (HttpURLConnection)url.openConnection();
                         JSONObject response2 = new JSONObject(IOUtils.toString(httpURLConnection.getInputStream()));
                         JSONObject response1 = response2.getJSONObject("_source").getJSONObject("store_details");
@@ -278,7 +279,7 @@ public class GeoClustering {
                     if(bulkDocCount>500){
 
                         httpClient = HttpClientBuilder.create().build();
-                        HttpPost httpPost = new HttpPost(ES_BULK_API);
+                        HttpPost httpPost = new HttpPost(ES_REST_API +"/"+ ES_BULK_END_POINT);
                         httpPost.setEntity(new StringEntity(bulkDoc.toString()));
                         HttpResponse httpResponse = httpClient.execute(httpPost);
                         int code = httpResponse.getStatusLine().getStatusCode();
@@ -294,7 +295,7 @@ public class GeoClustering {
                 if(pushedClusters.contains(hash)){
                 }else {
 
-                    String uri = ES_API+"/"+GEO_HASH_INDEX+"/"+GEO_HASH_INDEX_TYPE+"/"+hash;
+                    String uri = ES_REST_API +"/"+CLUSTERS_INDEX+"/"+CLUSTERS_INDEX_TYPE+"/"+hash;
                     HttpPost postRequest = new HttpPost(uri);
                     String jsonString = clusterObj.getJSON().toString();
                     postRequest.setEntity(new StringEntity(jsonString));
@@ -366,18 +367,16 @@ public class GeoClustering {
             fnvProdSet = geoClustering.generateProductSetFromCSV(fnvFilePath,true);
             ExecutorService executorService = Executors.newFixedThreadPool(10);
             for(String geoHash : geoHashList){
-                if(clusterPoints.size()>0){
-                    SimpleWorkerThread thread = new SimpleWorkerThread(geoHash);
-                    //executorService.execute(thread);
-                    thread.run();
-                }
+                SimpleWorkerThread thread = new SimpleWorkerThread(geoHash);
+                //executorService.execute(thread);
+                thread.run();
             }
             executorService.shutdown();
             executorService.awaitTermination(1, TimeUnit.DAYS);
             //have to make it standard ;; temporary hack
             if(!is_bulk_cleared){
                 HttpClient httpClient = HttpClientBuilder.create().build();
-                HttpPost httpPost = new HttpPost(ES_BULK_API);
+                HttpPost httpPost = new HttpPost(ES_REST_API +"/"+ ES_BULK_END_POINT);
                 httpPost.setEntity(new StringEntity(bulkDoc.toString()));
                 HttpResponse httpResponse = httpClient.execute(httpPost);
                 int code = httpResponse.getStatusLine().getStatusCode();

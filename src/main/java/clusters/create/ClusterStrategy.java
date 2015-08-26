@@ -22,7 +22,6 @@ import java.util.*;
 
 public class ClusterStrategy {
     private DistanceMatrix distanceMatrix;
-    public String ES_LISTING_SEARCH_END_POINT = "http://localhost:9200/listing/list/_search";
 
     public void createDistanceMatrix(Geopoint geoHash, List<String> points){
         List<String> ttpoints = new ArrayList<String>(points);
@@ -150,7 +149,7 @@ public class ClusterStrategy {
                     "\"aggregations\":{\"unique_products\":{\"terms\":{\"field\":\"product_details.id\",\"size\":0}}," +
                     "\"sub_cat_count\":{\"cardinality\":{\"field\":\"product_details.sub_category_id\"}}}}";
             HttpClient httpClient = HttpClientBuilder.create().build();
-            HttpPost httpPost = new HttpPost(ES_LISTING_SEARCH_END_POINT);
+            HttpPost httpPost = new HttpPost(GeoClustering.ES_REST_API+"/"+GeoClustering.ES_SEARCH_END_POINT);
             httpPost.setEntity(new StringEntity(query));
             HttpResponse httpResponse = httpClient.execute(httpPost);
             int status_code = httpResponse.getStatusLine().getStatusCode();

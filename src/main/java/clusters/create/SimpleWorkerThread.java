@@ -21,6 +21,7 @@ public class SimpleWorkerThread implements  Runnable{
 
     public void run() {
         List<String>points = GeoClustering.getClusetringPointsForGeoHash(geohash);
+        if(points.size()==0) return;
         ClusterStrategy clusterStrategyNew = new ClusterStrategy();
         LatLong gll = GeoHash.decodeHash(geohash);
         Geopoint geopoint = new Geopoint(gll.getLat(),gll.getLon());
