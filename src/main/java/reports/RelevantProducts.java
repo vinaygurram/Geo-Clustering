@@ -56,6 +56,8 @@ public class RelevantProducts {
     private static final String ES_CLUSTERS_SEARCH_END_POINT = "http://localhost:9200/live_geo_clusters/_search";
     private static final String ES_CLUSTERS_END_POINT = "http://localhost:9200/live_geo_clusters/geo_cluster";
     private static final String ES_LISTING_SEACH_END_POINT  = "http://localhost:9200/listing/_search";
+    private static final String GEOKIT_API = "http://geokit.qa.olahack.in/localities";
+
     private static ConcurrentHashMap<String,Integer> geoClusterForStores = new ConcurrentHashMap<>();
     private static ConcurrentHashMap<String,ESTempObject> clusterProperties = new ConcurrentHashMap<>();
 
@@ -171,10 +173,9 @@ public class RelevantProducts {
 
     private ESTempObject getProductsForGeoHash(String geoHash,int radius){
 
-        //String esAPI  = "http://es.qa.olahack.in/listing/_search";
-        //String esAPI  = "http://escluster.olastore.com:9200/listing/_search";
         // running all tests on local listing
-        String esAPI  = "http://localhost:9200/listing/_search";
+        String esAPI  = ES_LISTING_SEACH_END_POINT;
+
         ESTempObject esTempObject = null;
         try {
             HttpClient httpClient = HttpClientBuilder.create().build();
@@ -213,8 +214,6 @@ public class RelevantProducts {
 
     private ESTempObject setPropertiesForGeoHashUsingCluster(String geoHash,Set<String> relFnVSet, Set<String>relNFNVSet){
 
-        //String esAPI  = "http://es.qa.olahack.in/listing/_search";
-        //String esAPI  = "http://escluster.olastore.com:9200/listing/_search";
         // running all tests on local listing
         ESTempObject esTempObject = null;
         try {
@@ -397,8 +396,7 @@ public class RelevantProducts {
         LatLong latLong = GeoHash.decodeHash(geoHash);
 
         try {
-            //String geo_api = "http://geokit.olastore.com/localities?lat="+latLong.getLat()+"&lng="+latLong.getLon()+"";
-            String geo_api = "http://geokit.qa.olahack.in/localities?lat="+latLong.getLat()+"&lng="+latLong.getLon()+"";
+            String geo_api = GEOKIT_API+"?lat="+latLong.getLat()+"&lng="+latLong.getLon()+"";
             HttpClient httpClient = HttpClientBuilder.create().build();
             HttpGet httpGet = new HttpGet(geo_api);
             HttpResponse httpResponse = httpClient.execute(httpGet);

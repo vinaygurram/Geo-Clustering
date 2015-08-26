@@ -77,11 +77,6 @@ public class GeoClustering {
     public static final String ES_SEARCH_END_POINT = "_search";
     public static final String ES_BULK_END_POINT = "_bulk";
 
-    private  static AtomicInteger bulkDocCount = new AtomicInteger(0);
-    private static StringBuffer bulkDoc = new StringBuffer();
-    private static boolean is_bulk_cleared = false;
-
-
     private static Object lockObject = new Object();
 
 
@@ -226,78 +221,35 @@ public class GeoClustering {
         return reShops;
     }
 
+
+
     public static void pushClusterToES(List<ClusterObj> clusterObjs){
         HttpClient httpClient;
-        is_bulk_cleared = false;
 
-        for(ClusterObj clusterObj : clusterObjs){
-            StringBuffer result = new StringBuffer();
-            List<Long> numbers = new ArrayList<Long>();
-            try {
+        try {
+            JSONObject geoDoc = new JSONObject();
+            geoDoc.put("id", clusterObjs.get(0).getGeoHash());
+            geoDoc.put("clusters_count", clusterObjs.size());
+            JSONArray clusters = new JSONArray();
+            geoDoc.put("clusters", clusters);
 
-
-
+            for(ClusterObj clusterObj : clusterObjs){
                 List<String> stringList = clusterObj.getPoints();
-
                 Collections.sort(stringList);
                 StringBuilder sb = new StringBuilder();
                 for(String s : stringList){
-                    sb.append("" +
-                            "" +
-                            "" +
-                            "-");
+                    sb.append("-");
                     sb.append(s);
                 }
                 String hash = sb.toString().substring(1);
-                String geoHash = clusterObj.getGeoHash();
 
-                //Upsert Object
-                JSONObject upsertObject = new JSONObject();
-                upsertObject.put("id", geoHash);
-                upsertObject.put("clusters_count", 1);
-                JSONArray clusters = new JSONArray();
                 JSONObject thisCluster = new JSONObject();
                 thisCluster.put("cluster_id", hash);
                 thisCluster.put("distance", clusterObj.getDistance());
                 thisCluster.put("status", clusterObj.isStatus());
                 thisCluster.put("rank",clusterObj.getRank());
                 clusters.put(thisCluster);
-                upsertObject.put("clusters", clusters);
 
-
-                //Update object
-                JSONObject fObject1 = new JSONObject();
-                fObject1.put("script","ctx._source.clusters += obj;ctx._source.clusters_count += 1");
-
-                JSONObject object = new JSONObject();
-                object.put("obj",thisCluster);
-                fObject1.put("params",object);
-                fObject1.put("upsert",upsertObject);
-
-                synchronized (lockObject){
-
-                    bulkDocCount.incrementAndGet();
-                    bulkDoc.append("{\"update\" : {\"_index\" : \""+GEO_HASH_INDEX+"\",\"_type\" : \""+GEO_HASH_INDEX_TYPE+"\",\"_id\":\""+geoHash+"\" }}\n");
-                    bulkDoc.append(fObject1);
-                    bulkDoc.append("\n");
-                    if(bulkDocCount.get()>500){
-
-                        httpClient = HttpClientBuilder.create().build();
-                        HttpPost httpPost = new HttpPost(ES_REST_API +"/"+ ES_BULK_END_POINT);
-                        httpPost.setEntity(new StringEntity(bulkDoc.toString()));
-                        HttpResponse httpResponse = httpClient.execute(httpPost);
-                        int code = httpResponse.getStatusLine().getStatusCode();
-                        if(code!=200) {
-
-                            System.out.println(httpResponse.getEntity().toString());
-                            System.out.println("Error --2");
-                        }
-                        bulkDocCount = new AtomicInteger(0);
-                        bulkDoc = new StringBuffer();
-                        is_bulk_cleared = true;
-
-                    }
-                }
                 if(pushedClusters.contains(hash)){
                 }else {
 
@@ -315,13 +267,21 @@ public class GeoClustering {
                     }
                     pushedClusters.add(hash);
                 }
-            }catch (IOException e){
-                e.printStackTrace();
-            }catch (JSONException e){
-                e.printStackTrace();
-            }catch (Exception e){
-                e.printStackTrace();
             }
+
+            httpClient = HttpClientBuilder.create().build();
+            HttpPost httpPost = new HttpPost(ES_REST_API +"/"+ GEO_HASH_INDEX+"/"+GEO_HASH_INDEX_TYPE+"/"+clusterObjs.get(0).getGeoHash());
+            httpPost.setEntity(new StringEntity(geoDoc.toString()));
+            HttpResponse httpResponse = httpClient.execute(httpPost);
+            int code = httpResponse.getStatusLine().getStatusCode();
+            if(!(code==200 || code==201)) {
+
+                System.out.println(httpResponse.getEntity().toString());
+                System.out.println("Error --2");
+            }
+
+        }catch (Exception e){
+            e.printStackTrace();
         }
     }
 
@@ -360,13 +320,13 @@ public class GeoClustering {
         System.out.println("start time is "+time_s);
         try {
             GeoClustering geoClustering = new GeoClustering();
-            List<String> geoHashList = geoClustering.getBlrGeoHashes();
-//            List<String> geoHashList = new ArrayList<>();
-//            geoHashList = new ArrayList<String>();
-//            geoHashList.add("tdr4phx");
-//            geoHashList.add("tdr0ftn");
-//            geoHashList.add("tdr1vzc");
-//            geoHashList.add("tdr1yrb");
+            //List<String> geoHashList = geoClustering.getBlrGeoHashes();
+            List<String> geoHashList = new ArrayList<>();
+            geoHashList = new ArrayList<String>();
+            geoHashList.add("tdr4phx");
+            geoHashList.add("tdr0ftn");
+            geoHashList.add("tdr1vzc");
+            geoHashList.add("tdr1yrb");
 
             //generate both fnv and non-fnv sets
             nfnvProdSet = geoClustering.generateProductSetFromCSV(nfnvFilePath,false);
@@ -378,22 +338,7 @@ public class GeoClustering {
             }
             executorService.shutdown();
             executorService.awaitTermination(1, TimeUnit.DAYS);
-            //have to make it standard ;; temporary hack
-            if(!is_bulk_cleared){
-                HttpClient httpClient = HttpClientBuilder.create().build();
-                HttpPost httpPost = new HttpPost(ES_REST_API +"/"+ ES_BULK_END_POINT);
-                httpPost.setEntity(new StringEntity(bulkDoc.toString()));
-                HttpResponse httpResponse = httpClient.execute(httpPost);
-                int code = httpResponse.getStatusLine().getStatusCode();
-                if(code!=200) {
-                    System.out.println("Error --1");
-                    System.out.println(httpResponse.getEntity().toString());
-                };
-                bulkDoc = new StringBuffer();
-                bulkDocCount = new AtomicInteger(0);
-                is_bulk_cleared = true;
 
-            }
             long time_e = System.currentTimeMillis();
             System.out.println("Time taken is " + (time_e-time_s)+"ms");
         }catch (Exception e){
