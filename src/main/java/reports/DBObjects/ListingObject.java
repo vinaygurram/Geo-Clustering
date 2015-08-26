@@ -16,7 +16,7 @@ public class ListingObject {
     public String cat_id = "";
     public String sub_cat_id ="";
     public String state;
-    public String available;
+    public boolean available;
 
 
     //Getters and Setters
@@ -94,11 +94,11 @@ public class ListingObject {
         this.sub_cat_id = sub_cat_id;
     }
 
-    public String getAvailable() {
+    public boolean isAvailable() {
         return available;
     }
 
-    public void setAvailable(String available) {
+    public void setAvailable(boolean available) {
         this.available = available;
     }
 
@@ -121,7 +121,7 @@ public class ListingObject {
         storeObject.put("location", location.getLatitude() + "," + location.getLongitude());
 
         productObject.put("id", productId);
-        productObject.put("state", state);
+        productObject.put("status", state);
         productObject.put("available",available);
         productObject.put("sup_category_id", sup_cat_id);
         productObject.put("sub_category_id", sub_cat_id);

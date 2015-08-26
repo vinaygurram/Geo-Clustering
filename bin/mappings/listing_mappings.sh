@@ -73,6 +73,7 @@ ES_MAPPINGS="{
     },
     \"settings\": {
       \"index\": {
+        \"number_of_replicas\": \"1\",
         \"analysis\": {
           \"analyzer\": {
             \"default\": {
@@ -82,8 +83,9 @@ ES_MAPPINGS="{
         },
         \"number_of_shards\": \"5\"
       }
-    }
-}"
+    },
+    \"warmers\": {}
+  }"
 curl -s -XDELETE ${ES_HOST}"/"${ES_INDEX}
 echo
 curl -s -XPOST ${ES_HOST}"/"${ES_INDEX} -d "${ES_MAPPINGS}"

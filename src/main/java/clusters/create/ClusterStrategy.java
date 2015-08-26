@@ -8,11 +8,10 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by gurramvinay on 6/26/15.
@@ -112,18 +111,86 @@ public class ClusterStrategy {
     }
 
     //Helper methods
-
     /**
-     * Get Favoured Cluster in List of clusters
-     * Fav Factor = (1/2)*(S/Smax) + (1/2) * (P/Pmax)
+     * computes rank for a given cluster
+     * Rank r = 0.3 * (relFNVPinCluster/totalRelFNVinCluster) + 0.3 * (relNFNVPinCluster/totalRelNFNVinCluster)+ (0.35) * (ProductsInCluster/TotalProducts)
      * @return give rank
      * */
-    public double getFavourFactor_cov(int subCt, int products){
-        double p = ((double)products)/17000;
-        double s = ((double)subCt)/240;
-        p =p/2;
-        s =s/2;
-        return  s+p;
+    public void setRankParameters(Set<String> relFNVSet, Set<String> relNFNVSet,ClusterObj clusterObj){
+
+        //create cluster ID and Stores array
+        String storeIdString = "";
+        String clusterId = "";
+        List<String> stores = clusterObj.getPoints();
+        Collections.sort(stores);
+        for(String s: stores){
+            storeIdString += "\""+s+"\",";
+            clusterId +="-"+s;
+        }
+        clusterId = clusterId.substring(1);
+        storeIdString = storeIdString.substring(0,storeIdString.length()-1);
+
+        //check if data is already computed
+        if(GeoClustering.clusterRankMap.containsKey(clusterId)){
+            clusterObj.setProductsCount(GeoClustering.clusterProductCoverage.get(clusterId));
+            clusterObj.setSubCatCount(GeoClustering.clusterSubCatCoverage.get(clusterId));
+            clusterObj.setRank(GeoClustering.clusterRankMap.get(clusterId));
+            return;
+        }
+
+        //Get products set and sub cat count and product count
+        Set<String> productsSet = new HashSet<>();
+        int subCatCount = 0;
+        try {
+
+            String query = "{\"size\": 0,\"query\":{\"filtered\":{\"filter\":{\"bool\":{\"must\":[" +
+                    "{\"terms\":{\"store_details.id\":["+storeIdString+"]}}," +
+                    "{\"term\":{\"product_details.available\":true}}," +
+                    "{\"term\":{\"product_details.status\":\"current\"}}]}}}}," +
+                    "\"aggregations\":{\"unique_products\":{\"terms\":{\"field\":\"product_details.id\",\"size\":0}}," +
+                    "\"sub_cat_count\":{\"cardinality\":{\"field\":\"product_details.sub_category_id\"}}}}";
+            HttpClient httpClient = HttpClientBuilder.create().build();
+            HttpPost httpPost = new HttpPost(ES_LISTING_SEARCH_END_POINT);
+            httpPost.setEntity(new StringEntity(query));
+            HttpResponse httpResponse = httpClient.execute(httpPost);
+            int status_code = httpResponse.getStatusLine().getStatusCode();
+            if(status_code==200){
+                JSONObject result = new JSONObject(EntityUtils.toString(httpResponse.getEntity()));
+                JSONObject esResult = result.getJSONObject("aggregations");
+                JSONArray uniqueProdBuckets = esResult.getJSONObject("unique_products").getJSONArray("buckets");
+                for(int i=0;i<uniqueProdBuckets.length();i++){
+                    String productId = uniqueProdBuckets.getJSONObject(i).getString("key");
+                    productsSet.add(productId);
+                }
+                subCatCount = esResult.getJSONObject("sub_cat_count").getInt("value");
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        //store & set both product count and sub cat count
+        GeoClustering.clusterProductCoverage.put(clusterId,productsSet.size());
+        GeoClustering.clusterSubCatCoverage.put(clusterId,subCatCount);
+        clusterObj.setProductsCount(productsSet.size());
+        clusterObj.setSubCatCount(subCatCount);
+
+        //Compute rel FNV & Non FNV products in cluster
+        Set<String> intesection = new HashSet<String>(productsSet);
+        intesection.retainAll(relFNVSet);
+        int rFNVPCount = intesection.size();
+        intesection = new HashSet<String>(productsSet);
+        intesection.retainAll(relNFNVSet);
+        int rNFNVPCount = intesection.size();
+
+        //Compute rank
+        double fncPCov = ((double) rFNVPCount)/((double) relFNVSet.size());
+        double nfncPCov = ((double) rNFNVPCount)/((double) relNFNVSet.size());
+        double pCov = ((double)productsSet.size())/ ((double)GeoClustering.maxProductCount);
+        double rank = (GeoClustering.relFNCCoverageCoeff * fncPCov)+ (GeoClustering.relNFNCCoverageCoeff * nfncPCov)+ (GeoClustering.relProductCoverageCoeff* pCov);
+
+        //store and set
+        GeoClustering.clusterRankMap.put(clusterId,rank);
+        clusterObj.setRank(rank);
     }
 
     /**
@@ -331,26 +398,17 @@ public class ClusterStrategy {
         }else if(storeIdList.size()==2){
             shortDistance =getShortestDistanceFor2(geoHash, storeIdList);
         }
-        if(shortDistance>7) return null;
-
-        //merge those ids and get Cat and SubCat count
-
+        if(shortDistance>6) return null;
 
         boolean fnvCriteria = checkFnV(storeIdList);
-        //if(!fnvCriteria) return null;
 
-        //if(subCatCount<144) return null;
-        //if(productCount<4000) return null;
-        //double rank = getFavourFactor_cov(subCatCount,productCount);
-
-        //Make the clusterObject now
+        //Make the clusterObject
         ClusterObj clusterObjNew = new ClusterObj();
-        setProductAndSubCatCoverage(storeIdList,clusterObjNew);
         for(String s: storeIdList){
             clusterObjNew.addPoint(s);
         }
         clusterObjNew.setDistance(shortDistance);
-        clusterObjNew.setRank(1);
+        setRankParameters(GeoClustering.fnvProdSet,GeoClustering.nfnvProdSet,clusterObjNew);
 
         //set cluster status offline/online
         clusterObjNew.setStatus(true);
@@ -358,45 +416,7 @@ public class ClusterStrategy {
     }
 
 
-    private void setProductAndSubCatCoverage(List<String> storeIds,ClusterObj clusterObjNew){
 
-        String hash = getHashForCHM(storeIds);
-        if(GeoClustering.clusterProductCoverage.containsKey(hash)){
-            clusterObjNew.setProductsCount(GeoClustering.clusterProductCoverage.get(hash));
-            clusterObjNew.setSubCatCount(GeoClustering.clusterSubCatCoverage.get(hash));
-        }
-        try {
-            String storeIdString = "";
-            for(String s: storeIds){
-                storeIdString += "\""+s+"\",";
-            }
-            storeIdString = storeIdString.substring(0,storeIdString.length()-1);
-            String query = "{\"size\":0,\"query\":{\"terms\":{\"store_details.id\":["+storeIdString+"]}}," +
-                    "\"aggregations\":{\"product_count\":{\"cardinality\":{\"field\":\"product_details.id\"}}," +
-                    "\"sub_cat_count\":{\"cardinality\":{\"field\":\"product_details.sub_category_id\"}}}}";
-            HttpClient httpClient = HttpClientBuilder.create().build();
-            HttpPost httpPost = new HttpPost(ES_LISTING_SEARCH_END_POINT);
-            httpPost.setEntity(new StringEntity(query));
-            HttpResponse httpResponse = httpClient.execute(httpPost);
-            int status_code = httpResponse.getStatusLine().getStatusCode();
-            if(status_code==200){
-                JSONObject result = new JSONObject(EntityUtils.toString(httpResponse.getEntity()));
-                JSONObject aggr  = result.getJSONObject("aggregations");
-                int pCount = aggr.getJSONObject("product_count").getInt("value");
-                int subCatCount = aggr.getJSONObject("sub_cat_count").getInt("value");
-                GeoClustering.clusterProductCoverage.put(hash,pCount);
-                GeoClustering.clusterSubCatCoverage.put(hash,subCatCount);
-                clusterObjNew.setProductsCount(pCount);
-                clusterObjNew.setSubCatCount(subCatCount);
-            }else {
-                System.out.println("something wrong in calculating product and sub cat count");
-                clusterObjNew.setProductsCount(0);
-                clusterObjNew.setSubCatCount(0);
-            }
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-    }
 
     /**
      * Check for FnV

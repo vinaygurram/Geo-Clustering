@@ -185,7 +185,10 @@ public class DataPopulator {
 
 
                 listingObject.setProductId(id);
-                listingObject.setAvailable(state);
+                if(state.contentEquals("available")){
+                    listingObject.setAvailable(true);
+                }
+                listingObject.setAvailable(false);
                 listingObject.setStore_id(store_id);
 
 
@@ -206,7 +209,10 @@ public class DataPopulator {
                     catPath = product2Map.get(id);
                     if(catPath.length>0){
 
-                        listingObject1.setAvailable(state);
+                        if(state.contentEquals("available")){
+                            listingObject.setAvailable(true);
+                        }
+                        listingObject.setAvailable(false);
                         listingObject1.setStore_id(store_id);
                         listingObject1.setLocation(listingObject.getLocation());
                         listingObject1.setStore_name(listingObject.getStore_name());
@@ -225,7 +231,10 @@ public class DataPopulator {
                     ListingObject listingObject1 = new ListingObject();
                     catPath = product3Map.get(id);
                     if(catPath.length>0){
-                        listingObject1.setAvailable(state);
+                        if(state.contentEquals("available")){
+                            listingObject.setAvailable(true);
+                        }
+                        listingObject.setAvailable(false);
                         listingObject1.setStore_id(store_id);
                         listingObject1.setLocation(listingObject.getLocation());
                         listingObject1.setStore_name(listingObject.getStore_name());

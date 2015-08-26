@@ -42,16 +42,22 @@ public class RelevantProducts {
     private static double BIG_BLR_BOT_RIGHT_LAT =12.8342;
     private static double BIG_BLR_BOT_RIGHT_LON =77.8155;
 
-    private static double BLR_TOP_LEFT_LAT =13.1109114;
-    private static double BLR_TOP_LEFT_LON =77.4625397;
-    private static double BLR_BOT_RIGHT_LAT =12.824522500000002;
-    private static double BLR_BOT_RIGHT_LON =77.7495575;
+    private static double CUSTOM_BLR_TOP_LEFT_LAT =13.1109114;
+    private static double CUSTOM_BLR_TOP_LEFT_LON =77.4625397;
+    private static double CUSTOM_BLR_BOT_RIGHT_LAT =12.824522500000002;
+    private static double CUSTOM_BLR_BOT_RIGHT_LON =77.7495575;
+
+    private static double BLR_TOP_LEFT_LAT =13.11091;
+    private static double BLR_TOP_LEFT_LON =77.46253;
+    private static double BLR_BOT_RIGHT_LAT =12.81581;
+    private static double BLR_BOT_RIGHT_LON =77.79075;
 
     private static final String ES_GEO_HASH_SEARCH_END_POINT = "http://localhost:9200/geo_hash/_search";
     private static final String ES_CLUSTERS_SEARCH_END_POINT = "http://localhost:9200/live_geo_clusters/_search";
     private static final String ES_CLUSTERS_END_POINT = "http://localhost:9200/live_geo_clusters/geo_cluster";
     private static final String ES_LISTING_SEACH_END_POINT  = "http://localhost:9200/listing/_search";
     private static ConcurrentHashMap<String,Integer> geoClusterForStores = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<String,ESTempObject> clusterProperties = new ConcurrentHashMap<>();
 
     private List<String> createBangaloreHashes(){
         BoundingBox bbox = getBangaloreBox();
@@ -90,18 +96,22 @@ public class RelevantProducts {
             httpPost.setEntity(new StringEntity(geo_hash_query));
             HttpResponse httpResponse = httpClient.execute(httpPost);
             JSONObject resultObject = new JSONObject(EntityUtils.toString(httpResponse.getEntity()));
+            if(resultObject.getJSONObject("hits").getInt("total")==0) return "";
             JSONArray clustersArray = resultObject.getJSONObject("hits").getJSONArray("hits").getJSONObject(0).getJSONObject("_source").getJSONArray("clusters");
-            List<String> clusterIdList = new ArrayList<>();
+            String bestClusterId = "";
+            double maxRank = Double.MIN_VALUE;
             for(int i=0;i<clustersArray.length();i++){
-                clusterIdList.add(clustersArray.getJSONObject(i).getString("cluster_id"));
-
+                double tempRank = clustersArray.getJSONObject(i).getDouble("rank");
+                if(tempRank>maxRank){
+                    maxRank = tempRank;
+                    bestClusterId = clustersArray.getJSONObject(i).getString("cluster_id");
+                }
             }
-            return getClusterWithGreatestProductCount(clusterIdList);
+            return bestClusterId;
 
         }catch (Exception e){
             e.printStackTrace();
         }
-        //System.out.println("Could not find cluster for this geo hash");
         return "";
     }
 
@@ -201,7 +211,7 @@ public class RelevantProducts {
         return esTempObject;
     }
 
-    private ESTempObject getProductsForGeoHashUsingCluster(String geoHash){
+    private ESTempObject setPropertiesForGeoHashUsingCluster(String geoHash,Set<String> relFnVSet, Set<String>relNFNVSet){
 
         //String esAPI  = "http://es.qa.olahack.in/listing/_search";
         //String esAPI  = "http://escluster.olastore.com:9200/listing/_search";
@@ -209,18 +219,23 @@ public class RelevantProducts {
         ESTempObject esTempObject = null;
         try {
 
+
             //get best cluster
             String clusterId = getBestCluster(geoHash);
             if(clusterId.contentEquals("")){
                 return esTempObject;
             }
+            if(clusterProperties.containsKey(clusterId)){
+                return clusterProperties.get(clusterId);
+            }
+
             String[] stores  = clusterId.split("-");
             String storeIdString = "";
             for(String s: stores){
                 storeIdString += "\""+s+"\",";
             }
             storeIdString = storeIdString.substring(0,storeIdString.length()-1);
-            String query = "{\"size\": 0,\"query\":{\"filtered\":{\"filter\":{\"bool\":{\"must\":[{\"terms\":{\"store_details.id\":["+storeIdString+"]}},{\"term\":{\"product_details.available\":true}},{\"term\":{\"product_details.state\":\"current\"}}]}}}},\"aggregations\":{\"unique_products\":{\"terms\":{\"field\":\"product_details.id\",\"size\":0}},\"sub_cat_count\":{\"cardinality\":{\"field\":\"product_details.sub_category_id\"}}}}";
+            String query = "{\"size\": 0,\"query\":{\"filtered\":{\"filter\":{\"bool\":{\"must\":[{\"terms\":{\"store_details.id\":["+storeIdString+"]}},{\"term\":{\"product_details.available\":true}},{\"term\":{\"product_details.status\":\"current\"}}]}}}},\"aggregations\":{\"unique_products\":{\"terms\":{\"field\":\"product_details.id\",\"size\":0}},\"sub_cat_count\":{\"cardinality\":{\"field\":\"product_details.sub_category_id\"}}}}";
             HttpClient httpClient = HttpClientBuilder.create().build();
             HttpPost httpPost = new HttpPost(ES_LISTING_SEACH_END_POINT);
             httpPost.setEntity(new StringEntity(query));
@@ -229,17 +244,26 @@ public class RelevantProducts {
             if(esResult.getJSONObject("hits").getInt("total")==0) return null;
             esResult = esResult.getJSONObject("aggregations");
             int subCatCount = esResult.getJSONObject("sub_cat_count").getInt("value");
-            Set<String> productList = new HashSet<String>();
+            Set<String> productSet = new HashSet<String>();
             JSONArray uniqueProdBuckets = esResult.getJSONObject("unique_products").getJSONArray("buckets");
             for(int i=0;i<uniqueProdBuckets.length();i++){
                 String productId = uniqueProdBuckets.getJSONObject(i).getString("key");
-                productList.add(productId);
+                productSet.add(productId);
             }
             esTempObject = new ESTempObject();
             esTempObject.setStoresCount(stores.length);
             esTempObject.setSubCatCount(subCatCount);
-            esTempObject.setProducts(productList);
-            esTempObject.setProduct_count(productList.size());
+            esTempObject.setProducts(productSet);
+            esTempObject.setProduct_count(productSet.size());
+            Set<String> mergeSet = new HashSet<String>(productSet);
+            mergeSet.retainAll(relFnVSet);
+            esTempObject.setFnvCount(mergeSet.size());
+            mergeSet = new HashSet<String>(productSet);
+            mergeSet.retainAll(relNFNVSet);
+            esTempObject.setRelNFNVCount(mergeSet.size());
+
+            clusterProperties.put(clusterId,esTempObject);
+
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -250,12 +274,12 @@ public class RelevantProducts {
     public ESTempObject setRelProductcount(ESTempObject esTempObject, Set<String> fnvSet, Set<String> nonFnvRelSet){
 
         Set<String> productsSet = esTempObject.getProducts();
-        Set<String> intesection = new HashSet<String>(productsSet);
-        intesection.retainAll(fnvSet);
-        esTempObject.setFnvCount(intesection.size());
-        intesection = new HashSet<String>(productsSet);
-        intesection.retainAll(nonFnvRelSet);
-        esTempObject.setRelNFNVCount(intesection.size());
+        Set<String> mergeSet = new HashSet<String>(productsSet);
+        mergeSet.retainAll(fnvSet);
+        esTempObject.setFnvCount(mergeSet.size());
+        mergeSet = new HashSet<String>(productsSet);
+        mergeSet.retainAll(nonFnvRelSet);
+        esTempObject.setRelNFNVCount(mergeSet.size());
         return esTempObject;
     }
 
@@ -310,18 +334,19 @@ public class RelevantProducts {
         try {
             List<String> geoHashList = createBangaloreHashes();
             fileWriter = new FileWriter(fPath);
-            fileWriter.write("geo_hash,zone, rel_nfnv_prod_count,fnv_prod_count,prod_count,stores_count,sub_cat_count");
+            fileWriter.write("geo_hash, rel_nfnv_prod_count,fnv_prod_count,prod_count,stores_count,sub_cat_count");
             fileWriter.write("\n");
             for (String geoHash : geoHashList){
-                String zone =  getZoneFromMongo(geoHash);
-                if(zone.isEmpty()) continue;
-                ESTempObject esData = getProductsForGeoHashUsingCluster(geoHash);
-                esData = setRelProductcount(esData,fnvSet,nFnvRelSet);
-                fileWriter.write(geoHash+","+zone+","+esData.getRelNFNVCount()+","+esData.getFnvCount()+","+esData.getProduct_count()+","+esData.getStoresCount()+","+esData.getSubCatCount());
-                fileWriter.write("\n");
+                //String zone =  getZoneFromMongo(geoHash);
+                //if(zone.isEmpty()) continue;
+                ESTempObject esData = setPropertiesForGeoHashUsingCluster(geoHash, fnvSet, nFnvRelSet);
+                if(esData!=null){
+                    fileWriter.write(geoHash+","+esData.getRelNFNVCount()+","+esData.getFnvCount()+","+esData.getProduct_count()+","+esData.getStoresCount()+","+esData.getSubCatCount());
+                    fileWriter.write("\n");
+                }
             }
 
-            MongoJClient.close();
+            //MongoJClient.close();
 
         }catch (Exception e){
             e.printStackTrace();
@@ -457,7 +482,7 @@ public class RelevantProducts {
         Set<String> nonFnvRelPidSet = relevantProducts.generateProductSetFromCSV(args[0],false);
         Set<String> fnvPidSet = relevantProducts.generateProductSetFromCSV(args[1],true);
         //relevantProducts.createZoneRelProducList(fnvPidSet,nonFnvRelPidSet,"src/main/resources/zoneRelProdData.csv");
-        relevantProducts.createClustersReport(fnvPidSet, nonFnvRelPidSet, "src/main/resources/zoneRelProdData.csv");
+        relevantProducts.createClustersReport(fnvPidSet, nonFnvRelPidSet, "src/main/resources/zoneRelProdDataFor7km.csv");
         //relevantProducts.generateLocalityReport("src/main/resources/locality_report.csv");
     }
 
