@@ -77,9 +77,12 @@ public class GeoClustering {
     public static final String ES_SEARCH_END_POINT = "_search";
     public static final String ES_BULK_END_POINT = "_bulk";
 
-    private  static int bulkDocCount = 0;
-    private static StringBuilder bulkDoc = new StringBuilder();
+    private  static AtomicInteger bulkDocCount = new AtomicInteger(0);
+    private static StringBuffer bulkDoc = new StringBuffer();
     private static boolean is_bulk_cleared = false;
+
+
+    private static Object lockObject = new Object();
 
 
     private Set<String> getGeoHashOfBoundingBox(BoundingBox box, int precision){
@@ -271,27 +274,30 @@ public class GeoClustering {
                 fObject1.put("params",object);
                 fObject1.put("upsert",upsertObject);
 
-                synchronized (bulkDoc){
-                    bulkDocCount++;
+                synchronized (lockObject){
+
+                    bulkDocCount.incrementAndGet();
                     bulkDoc.append("{\"update\" : {\"_index\" : \""+GEO_HASH_INDEX+"\",\"_type\" : \""+GEO_HASH_INDEX_TYPE+"\",\"_id\":\""+geoHash+"\" }}\n");
                     bulkDoc.append(fObject1);
                     bulkDoc.append("\n");
-                    if(bulkDocCount>500){
+                    if(bulkDocCount.get()>500){
 
                         httpClient = HttpClientBuilder.create().build();
                         HttpPost httpPost = new HttpPost(ES_REST_API +"/"+ ES_BULK_END_POINT);
                         httpPost.setEntity(new StringEntity(bulkDoc.toString()));
                         HttpResponse httpResponse = httpClient.execute(httpPost);
                         int code = httpResponse.getStatusLine().getStatusCode();
-                        if(code!=200) System.out.println(code);
-                        bulkDocCount = 0;
-                        bulkDoc = new StringBuilder();
+                        if(code!=200) {
+
+                            System.out.println(httpResponse.getEntity().toString());
+                            System.out.println("Error --2");
+                        }
+                        bulkDocCount = new AtomicInteger(0);
+                        bulkDoc = new StringBuffer();
                         is_bulk_cleared = true;
 
                     }
-
                 }
-
                 if(pushedClusters.contains(hash)){
                 }else {
 
@@ -304,8 +310,8 @@ public class GeoClustering {
                     HttpResponse response = httpClient.execute(postRequest);
                     int code = response.getStatusLine().getStatusCode();
                     if(code!=200 && code!= 201){
-                        System.out.println(code+"--2");
-
+                        System.out.println(response.getEntity().toString());
+                        System.out.println("Error --3");
                     }
                     pushedClusters.add(hash);
                 }
@@ -354,13 +360,13 @@ public class GeoClustering {
         System.out.println("start time is "+time_s);
         try {
             GeoClustering geoClustering = new GeoClustering();
-            //List<String> geoHashList = geoClustering.getBlrGeoHashes();
-            List<String> geoHashList = new ArrayList<>();
-            geoHashList = new ArrayList<String>();
-            geoHashList.add("tdr4phx");
-            geoHashList.add("tdr0ftn");
-            geoHashList.add("tdr1vzc");
-            geoHashList.add("tdr1yrb");
+            List<String> geoHashList = geoClustering.getBlrGeoHashes();
+//            List<String> geoHashList = new ArrayList<>();
+//            geoHashList = new ArrayList<String>();
+//            geoHashList.add("tdr4phx");
+//            geoHashList.add("tdr0ftn");
+//            geoHashList.add("tdr1vzc");
+//            geoHashList.add("tdr1yrb");
 
             //generate both fnv and non-fnv sets
             nfnvProdSet = geoClustering.generateProductSetFromCSV(nfnvFilePath,false);
@@ -368,8 +374,7 @@ public class GeoClustering {
             ExecutorService executorService = Executors.newFixedThreadPool(10);
             for(String geoHash : geoHashList){
                 SimpleWorkerThread thread = new SimpleWorkerThread(geoHash);
-                //executorService.execute(thread);
-                thread.run();
+                executorService.execute(thread);
             }
             executorService.shutdown();
             executorService.awaitTermination(1, TimeUnit.DAYS);
@@ -380,7 +385,14 @@ public class GeoClustering {
                 httpPost.setEntity(new StringEntity(bulkDoc.toString()));
                 HttpResponse httpResponse = httpClient.execute(httpPost);
                 int code = httpResponse.getStatusLine().getStatusCode();
-                if(code!=200) System.out.println(code);
+                if(code!=200) {
+                    System.out.println("Error --1");
+                    System.out.println(httpResponse.getEntity().toString());
+                };
+                bulkDoc = new StringBuffer();
+                bulkDocCount = new AtomicInteger(0);
+                is_bulk_cleared = true;
+
             }
             long time_e = System.currentTimeMillis();
             System.out.println("Time taken is " + (time_e-time_s)+"ms");
