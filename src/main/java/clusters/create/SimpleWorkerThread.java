@@ -165,10 +165,10 @@ public class SimpleWorkerThread implements  Runnable{
                     + clusterObjs.get(0).getGeoHash() + "\" }}\n" +geoDoc.toString() + "\n";
 
             synchronized (GeoClustering.bulkDoc){
-
                 GeoClustering.bulkDoc.append(thisDocAsString);
                 GeoClustering.bulkDocCount.incrementAndGet();
             }
+
 
             if(GeoClustering.bulkDocCount.get()>500){
                 httpClient = HttpClientBuilder.create().build();
