@@ -2,17 +2,15 @@ package clusters.create;
 
 import clusters.create.objects.ClusterObj;
 import clusters.create.objects.ClusteringPoint;
+import clusters.create.objects.Geopoint;
 import com.github.davidmoten.geo.GeoHash;
 import com.github.davidmoten.geo.LatLong;
-import clusters.create.objects.Geopoint;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -24,6 +22,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Thread to from clusters given the store ids
@@ -36,6 +35,7 @@ public class SimpleWorkerThread implements  Runnable{
         this.geohash = geohash;
 
     }
+    final Object lockObject   = new Object();
 
     public void run() {
         List<String>points = getClusetringPointsForGeoHash(geohash);
@@ -150,23 +150,50 @@ public class SimpleWorkerThread implements  Runnable{
                     HttpResponse response = httpClient.execute(postRequest);
                     int code = response.getStatusLine().getStatusCode();
                     if(code!=200 && code!= 201){
-                        System.out.println(response.getEntity().toString());
-                        System.out.println("Error --3");
+                        System.out.println("Error is pushing clusters " +response.getStatusLine());
                     }
                     GeoClustering.pushedClusters.add(hash);
                 }
             }
+            //insert the doc
 
-            HttpPost httpPost = new HttpPost(GeoClustering.ES_REST_API +"/"+ GeoClustering.GEO_HASH_INDEX+"/"+GeoClustering.GEO_HASH_INDEX_TYPE+"/"+clusterObjs.get(0).getGeoHash());
-            httpPost.setEntity(new StringEntity(geoDoc.toString()));
-            httpClient = HttpClientBuilder.create().build();
-            HttpResponse httpResponse = httpClient.execute(httpPost);
-            int code = httpResponse.getStatusLine().getStatusCode();
-            if(!(code==200 || code==201)) {
 
-                System.out.println(httpResponse.getEntity().toString());
-                System.out.println("Error --2");
+
+            //make doc for pushing
+            String thisDocAsString = "{\"index\" : {\"_index\" : \"" +GeoClustering.GEO_HASH_INDEX + "\",\"_type\" : \""
+                    + GeoClustering.GEO_HASH_INDEX_TYPE + "\",\"_id\":\""
+                    + clusterObjs.get(0).getGeoHash() + "\" }}\n" +geoDoc.toString() + "\n";
+
+            synchronized (GeoClustering.bulkDoc){
+
+                GeoClustering.bulkDoc.append(thisDocAsString);
+                GeoClustering.bulkDocCount.incrementAndGet();
             }
+
+            if(GeoClustering.bulkDocCount.get()>500){
+                httpClient = HttpClientBuilder.create().build();
+                HttpPost httpPost = new HttpPost(GeoClustering.ES_REST_API +"/"+ GeoClustering.ES_BULK_END_POINT);
+                synchronized (GeoClustering.bulkDoc){
+                    httpPost.setEntity(new StringEntity(GeoClustering.bulkDoc.toString()));
+                    GeoClustering.bulkDoc = new StringBuilder();
+                    GeoClustering.bulkDocCount = new AtomicInteger(0);
+                }
+                HttpResponse httpResponse = httpClient.execute(httpPost);
+                int code = httpResponse.getStatusLine().getStatusCode();
+                if(code!=200 && code!=201) {
+                    System.out.println("Error is pushing geo hashes  "+ httpResponse.getStatusLine());
+                }
+            }
+//            HttpPost httpPost = new HttpPost(GeoClustering.ES_REST_API +"/"+ GeoClustering.GEO_HASH_INDEX+"/"+GeoClustering.GEO_HASH_INDEX_TYPE+"/"+clusterObjs.get(0).getGeoHash());
+//            httpPost.setEntity(new StringEntity(geoDoc.toString()));
+//            httpClient = HttpClientBuilder.create().build();
+//            HttpResponse httpResponse = httpClient.execute(httpPost);
+//            int code = httpResponse.getStatusLine().getStatusCode();
+//            if(!(code==200 || code==201)) {
+//
+//                System.out.println(httpResponse.getEntity().toString());
+//                System.out.println("Error --2");
+//            }
 
         }catch (Exception e){
             e.printStackTrace();

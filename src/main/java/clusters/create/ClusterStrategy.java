@@ -34,6 +34,7 @@ public class ClusterStrategy {
     public List<ClusterObj> createClusters(Geopoint geoHash,  List<String>points){
 
         if(points==null || points.size()==0) return new ArrayList<ClusterObj>();
+        int clustersForCombination = 0;
 
         createDistanceMatrix(geoHash, points);
         List<ClusterObj> validClusters = new ArrayList<ClusterObj>();
@@ -46,41 +47,63 @@ public class ClusterStrategy {
             thisList.add(s);
             temp = checkValidCluster(geoHash,thisList);
             if(temp!=null){
+                clustersForCombination++;
                 temp.setGeoHash(encodedGeoHash);
                 validClusters.add(temp);
             }
         }
+
+        if(clustersForCombination==0) return validClusters;
+        clustersForCombination = 0;
 
         //Create clusters with 2 shops
         List<List<String>>clusters = get2CClusters(points);
         for(List<String> clusterObj : clusters){
             temp = checkValidCluster(geoHash,clusterObj);
             if(temp!=null){
+                clustersForCombination++;
                 temp.setGeoHash(encodedGeoHash);
                 validClusters.add(temp);
             }
 
         }
+
+
+        if(clustersForCombination==0) return validClusters;
+        clustersForCombination = 0;
+
         //create clusters with 3 shops
         clusters =get3CClusters(points);
         for(List<String> clusterObj : clusters){
             temp = checkValidCluster(geoHash,clusterObj);
             if(temp!=null){
+                clustersForCombination++;
                 temp.setGeoHash(encodedGeoHash);
                 validClusters.add(temp);
             }
 
         }
+
+
+        if(clustersForCombination==0) return validClusters;
+        clustersForCombination = 0;
+
         //create clusters with 4 shops
         if(points.size()>3){
             clusters = get4CClusters(points);
             for(List<String> clusterObj : clusters){
                 temp = checkValidCluster(geoHash,clusterObj);
                 if(temp!=null){
+                    clustersForCombination++;
                     temp.setGeoHash(encodedGeoHash);
                     validClusters.add(temp);
                 }
             }
+
+
+            if(clustersForCombination==0) return validClusters;
+            clustersForCombination = 0;
+
             if(points.size()>4){
 
                 //create clusters with 5 shops
@@ -89,9 +112,13 @@ public class ClusterStrategy {
                     temp = checkValidCluster(geoHash,clusterObj);
                     if(temp!=null){
                         temp.setGeoHash(encodedGeoHash);
+                        clustersForCombination++;
                         validClusters.add(temp);
                     }
                 }
+
+
+                if(clustersForCombination==0) return validClusters;
 
                 if(points.size()>5){
                     //create clusters with 6 shops
