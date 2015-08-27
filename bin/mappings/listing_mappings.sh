@@ -73,7 +73,6 @@ ES_MAPPINGS="{
     },
     \"settings\": {
       \"index\": {
-        \"number_of_replicas\": \"1\",
         \"analysis\": {
           \"analyzer\": {
             \"default\": {
