@@ -66,9 +66,9 @@ public class GeoClustering {
     public final static String ES_REST_API = "http://localhost:9200";
     public final static String GEOKIT_API = "http://geokit.qa.olahack.in/localities";
 
-    public static final String GEO_HASH_INDEX = "geo_hash_6";
+    public static final String GEO_HASH_INDEX = "geo_hash_8";
     public static final String GEO_HASH_INDEX_TYPE = "hash_type";
-    public static final String CLUSTERS_INDEX = "live_geo_clusters_6";
+    public static final String CLUSTERS_INDEX = "live_geo_clusters_8";
     public static final String CLUSTERS_INDEX_TYPE = "geo_cluster";
     public static final String LISTING_INDEX = "listing";
     public static final String STORES_INDEX = "stores";

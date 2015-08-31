@@ -52,9 +52,9 @@ public class RelevantProducts {
     private static double BLR_BOT_RIGHT_LAT =12.81581;
     private static double BLR_BOT_RIGHT_LON =77.79075;
 
-    private static final String ES_GEO_HASH_SEARCH_END_POINT = "http://localhost:9200/geo_hash/_search";
-    private static final String ES_CLUSTERS_SEARCH_END_POINT = "http://localhost:9200/live_geo_clusters/_search";
-    private static final String ES_CLUSTERS_END_POINT = "http://localhost:9200/live_geo_clusters/geo_cluster";
+    private static final String ES_GEO_HASH_SEARCH_END_POINT = "http://localhost:9200/geo_hash_8/_search";
+    private static final String ES_CLUSTERS_SEARCH_END_POINT = "http://localhost:9200/live_geo_clusters_8/_search";
+    private static final String ES_CLUSTERS_END_POINT = "http://localhost:9200/live_geo_clusters_8/geo_cluster";
     private static final String ES_LISTING_SEACH_END_POINT  = "http://localhost:9200/listing/_search";
     private static final String GEOKIT_API = "http://geokit.qa.olahack.in/localities";
 
@@ -480,7 +480,7 @@ public class RelevantProducts {
         Set<String> nonFnvRelPidSet = relevantProducts.generateProductSetFromCSV(args[0],false);
         Set<String> fnvPidSet = relevantProducts.generateProductSetFromCSV(args[1],true);
         //relevantProducts.createZoneRelProducList(fnvPidSet,nonFnvRelPidSet,"src/main/resources/zoneRelProdData.csv");
-        relevantProducts.createClustersReport(fnvPidSet, nonFnvRelPidSet, "src/main/resources/zoneRelProdDataFor7km.csv");
+        relevantProducts.createClustersReport(fnvPidSet, nonFnvRelPidSet, "src/main/resources/zoneRelProdDataFor8km.csv");
         //relevantProducts.generateLocalityReport("src/main/resources/locality_report.csv");
     }
 

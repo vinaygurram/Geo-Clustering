@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ES_HOST="http://localhost:9200"
-INDEX_NAME="geo_hash_6"
+INDEX_NAME="geo_hash_8"
 INDEX_TYPE="hash_type"
 INDEX_MAPPINS="{
     \"settings\": {

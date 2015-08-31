@@ -424,7 +424,7 @@ public class ClusterStrategy {
         }else if(storeIdList.size()==2){
             shortDistance =getShortestDistanceFor2(geoHash, storeIdList);
         }
-        if(shortDistance>6) return null;
+        if(shortDistance>8) return null;
 
         boolean fnvCriteria = checkFnV(storeIdList);
 

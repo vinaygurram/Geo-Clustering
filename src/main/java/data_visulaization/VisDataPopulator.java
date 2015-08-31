@@ -70,6 +70,7 @@ public class VisDataPopulator {
     private void pushData(List<String> geoHashes){
         for(String geoHash: geoHashes){
             LatLong latLong = GeoHash.decodeHash(geoHash);
+
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("name",geoHash);
             jsonObject.put("location",latLong.getLat()+","+latLong.getLon());
