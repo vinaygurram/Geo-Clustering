@@ -6,9 +6,12 @@ ES_DATA_VIS_INDEX_GEO_MAPPINGS="{
   \"mappings\" : {
         \"geo\" : {
             \"properties\" : {
-                \"name\" : {\"type\" : \"string\"},
-                \"location\" : {\"type\" : \"geo_point\"},
-                \"total_products\" : {\"type\": \"integer\"}
+                \"product_count\" : {\"type\": \"integer\"},
+                \"rel_fnv_count\" : {\"type\": \"integer\"},
+                \"rel_nfnv_count\" : {\"type\": \"integer\"},
+                \"rank\" : {\"type\": \"double\"},
+                \"geo_hash\" : {\"type\": \"geo_point\"},
+                \"location\" : {\"type\" : \"geo_point\"}
             }
         }
   }

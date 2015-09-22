@@ -1,4 +1,4 @@
-package clusters.updates.redis;
+package redis;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -75,7 +75,7 @@ public class UpdatesDemon{
                     "\"sub_cat_coverage\":{\"cardinality\":{\"field\":\"product.sub_cat_id\"}}}}";
 
             query = "{\"size\":0,\"query\":{\"bool\":{\"must\":[" +
-                    "{\"terms\":{\"store_details.id\":[\"501\"]}}," +
+                    "{\"terms\":{\"store_details.id\":[\""+storeIdString+"\"]}}," +
                     "{\"term\":{\"product_details.available\":\"true\"}}," +
                     "{\"term\":{\"product_details.status\":\"current\"}}]}}," +
                     "\"aggregations\":{\"product_coverage\":{\"cardinality\":{\"field\":\"product_details.id\"}}," +

@@ -1,10 +1,9 @@
-package clusters.updates.redis;
+package redis;
 
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.JedisPubSub;
-import java.util.Set;
 
 public class Subscriber extends JedisPubSub {
 

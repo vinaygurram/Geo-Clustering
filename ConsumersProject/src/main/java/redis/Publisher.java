@@ -1,9 +1,11 @@
-package clusters.updates.redis;
+package redis;
+
+import redis.clients.jedis.Jedis;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import redis.clients.jedis.Jedis;
+
 public class Publisher
 {
     private final Jedis publisherJedis ;

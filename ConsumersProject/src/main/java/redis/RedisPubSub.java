@@ -1,7 +1,8 @@
-package clusters.updates.redis;
+package redis;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
+
 public class RedisPubSub
 {
     public static final String storeUpdateChannel= "cluster_store_update";

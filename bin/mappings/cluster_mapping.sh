@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #ES Variables
-ES_URL="http://localhost:9200/live_geo_clusters_8"
+ES_URL="http://localhost:9200/live_geo_clusters_test"
 ES_MAPPINGS="{
     \"settings\": {
         \"number_of_shards\": 1,

@@ -22,6 +22,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -29,26 +30,12 @@ import java.util.concurrent.atomic.AtomicInteger;
  * This will push the results into ES as well
  * Created by gurramvinay on 7/1/15.
  */
-public class SimpleWorkerThread implements  Runnable{
+public class SimpleWorkerThread implements Callable<String>{
     String geohash;
     SimpleWorkerThread(String geohash){
         this.geohash = geohash;
 
     }
-    final Object lockObject   = new Object();
-
-    public void run() {
-        List<String>points = getClusetringPointsForGeoHash(geohash);
-        if(points.size()==0) return;
-        ClusterStrategy clusterStrategyNew = new ClusterStrategy();
-        LatLong gll = GeoHash.decodeHash(geohash);
-        Geopoint geopoint = new Geopoint(gll.getLat(),gll.getLon());
-        List<ClusterObj> clusterObjList = clusterStrategyNew.createClusters(geopoint, points);
-        if(clusterObjList.size()>0) pushClusterToES(clusterObjList);
-        if(GeoClustering.jobsRun.getAndIncrement()%50==0)System.out.println(GeoClustering.jobsRun);
-
-    }
-
 
     /**
      * Calls listing index to find stores within 6kms
@@ -151,59 +138,56 @@ public class SimpleWorkerThread implements  Runnable{
                     HttpResponse response = httpClient.execute(postRequest);
                     int code = response.getStatusLine().getStatusCode();
                     if(code!=200 && code!= 201){
-                        System.out.println("Error is pushing clusters " +response.getStatusLine());
+                        System.out.println("Error in pushing clusters " +response.getStatusLine());
                     }
                     GeoClustering.pushedClusters.add(hash);
                 }
             }
-            //insert the doc
-
-
-
             //make doc for pushing
             String thisDocAsString = "{\"index\" : {\"_index\" : \"" +GeoClustering.GEO_HASH_INDEX + "\",\"_type\" : \""
                     + GeoClustering.GEO_HASH_INDEX_TYPE + "\",\"_id\":\""
                     + clusterObjs.get(0).getGeoHash() + "\" }}\n" +geoDoc.toString() + "\n";
+            String maxString = "";
 
             synchronized (GeoClustering.bulkDoc){
                 GeoClustering.bulkDoc.append(thisDocAsString);
                 GeoClustering.bulkDocCount.incrementAndGet();
                 if(GeoClustering.bulkDocCount.get()>500){
-                    httpClient = HttpClientBuilder.create().build();
-                    HttpPost httpPost = new HttpPost(GeoClustering.ES_REST_API +"/"+ GeoClustering.ES_BULK_END_POINT);
-                    if(GeoClustering.bulkDoc.toString().contentEquals("")) {
-                        System.out.println("threading issue");
-                    }
-                    httpPost.setEntity(new StringEntity(GeoClustering.bulkDoc.toString()));
+                    maxString = GeoClustering.bulkDoc.toString();
                     GeoClustering.bulkDoc = new StringBuilder();
-                    GeoClustering.bulkDocCount = new AtomicInteger(0);
-                    HttpResponse httpResponse = httpClient.execute(httpPost);
-                    int code = httpResponse.getStatusLine().getStatusCode();
-                    if(code!=200 && code!=201) {
-                        System.out.println("Error is pushing geo hashes  "+ httpResponse.getStatusLine());
-                    }
+                    GeoClustering.bulkDocCount =new AtomicInteger(0);
                 }
-
-
             }
 
+            if(!maxString.isEmpty()){
+                httpClient = HttpClientBuilder.create().build();
+                HttpPost httpPost = new HttpPost(GeoClustering.ES_REST_API +"/"+ GeoClustering.ES_BULK_END_POINT);
+                httpPost.setEntity(new StringEntity(maxString));
+                HttpResponse httpResponse = httpClient.execute(httpPost);
+                int code = httpResponse.getStatusLine().getStatusCode();
+                if(code!=200 && code!=201) {
+                    System.out.println("Error in pushing geo hashes  "+ httpResponse.getStatusLine());
+                    System.out.println(maxString);
 
-
-
-
-//            HttpPost httpPost = new HttpPost(GeoClustering.ES_REST_API +"/"+ GeoClustering.GEO_HASH_INDEX+"/"+GeoClustering.GEO_HASH_INDEX_TYPE+"/"+clusterObjs.get(0).getGeoHash());
-//            httpPost.setEntity(new StringEntity(geoDoc.toString()));
-//            httpClient = HttpClientBuilder.create().build();
-//            HttpResponse httpResponse = httpClient.execute(httpPost);
-//            int code = httpResponse.getStatusLine().getStatusCode();
-//            if(!(code==200 || code==201)) {
-//
-//                System.out.println(httpResponse.getEntity().toString());
-//                System.out.println("Error --2");
-//            }
+                }
+            }
 
         }catch (Exception e){
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public String call() throws Exception {
+        List<String>points = getClusetringPointsForGeoHash(geohash);
+        if(points.size()==0) return "DONE for "+geohash+"-- no shops within the raidus";
+        LatLong gll = GeoHash.decodeHash(geohash);
+        Geopoint geopoint = new Geopoint(gll.getLat(),gll.getLon());
+        List<ClusterObj> clusterObjList = new ClusterStrategy().createClusters(geopoint, points);
+        if(clusterObjList.size()>0) pushClusterToES(clusterObjList);
+        points = null;
+        clusterObjList = null;
+        if(GeoClustering.jobsRun.getAndIncrement()%50==0)System.out.println(GeoClustering.jobsRun);
+        return "DONE for "+geohash+ " -- "+clusterObjList.size()+" clusters made";
     }
 }

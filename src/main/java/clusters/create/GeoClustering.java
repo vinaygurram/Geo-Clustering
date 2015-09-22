@@ -25,10 +25,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -66,9 +63,9 @@ public class GeoClustering {
     public final static String ES_REST_API = "http://localhost:9200";
     public final static String GEOKIT_API = "http://geokit.qa.olahack.in/localities";
 
-    public static final String GEO_HASH_INDEX = "geo_hash_8";
+    public static final String GEO_HASH_INDEX = "geo_hash_test";
     public static final String GEO_HASH_INDEX_TYPE = "hash_type";
-    public static final String CLUSTERS_INDEX = "live_geo_clusters_8";
+    public static final String CLUSTERS_INDEX = "live_geo_clusters_test";
     public static final String CLUSTERS_INDEX_TYPE = "geo_cluster";
     public static final String LISTING_INDEX = "listing";
     public static final String STORES_INDEX = "stores";
@@ -117,31 +114,7 @@ public class GeoClustering {
         return "";
     }
 
-    public String getZoneFromMongo(String geoHash) {
 
-        String zoneString = "";
-        try {
-            LatLong latLong = GeoHash.decodeHash(geoHash);
-            Jongo jongo = MongoJClient.getJongoClietn();
-            String query = "{polygons:{\"$geoIntersects\":{\"$geometry\":{\"type\":\"Point\",\"coordinates\":[" + latLong.getLon() + "," + latLong.getLat() + "]}}}}";
-            Find result = jongo.getCollection(MongoJClient.MONGO_COLLECTION).find(query);
-            MongoCursor<String> zones = result.map(new ResultHandler<String>() {
-                @Override
-                public String map(DBObject dbObject) {
-                    if (dbObject.containsField("name")) {
-                        return (String) dbObject.get("name");
-                    }
-                    return "";
-                }
-            });
-            if (zones.hasNext()) {
-                zoneString = zones.next();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return zoneString;
-    }
 
     public List<String> getBlrGeoHashes() {
         BoundingBox bbox = getBangaloreBox();
@@ -152,13 +125,7 @@ public class GeoClustering {
         while (iterator.hasNext()) {
             String thisHash = iterator.next();
             geohashList.add(thisHash);
-            //String zone = getZoneFromMongo(thisHash);
-            //if(!(zone.isEmpty() || zone.contentEquals(""))){
-            //    geohashList.add(thisHash);
-            //    valitGeoHashCount++;
-            //}
         }
-        // MongoJClient.close();
         System.out.println("total number of hashes " + geohashList.size());
         return geohashList;
     }
@@ -210,9 +177,10 @@ public class GeoClustering {
             nfnvProdSet = geoClustering.generateProductSetFromCSV(nfnvFilePath, false);
             fnvProdSet = geoClustering.generateProductSetFromCSV(fnvFilePath, true);
             ExecutorService executorService = Executors.newFixedThreadPool(10);
+            List<Future<String>> futuresList = new ArrayList<>();
             for (String geoHash : geoHashList) {
-                SimpleWorkerThread thread = new SimpleWorkerThread(geoHash);
-                executorService.execute(thread);
+                Future<String> thisFuture = executorService.submit(new SimpleWorkerThread(geoHash));
+                futuresList.add(thisFuture);
             }
             executorService.shutdown();
             executorService.awaitTermination(1, TimeUnit.DAYS);
@@ -228,7 +196,6 @@ public class GeoClustering {
 
                 }
             }
-
             long time_e = System.currentTimeMillis();
             System.out.println("Time taken is " + (time_e - time_s) + "ms");
         } catch (Exception e) {

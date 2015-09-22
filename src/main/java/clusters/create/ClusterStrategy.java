@@ -133,6 +133,7 @@ public class ClusterStrategy {
                 }
             }
         }
+        this.distanceMatrix = null;
         return validClusters;
     }
 
