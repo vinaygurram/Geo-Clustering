@@ -8,10 +8,13 @@ import com.github.davidmoten.geo.Coverage;
 import com.github.davidmoten.geo.GeoHash;
 import com.github.davidmoten.geo.LatLong;
 import com.mongodb.DBObject;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
@@ -159,12 +162,50 @@ public class GeoClustering {
         return productIdSet;
     }
 
+    public void createFreshClusteringIndices(){
+
+        try {
+
+            //delete both geo and cluster index
+            HttpClient httpClient = HttpClientBuilder.create().build();
+            HttpDelete httpDelete = new HttpDelete(ES_REST_API+"/"+GEO_HASH_INDEX+","+CLUSTERS_INDEX);
+            HttpResponse httpResponse = httpClient.execute(httpDelete);
+            System.out.println(EntityUtils.toString(httpResponse.getEntity()));
+
+
+            //create geo hash index
+            httpClient = HttpClientBuilder.create().build();
+            HttpPost httpPost = new HttpPost(ES_REST_API+"/"+GEO_HASH_INDEX);
+            httpPost.setEntity(new FileEntity(new File("bin/mappings/geo_mappings.txt")));
+            httpResponse = httpClient.execute(httpPost);
+            String result = EntityUtils.toString(httpResponse.getEntity());
+            System.out.println(result);
+
+            //create geo clusters index
+            httpClient = HttpClientBuilder.create().build();
+            httpPost = new HttpPost(ES_REST_API+"/"+CLUSTERS_INDEX);
+            httpPost.setEntity(new FileEntity(new File("bin/mappings/cluster_mappings.txt")));
+            httpResponse = httpClient.execute(httpPost);
+            result = EntityUtils.toString(httpResponse.getEntity());
+            System.out.println(result);
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+    }
+
     public static void main(String[] args) {
 
         long time_s = System.currentTimeMillis();
         System.out.println("start time is " + time_s);
         try {
+
+
+
             GeoClustering geoClustering = new GeoClustering();
+            geoClustering.createFreshClusteringIndices();
+            if(true) return;
             List<String> geoHashList = geoClustering.getBlrGeoHashes();
 //            List<String> geoHashList = new ArrayList<>();
 //            geoHashList = new ArrayList<String>();

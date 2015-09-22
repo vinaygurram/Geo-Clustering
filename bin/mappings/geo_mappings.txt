@@ -1,0 +1,31 @@
+{
+    "settings": {
+        "index": {
+            "number_of_shards": 1,
+            "index.mapper.dynamic": false
+        }
+    },
+    "mappings": {
+        "hash_type": {
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "clusters": {
+                    "type": "nested",
+                    "properties": {
+                        "cluster_id": {
+                            "type": "string"
+                        },
+                        "distance": {
+                            "type": "double"
+                        }
+                    }
+                },
+                "clusters_count" : {
+                    "type" : "integer"
+                }
+            }
+        }
+    }
+}
