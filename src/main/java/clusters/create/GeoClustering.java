@@ -7,8 +7,6 @@ import clusters.create.objects.Geopoint;
 import com.github.davidmoten.geo.Coverage;
 import com.github.davidmoten.geo.GeoHash;
 import com.github.davidmoten.geo.LatLong;
-import com.mongodb.DBObject;
-import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpDelete;
@@ -18,11 +16,9 @@ import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
-import org.jongo.Find;
-import org.jongo.Jongo;
-import org.jongo.MongoCursor;
-import org.jongo.ResultHandler;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -80,6 +76,8 @@ public class GeoClustering {
     //bulk
     public static AtomicInteger bulkDocCount = new AtomicInteger(0);
     public static StringBuilder bulkDoc = new StringBuilder();
+
+    public static Logger logger = LoggerFactory.getLogger(GeoClustering.class);
 
 
 
@@ -198,7 +196,7 @@ public class GeoClustering {
     public static void main(String[] args) {
 
         long time_s = System.currentTimeMillis();
-        System.out.println("start time is " + time_s);
+        logger.info("Clustering logic start "+time_s);
         try {
 
 
@@ -207,6 +205,7 @@ public class GeoClustering {
             geoClustering.createFreshClusteringIndices();
             if(true) return;
             List<String> geoHashList = geoClustering.getBlrGeoHashes();
+            logger.info("Bangalore geo hashes are created. Geo hashes are "+geoHashList);
 //            List<String> geoHashList = new ArrayList<>();
 //            geoHashList = new ArrayList<String>();
 //            geoHashList.add("tdr4phx");
@@ -216,7 +215,9 @@ public class GeoClustering {
 
             //generate both fnv and non-fnv sets
             nfnvProdSet = geoClustering.generateProductSetFromCSV(nfnvFilePath, false);
+            logger.info("NFNV Set created. NFNV set is "+nfnvProdSet);
             fnvProdSet = geoClustering.generateProductSetFromCSV(fnvFilePath, true);
+            logger.info("FNV Set created. FNV set is "+fnvProdSet);
             ExecutorService executorService = Executors.newFixedThreadPool(10);
             List<Future<String>> futuresList = new ArrayList<>();
             for (String geoHash : geoHashList) {
@@ -234,7 +235,6 @@ public class GeoClustering {
                 int code = httpResponse.getStatusLine().getStatusCode();
                 if(code!=200 && code!=201) {
                     System.out.println(httpResponse.getStatusLine());
-
                 }
             }
             long time_e = System.currentTimeMillis();
