@@ -177,7 +177,10 @@ public class ClusterStrategy {
                     "\"aggregations\":{\"unique_products\":{\"terms\":{\"field\":\"product_details.id\",\"size\":0}}," +
                     "\"sub_cat_count\":{\"cardinality\":{\"field\":\"product_details.sub_category_id\"}}}}";
             HttpClient httpClient = HttpClientBuilder.create().build();
-            HttpPost httpPost = new HttpPost(GeoClustering.ES_REST_API+"/"+GeoClustering.ES_SEARCH_END_POINT);
+            String listing_serach_api = (String)GeoClustering.yamlMap.get("es_search_api");
+            listing_serach_api = listing_serach_api.replace(":index_name","listing_index_name");
+            listing_serach_api = listing_serach_api.replace(":index_type","listing_index_type");
+            HttpPost httpPost = new HttpPost(listing_serach_api);
             httpPost.setEntity(new StringEntity(query));
             HttpResponse httpResponse = httpClient.execute(httpPost);
             int status_code = httpResponse.getStatusLine().getStatusCode();
@@ -192,7 +195,7 @@ public class ClusterStrategy {
                 subCatCount = esResult.getJSONObject("sub_cat_count").getInt("value");
             }
         }catch (Exception e){
-            e.printStackTrace();
+            GeoClustering.logger.error(" Computing rank failed "+e.getMessage());
         }
 
         //store & set both product count and sub cat count
@@ -234,8 +237,8 @@ public class ClusterStrategy {
         return dfg>dsg?dsg:dfg;
     }
 
-    //For SLogic
-    public double getShortestDistance1(Geopoint geohashPoint, List<String> points){
+    //For more than 3 shops
+    public double getShortestDistanceForMultiPoints(Geopoint geohashPoint, List<String> points){
         double smallestDistace = Double.MAX_VALUE;
         String geoString  = GeoHash.encodeHash(geohashPoint.getLatitude(),geohashPoint.getLongitude(),7);
         for(String tp : points){
@@ -284,7 +287,7 @@ public class ClusterStrategy {
             }
             return  gDistance;
         }catch (Exception e){
-            e.printStackTrace();
+            GeoClustering.logger.error("shortest distance computation failed "+ e.getMessage());
         }
         return Double.MAX_VALUE;
     }
@@ -419,11 +422,10 @@ public class ClusterStrategy {
 
         if(storeIdList.size()==1){
             shortDistance = Geopoint.getDistance(geoHash, GeoClustering.clusterPoints.get(storeIdList.get(0)).getLocation());
-        }
-        if(storeIdList.size()>=3){
-            shortDistance = getShortestDistance1(geoHash, storeIdList);
         }else if(storeIdList.size()==2){
             shortDistance =getShortestDistanceFor2(geoHash, storeIdList);
+        }else if(storeIdList.size()>=3){
+            shortDistance = getShortestDistanceForMultiPoints(geoHash, storeIdList);
         }
         if(shortDistance>8) return null;
 

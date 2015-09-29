@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 ES_HOST="http://localhost:9200"
-ES_INDEX="listing123"
+ES_INDEX="listing"
 ES_MAPPINGS="{
     \"aliases\": {},
     \"mappings\": {

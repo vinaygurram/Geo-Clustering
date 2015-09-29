@@ -36,12 +36,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Created by gurramvinay on 6/16/15.
  */
 public class GeoClustering {
-    private static int GEO_PRECISION = 7;
-
-    private static double BLR_TOP_LEFT_LAT = 13.11091;
-    private static double BLR_TOP_LEFT_LON = 77.46253;
-    private static double BLR_BOT_RIGHT_LAT = 12.81581;
-    private static double BLR_BOT_RIGHT_LON = 77.79075;
 
     public static ConcurrentHashMap<String, List<String>> map = new ConcurrentHashMap<String, List<String>>();
     public static ConcurrentHashMap<String, ClusteringPoint> clusterPoints = new ConcurrentHashMap<String, ClusteringPoint>();
@@ -62,20 +56,6 @@ public class GeoClustering {
     public static final String nfnvFilePath = "src/main/resources/popular_nfnc.csv";
     public static final String fnvFilePath = "src/main/resources/fnv_pids.csv";
 
-    public final static String ES_REST_API = "http://localhost:9200";
-    public final static String GEOKIT_API = "http://geokit.qa.olahack.in/localities";
-
-    public static final String GEO_HASH_INDEX = "geo_hash_test";
-    public static final String GEO_HASH_INDEX_TYPE = "hash_type";
-    public static final String CLUSTERS_INDEX = "live_geo_clusters_test";
-    public static final String CLUSTERS_INDEX_TYPE = "geo_cluster";
-    public static final String LISTING_INDEX = "listing";
-    public static final String STORES_INDEX = "stores";
-    public static final String STORES_INDEX_TYPE = "store";
-
-    public static final String ES_SEARCH_END_POINT = "_search";
-    public static final String ES_BULK_END_POINT = "_bulk";
-
     //bulk
     public static AtomicInteger bulkDocCount = new AtomicInteger(0);
     public static StringBuilder bulkDoc = new StringBuilder();
@@ -89,42 +69,42 @@ public class GeoClustering {
     private Set<String> getGeoHashOfBoundingBox(BoundingBox box, int precision) {
         Coverage boxCoverage = GeoHash.coverBoundingBox(box.getTopLeft().getLatitude(), box.getTopLeft().getLongitude(),
                 box.getBotRight().getLatitude(), box.getBotRight().getLongitude(), precision);
-        System.out.println(boxCoverage.toString());
+        logger.info("Hashes produced are "+ boxCoverage.getHashes());
         return boxCoverage.getHashes();
     }
 
     private BoundingBox getBangaloreBox() {
-        Geopoint topleft = new Geopoint(BLR_TOP_LEFT_LAT, BLR_TOP_LEFT_LON);
-        Geopoint botright = new Geopoint(BLR_BOT_RIGHT_LAT, BLR_BOT_RIGHT_LON);
+
+        Geopoint topleft = new Geopoint((Double)((HashMap)yamlMap.get("bbox_top_left")).get("lat"), (Double)((HashMap)yamlMap.get("bbox_top_left")).get("lon"));
+        Geopoint botright = new Geopoint((Double)((HashMap)yamlMap.get("bbox_bot_right")).get("lat"), (Double)((HashMap)yamlMap.get("bbox_bot_right")).get("lon"));
         return new BoundingBox(topleft, botright);
     }
 
-    public String getZone(String geoHash) {
-
-        LatLong latLong = GeoHash.decodeHash(geoHash);
-
-        try {
-            String geo_api = GEOKIT_API + "?lat=" + latLong.getLat() + "&lng=" + latLong.getLon();
-            HttpClient httpClient = HttpClientBuilder.create().build();
-            HttpGet httpGet = new HttpGet(geo_api);
-            HttpResponse httpResponse = httpClient.execute(httpGet);
-            JSONObject result = new JSONObject(EntityUtils.toString(httpResponse.getEntity()));
-            if (result.getString("status").contentEquals("SUCCESS")) {
-                if (result.has("locality") && !result.isNull("locality")) {
-                    return result.getJSONObject("locality").getString("name");
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return "";
-    }
-
+//    public String getZone(String geoHash) {
+//
+//        LatLong latLong = GeoHash.decodeHash(geoHash);
+//
+//        try {
+//            String geo_api = GEOKIT_API + "?lat=" + latLong.getLat() + "&lng=" + latLong.getLon();
+//            HttpClient httpClient = HttpClientBuilder.create().build();
+//            HttpGet httpGet = new HttpGet(geo_api);
+//            HttpResponse httpResponse = httpClient.execute(httpGet);
+//            JSONObject result = new JSONObject(EntityUtils.toString(httpResponse.getEntity()));
+//            if (result.getString("status").contentEquals("SUCCESS")) {
+//                if (result.has("locality") && !result.isNull("locality")) {
+//                    return result.getJSONObject("locality").getString("name");
+//                }
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        return "";
+//    }
 
 
     public List<String> getBlrGeoHashes() {
         BoundingBox bbox = getBangaloreBox();
-        Set<String> hashes = getGeoHashOfBoundingBox(bbox, GEO_PRECISION);
+        Set<String> hashes = getGeoHashOfBoundingBox(bbox, (Integer)yamlMap.get("clusters_geo_precision"));
         Iterator<String> iterator = hashes.iterator();
         int valitGeoHashCount = 0;
         List<String> geohashList = new ArrayList<String>();
@@ -132,7 +112,7 @@ public class GeoClustering {
             String thisHash = iterator.next();
             geohashList.add(thisHash);
         }
-        System.out.println("total number of hashes " + geohashList.size());
+        logger.info("Total number of hashes are "+ geohashList.size());
         return geohashList;
     }
 
@@ -153,77 +133,70 @@ public class GeoClustering {
                 productIdSet.add(productId);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error(e.getMessage());
         } finally {
             try {
                 fileReader.close();
                 bufferedReader.close();
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error(e.getMessage());
             }
         }
         return productIdSet;
     }
 
     public void createFreshClusteringIndices(){
-
         try {
-
             //delete both geo and cluster index
             HttpClient httpClient = HttpClientBuilder.create().build();
-            HttpDelete httpDelete = new HttpDelete(ES_REST_API+"/"+GEO_HASH_INDEX+","+CLUSTERS_INDEX);
+            String multi_delete_api = (String)yamlMap.get("es_multi_delete_api");
+            multi_delete_api = multi_delete_api.replace(":index_name1",(String) yamlMap.get("geo_hash_index_name"));
+            multi_delete_api = multi_delete_api.replace(":index_name2",(String) yamlMap.get("clusters_index_name"));
+            HttpDelete httpDelete = new HttpDelete(multi_delete_api);
             HttpResponse httpResponse = httpClient.execute(httpDelete);
-            System.out.println(EntityUtils.toString(httpResponse.getEntity()));
-
+            logger.info("ES response to delete geohash and cluster indexes is "+EntityUtils.toString(httpResponse.getEntity()));
 
             //create geo hash index
             httpClient = HttpClientBuilder.create().build();
-            HttpPost httpPost = new HttpPost(ES_REST_API+"/"+GEO_HASH_INDEX);
+            String geo_settings_api = (String) yamlMap.get("es_settings_api");
+            geo_settings_api = geo_settings_api.replace(":index_name", (String) yamlMap.get("geo_hash_index_name"));
+            HttpPost httpPost = new HttpPost(geo_settings_api);
             httpPost.setEntity(new FileEntity(new File("bin/mappings/geo_mappings.txt")));
             httpResponse = httpClient.execute(httpPost);
-            String result = EntityUtils.toString(httpResponse.getEntity());
-            System.out.println(result);
+            logger.info("ES response to insert mappings for geo hash index is "+EntityUtils.toString(httpResponse.getEntity()));
 
             //create geo clusters index
             httpClient = HttpClientBuilder.create().build();
-            httpPost = new HttpPost(ES_REST_API+"/"+CLUSTERS_INDEX);
+            String clusters_settings_api = (String)yamlMap.get("es_settings_api");
+            clusters_settings_api = clusters_settings_api.replace(":index_name",(String)yamlMap.get("clusters_index_name"));
+            httpPost = new HttpPost(clusters_settings_api);
             httpPost.setEntity(new FileEntity(new File("bin/mappings/cluster_mappings.txt")));
             httpResponse = httpClient.execute(httpPost);
-            result = EntityUtils.toString(httpResponse.getEntity());
-            System.out.println(result);
-
+            logger.info("ES response to insert mappings for geo clusters api is "+ EntityUtils.toString(httpResponse.getEntity()));
         }catch (Exception e){
-            e.printStackTrace();
+            logger.error(e.getMessage());
         }
-
     }
 
     //read yaml file to get the map
     private void readYAML(){
         try {
             Yaml yaml = new Yaml();
-            yamlMap = (Map)yaml.load(new FileInputStream(new File("src/main/resources/config.yaml")));
-            System.out.println(yaml.toString());
-
-
+            yamlMap = (Map) yaml.load(new FileInputStream(new File("src/main/resources/config.yaml")));
+            logger.info("Yaml reading is complete");
         }catch (Exception e){
             logger.error("Yaml configuration reading failed");
-            e.printStackTrace();
         }
     }
 
     public static void main(String[] args) {
-
-
         long time_s = System.currentTimeMillis();
         logger.info("Clustering logic start "+time_s);
         try {
             GeoClustering geoClustering = new GeoClustering();
             geoClustering.readYAML();
             geoClustering.createFreshClusteringIndices();
-            if(true) return;
             List<String> geoHashList = geoClustering.getBlrGeoHashes();
-            logger.info("Bangalore geo hashes are created. Geo hashes are "+geoHashList);
 //            List<String> geoHashList = new ArrayList<>();
 //            geoHashList = new ArrayList<String>();
 //            geoHashList.add("tdr4phx");
@@ -245,21 +218,22 @@ public class GeoClustering {
             executorService.shutdown();
             executorService.awaitTermination(1, TimeUnit.DAYS);
             if(!bulkDoc.toString().isEmpty()){
-
                 HttpClient httpClient = HttpClientBuilder.create().build();
-                HttpPost httpPost = new HttpPost(GeoClustering.ES_REST_API +"/"+ GeoClustering.ES_BULK_END_POINT);
+                //HttpPost httpPost = new HttpPost(GeoClustering.ES_REST_API +"/"+ GeoClustering.ES_BULK_END_POINT);
+                String es_bulk_api = (String) yamlMap.get("es_bulk_api");
+                HttpPost httpPost = new HttpPost(es_bulk_api);
                 httpPost.setEntity(new StringEntity(GeoClustering.bulkDoc.toString()));
                 HttpResponse httpResponse = httpClient.execute(httpPost);
                 logger.info("Response from ES for  is "+ httpResponse.getEntity().toString());
                 int code = httpResponse.getStatusLine().getStatusCode();
                 if(code!=200 && code!=201) {
-                    System.out.println(httpResponse.getStatusLine());
+                    logger.info(httpResponse.getStatusLine().toString());
                 }
             }
             long time_e = System.currentTimeMillis();
             logger.info(" Total time taken is "+(time_e - time_s) + "ms");
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error(e.getMessage());
         }
     }
 

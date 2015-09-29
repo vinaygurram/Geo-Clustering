@@ -1,2 +1,0 @@
- 1. write a java demon to check for updates
- 2. create topics for updates
