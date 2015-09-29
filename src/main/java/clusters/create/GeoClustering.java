@@ -7,6 +7,7 @@ import clusters.create.objects.Geopoint;
 import com.github.davidmoten.geo.Coverage;
 import com.github.davidmoten.geo.GeoHash;
 import com.github.davidmoten.geo.LatLong;
+import com.sun.xml.internal.xsom.impl.scd.Iterators;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpDelete;
@@ -19,9 +20,11 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.yaml.snakeyaml.Yaml;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.util.*;
 import java.util.concurrent.*;
@@ -76,6 +79,8 @@ public class GeoClustering {
     //bulk
     public static AtomicInteger bulkDocCount = new AtomicInteger(0);
     public static StringBuilder bulkDoc = new StringBuilder();
+
+    public static Map yamlMap = null;
 
     public static Logger logger = LoggerFactory.getLogger(GeoClustering.class);
 
@@ -193,15 +198,28 @@ public class GeoClustering {
 
     }
 
+    //read yaml file to get the map
+    private void readYAML(){
+        try {
+            Yaml yaml = new Yaml();
+            yamlMap = (Map)yaml.load(new FileInputStream(new File("src/main/resources/config.yaml")));
+            System.out.println(yaml.toString());
+
+
+        }catch (Exception e){
+            logger.error("Yaml configuration reading failed");
+            e.printStackTrace();
+        }
+    }
+
     public static void main(String[] args) {
+
 
         long time_s = System.currentTimeMillis();
         logger.info("Clustering logic start "+time_s);
         try {
-
-
-
             GeoClustering geoClustering = new GeoClustering();
+            geoClustering.readYAML();
             geoClustering.createFreshClusteringIndices();
             if(true) return;
             List<String> geoHashList = geoClustering.getBlrGeoHashes();
@@ -232,13 +250,14 @@ public class GeoClustering {
                 HttpPost httpPost = new HttpPost(GeoClustering.ES_REST_API +"/"+ GeoClustering.ES_BULK_END_POINT);
                 httpPost.setEntity(new StringEntity(GeoClustering.bulkDoc.toString()));
                 HttpResponse httpResponse = httpClient.execute(httpPost);
+                logger.info("Response from ES for  is "+ httpResponse.getEntity().toString());
                 int code = httpResponse.getStatusLine().getStatusCode();
                 if(code!=200 && code!=201) {
                     System.out.println(httpResponse.getStatusLine());
                 }
             }
             long time_e = System.currentTimeMillis();
-            System.out.println("Time taken is " + (time_e - time_s) + "ms");
+            logger.info(" Total time taken is "+(time_e - time_s) + "ms");
         } catch (Exception e) {
             e.printStackTrace();
         }

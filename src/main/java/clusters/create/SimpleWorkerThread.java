@@ -54,6 +54,7 @@ public class SimpleWorkerThread implements Callable<String>{
             HttpClient httpClient = HttpClientBuilder.create().build();
             HttpResponse response = httpClient.execute(postRequest);
             JSONObject jsonObject = new JSONObject(EntityUtils.toString(response.getEntity()));
+            GeoClustering.logger.info(" ");
             jsonObject = jsonObject.getJSONObject("aggregations");
             jsonObject = jsonObject.getJSONObject("stores_unique");
             JSONArray stores = jsonObject.getJSONArray("buckets");
@@ -71,6 +72,7 @@ public class SimpleWorkerThread implements Callable<String>{
                         URL url = new URL(GeoClustering.ES_REST_API +"/"+GeoClustering.STORES_INDEX+"/"+GeoClustering.STORES_INDEX_TYPE+"/"+id);
                         HttpURLConnection httpURLConnection = (HttpURLConnection)url.openConnection();
                         JSONObject response2 = new JSONObject(IOUtils.toString(httpURLConnection.getInputStream()));
+                        GeoClustering.logger.info(" Response from ES for getting stores is "+response2);
                         JSONObject response1 = response2.getJSONObject("_source").getJSONObject("store_details");
                         if(!(response2.getBoolean("found")==false || response1.getString("store_state").contentEquals("active"))) continue;
                         double lat = response1.getJSONObject("location").getDouble("lat");
