@@ -51,7 +51,6 @@ public class GeoClustering {
 
     Coverage boxCoverage = GeoHash.coverBoundingBox(box.getTopLeft().getLatitude(), box.getTopLeft().getLongitude(),
         box.getBotRight().getLatitude(), box.getBotRight().getLongitude(), precision);
-    logger.info("Hashes produced are "+ boxCoverage.getHashes());
     return boxCoverage.getHashes();
   }
 
@@ -76,7 +75,6 @@ public class GeoClustering {
     logger.info("Total number of hashes are "+ geohashList.size());
     return geohashList;
   }
-
 
   public Set<String> generateProductSetFromCSV(String pathtoFile, boolean isFnv) {
 
@@ -123,7 +121,7 @@ public class GeoClustering {
       String geo_settings_api = (String) yamlMap.get("es_settings_api");
       geo_settings_api = geo_settings_api.replace(":index_name", (String) yamlMap.get("geo_hash_index_name"));
       HttpPost httpPost = new HttpPost(geo_settings_api);
-      httpPost.setEntity(new FileEntity(new File("bin/mappings/geo_mappings.txt")));
+      httpPost.setEntity(new FileEntity(new File((String)yamlMap.get("geo_mappings_file_path"))));
       httpResponse = httpClient.execute(httpPost);
       logger.info("ES response to insert mappings for geo hash index is "+EntityUtils.toString(httpResponse.getEntity()));
 
@@ -132,7 +130,7 @@ public class GeoClustering {
       String clusters_settings_api = (String)yamlMap.get("es_settings_api");
       clusters_settings_api = clusters_settings_api.replace(":index_name",(String)yamlMap.get("clusters_index_name"));
       httpPost = new HttpPost(clusters_settings_api);
-      httpPost.setEntity(new FileEntity(new File("bin/mappings/cluster_mappings.txt")));
+      httpPost.setEntity(new FileEntity(new File((String)yamlMap.get("cluster_mappings_file_path"))));
       httpResponse = httpClient.execute(httpPost);
       logger.info("ES response to insert mappings for geo clusters api is "+ EntityUtils.toString(httpResponse.getEntity()));
     }catch (Exception e){
@@ -145,10 +143,10 @@ public class GeoClustering {
 
     try {
       Yaml yaml = new Yaml();
-      yamlMap = (Map) yaml.load(new FileInputStream(new File("src/main/resources/config.yaml")));
-      logger.info("Yaml reading is complete");
+      yamlMap = (Map) yaml.load(new FileInputStream(new File("src/main/resources/config/app.yaml")));
+      logger.info("configuration reading is complete");
     }catch (Exception e){
-      logger.error("Yaml configuration reading failed");
+      logger.error("configuration reading failed");
     }
   }
 
@@ -178,7 +176,6 @@ public class GeoClustering {
     return productIdSet;
   }
 
-
   public static void main(String[] args) {
 
     long time_s = System.currentTimeMillis();
@@ -193,6 +190,7 @@ public class GeoClustering {
         logger.error("Popular products is zero. Stopping now");
         return;
       }
+      logger.info("Popular items reading completed. Total number of popular products are "+popularProdSet.size());
       //create fresh indexes and get hashes to be ready
       geoClustering.createFreshClusteringIndices();
       //List<String> geoHashList = geoClustering.getBlrGeoHashes();
@@ -228,5 +226,4 @@ public class GeoClustering {
       logger.error(e.getMessage());
     }
   }
-
 }

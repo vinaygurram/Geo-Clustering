@@ -68,7 +68,6 @@ public class WorkerThread implements Callable<String> {
             store_document_api = store_document_api.replace(":index_name",(String)GeoClustering.yamlMap.get("stores_index_name"));
             store_document_api = store_document_api.replace(":index_type",(String)GeoClustering.yamlMap.get("stores_index_type"));
             store_document_api = store_document_api.replace(":id",id);
-            //URL url = new URL(GeoClustering.ES_REST_API +"/"+GeoClustering.STORES_INDEX+"/"+GeoClustering.STORES_INDEX_TYPE+"/"+id);
             URL url = new URL(store_document_api);
             HttpURLConnection httpURLConnection = (HttpURLConnection)url.openConnection();
             JSONObject response2 = new JSONObject(IOUtils.toString(httpURLConnection.getInputStream()));
@@ -82,11 +81,10 @@ public class WorkerThread implements Callable<String> {
             is_store_exists = true;
 
           }catch (Exception e){
-            GeoClustering.logger.error("Store not found erroe "+e.getMessage());
+            GeoClustering.logger.error("Store not found error "+e.getMessage());
           }
         }
         if(is_store_exists)reShops.add(id);
-
       }
     }catch (IOException e){
       GeoClustering.logger.error(e.getMessage());
@@ -97,8 +95,6 @@ public class WorkerThread implements Callable<String> {
     }
     return reShops;
   }
-
-
 
   public void pushClusterToES(List<ClusterDefinition> clusterDefinitions){
     HttpClient httpClient;
