@@ -27,9 +27,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Main class to create clusters
- * It will have all the utility Objects
- * Created by gurramvinay on 6/16/15.
+ * Main class to create clusters. It will have all the utility Objects. Created by gurramvinay on 6/16/15.
  */
 public class GeoClustering {
 
