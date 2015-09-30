@@ -68,7 +68,6 @@ public class ClusterStrategy {
 
         }
 
-
         if(clustersForCombination==0) return validClusters;
         clustersForCombination = 0;
 
@@ -83,7 +82,6 @@ public class ClusterStrategy {
             }
 
         }
-
 
         if(clustersForCombination==0) return validClusters;
         clustersForCombination = 0;
@@ -100,38 +98,37 @@ public class ClusterStrategy {
                 }
             }
 
+//            if(clustersForCombination==0) return validClusters;
+//            clustersForCombination = 0;
 
-            if(clustersForCombination==0) return validClusters;
-            clustersForCombination = 0;
-
-            if(points.size()>4){
-
-                //create clusters with 5 shops
-                clusters = get5CClusters(points);
-                for(List<String> clusterObj : clusters){
-                    temp = checkValidCluster(geoHash,clusterObj);
-                    if(temp!=null){
-                        temp.setGeoHash(encodedGeoHash);
-                        clustersForCombination++;
-                        validClusters.add(temp);
-                    }
-                }
-
-
-                if(clustersForCombination==0) return validClusters;
-
-                if(points.size()>5){
-                    //create clusters with 6 shops
-                    clusters = get6CClusters(points);
-                    for(List<String> clusterObj : clusters){
-                        temp = checkValidCluster(geoHash,clusterObj);
-                        if(temp!=null){
-                            temp.setGeoHash(encodedGeoHash);
-                            validClusters.add(temp);
-                        }
-                    }
-                }
-            }
+//            if(points.size()>4){
+//
+//                //create clusters with 5 shops
+//                clusters = get5CClusters(points);
+//                for(List<String> clusterObj : clusters){
+//                    temp = checkValidCluster(geoHash,clusterObj);
+//                    if(temp!=null){
+//                        temp.setGeoHash(encodedGeoHash);
+//                        clustersForCombination++;
+//                        validClusters.add(temp);
+//                    }
+//                }
+//
+//
+//                if(clustersForCombination==0) return validClusters;
+//
+//                if(points.size()>5){
+//                    //create clusters with 6 shops
+//                    clusters = get6CClusters(points);
+//                    for(List<String> clusterObj : clusters){
+//                        temp = checkValidCluster(geoHash,clusterObj);
+//                        if(temp!=null){
+//                            temp.setGeoHash(encodedGeoHash);
+//                            validClusters.add(temp);
+//                        }
+//                    }
+//                }
+//            }
         }
         this.distanceMatrix = null;
         return validClusters;
@@ -140,10 +137,9 @@ public class ClusterStrategy {
     //Helper methods
     /**
      * computes rank for a given cluster
-     * Rank r = 0.3 * (relFNVPinCluster/totalRelFNVinCluster) + 0.3 * (relNFNVPinCluster/totalRelNFNVinCluster)+ (0.35) * (ProductsInCluster/TotalProducts)
-     * @return give rank
+     * Rank r = (popularProductsInCluster/totalPopularProducts)
      * */
-    public void setRankParameters(Set<String> relFNVSet, Set<String> relNFNVSet,ClusterObj clusterObj){
+    public void setRankParameters(Set<String> popularProductsSet,ClusterObj clusterObj){
 
         //create cluster ID and Stores array
         String storeIdString = "";
@@ -178,8 +174,8 @@ public class ClusterStrategy {
                     "\"sub_cat_count\":{\"cardinality\":{\"field\":\"product_details.sub_category_id\"}}}}";
             HttpClient httpClient = HttpClientBuilder.create().build();
             String listing_serach_api = (String)GeoClustering.yamlMap.get("es_search_api");
-            listing_serach_api = listing_serach_api.replace(":index_name","listing_index_name");
-            listing_serach_api = listing_serach_api.replace(":index_type","listing_index_type");
+            listing_serach_api = listing_serach_api.replace(":index_name",(String)GeoClustering.yamlMap.get("listing_index_name"));
+            listing_serach_api = listing_serach_api.replace(":index_type",(String)GeoClustering.yamlMap.get("listing_index_type"));
             HttpPost httpPost = new HttpPost(listing_serach_api);
             httpPost.setEntity(new StringEntity(query));
             HttpResponse httpResponse = httpClient.execute(httpPost);
@@ -195,7 +191,7 @@ public class ClusterStrategy {
                 subCatCount = esResult.getJSONObject("sub_cat_count").getInt("value");
             }
         }catch (Exception e){
-            GeoClustering.logger.error(" Computing rank failed "+e.getMessage());
+            GeoClustering.logger.error(" Getting products and sub cate for a stores combination failed. "+e.getMessage());
         }
 
         //store & set both product count and sub cat count
@@ -204,19 +200,13 @@ public class ClusterStrategy {
         clusterObj.setProductsCount(productsSet.size());
         clusterObj.setSubCatCount(subCatCount);
 
-        //Compute rel FNV & Non FNV products in cluster
+        //compute popular products in cluster
         Set<String> intesection = new HashSet<String>(productsSet);
-        intesection.retainAll(relFNVSet);
-        int rFNVPCount = intesection.size();
-        intesection = new HashSet<String>(productsSet);
-        intesection.retainAll(relNFNVSet);
-        int rNFNVPCount = intesection.size();
+        intesection.retainAll(popularProductsSet);
+        int popular_products_count = intesection.size();
 
-        //Compute rank
-        double fncPCov = ((double) rFNVPCount)/((double) relFNVSet.size());
-        double nfncPCov = ((double) rNFNVPCount)/((double) relNFNVSet.size());
-        double pCov = ((double)productsSet.size())/ ((double)GeoClustering.maxProductCount);
-        double rank = (GeoClustering.relFNCCoverageCoeff * fncPCov)+ (GeoClustering.relNFNCCoverageCoeff * nfncPCov)+ (GeoClustering.relProductCoverageCoeff* pCov);
+        //compute rank
+        double rank = ((double) popular_products_count/(double)popularProductsSet.size());
 
         //store and set
         GeoClustering.clusterRankMap.put(clusterId,rank);
@@ -429,7 +419,6 @@ public class ClusterStrategy {
         }
         if(shortDistance>8) return null;
 
-        boolean fnvCriteria = checkFnV(storeIdList);
 
         //Make the clusterObject
         ClusterObj clusterObjNew = new ClusterObj();
@@ -437,28 +426,12 @@ public class ClusterStrategy {
             clusterObjNew.addPoint(s);
         }
         clusterObjNew.setDistance(shortDistance);
-        setRankParameters(GeoClustering.fnvProdSet,GeoClustering.nfnvProdSet,clusterObjNew);
+        setRankParameters(GeoClustering.popularProdSet,clusterObjNew);
 
         //set cluster status offline/online
         clusterObjNew.setStatus(true);
         return clusterObjNew;
     }
-
-
-
-
-    /**
-     * Check for FnV
-     * */
-     public boolean checkFnV(List<String> idsist){
-         boolean rValue = false;
-         for(String s: idsist){
-             if(GeoClustering.clusterPoints.get(s).isFnv()){
-                 rValue = true;
-             }
-         }
-         return rValue;
-     }
 
     /**
      * Creates all possible String ids;

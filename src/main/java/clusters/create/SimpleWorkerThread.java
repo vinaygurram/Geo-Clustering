@@ -85,7 +85,7 @@ public class SimpleWorkerThread implements Callable<String>{
                         is_store_exists = true;
 
                     }catch (Exception e){
-                        GeoClustering.logger.error(e.getMessage());
+                        GeoClustering.logger.error("Store not found erroe "+e.getMessage());
                     }
                 }
                 if(is_store_exists)reShops.add(id);

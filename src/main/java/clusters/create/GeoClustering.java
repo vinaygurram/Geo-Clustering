@@ -6,18 +6,14 @@ import clusters.create.objects.ClusteringPoint;
 import clusters.create.objects.Geopoint;
 import com.github.davidmoten.geo.Coverage;
 import com.github.davidmoten.geo.GeoHash;
-import com.github.davidmoten.geo.LatLong;
-import com.sun.xml.internal.xsom.impl.scd.Iterators;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
@@ -45,30 +41,15 @@ public class GeoClustering {
     public static ConcurrentHashMap<String, Integer> clusterSubCatCoverage = new ConcurrentHashMap<>();
     public static AtomicInteger jobsRun = new AtomicInteger();
     public static ConcurrentHashMap<String, Double> clusterRankMap = new ConcurrentHashMap<>();
-
-    public static final int maxProductCount = 17000;
-    public static final double relFNCCoverageCoeff = 0.3;
-    public static final double relNFNCCoverageCoeff = 0.3;
-    public static final double relProductCoverageCoeff = 0.35;
-
-    public static Set<String> fnvProdSet = new HashSet<>();
-    public static Set<String> nfnvProdSet = new HashSet<>();
-    public static final String nfnvFilePath = "src/main/resources/popular_nfnc.csv";
-    public static final String fnvFilePath = "src/main/resources/fnv_pids.csv";
-
-    //bulk
+    public static Set<String> popularProdSet = new HashSet<>();
     public static AtomicInteger bulkDocCount = new AtomicInteger(0);
     public static StringBuilder bulkDoc = new StringBuilder();
-
     public static Map yamlMap = null;
-
     public static Logger logger = LoggerFactory.getLogger(GeoClustering.class);
-
-
 
     private Set<String> getGeoHashOfBoundingBox(BoundingBox box, int precision) {
         Coverage boxCoverage = GeoHash.coverBoundingBox(box.getTopLeft().getLatitude(), box.getTopLeft().getLongitude(),
-                box.getBotRight().getLatitude(), box.getBotRight().getLongitude(), precision);
+            box.getBotRight().getLatitude(), box.getBotRight().getLongitude(), precision);
         logger.info("Hashes produced are "+ boxCoverage.getHashes());
         return boxCoverage.getHashes();
     }
@@ -79,28 +60,6 @@ public class GeoClustering {
         Geopoint botright = new Geopoint((Double)((HashMap)yamlMap.get("bbox_bot_right")).get("lat"), (Double)((HashMap)yamlMap.get("bbox_bot_right")).get("lon"));
         return new BoundingBox(topleft, botright);
     }
-
-//    public String getZone(String geoHash) {
-//
-//        LatLong latLong = GeoHash.decodeHash(geoHash);
-//
-//        try {
-//            String geo_api = GEOKIT_API + "?lat=" + latLong.getLat() + "&lng=" + latLong.getLon();
-//            HttpClient httpClient = HttpClientBuilder.create().build();
-//            HttpGet httpGet = new HttpGet(geo_api);
-//            HttpResponse httpResponse = httpClient.execute(httpGet);
-//            JSONObject result = new JSONObject(EntityUtils.toString(httpResponse.getEntity()));
-//            if (result.getString("status").contentEquals("SUCCESS")) {
-//                if (result.has("locality") && !result.isNull("locality")) {
-//                    return result.getJSONObject("locality").getString("name");
-//                }
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        return "";
-//    }
-
 
     public List<String> getBlrGeoHashes() {
         BoundingBox bbox = getBangaloreBox();
@@ -189,26 +148,60 @@ public class GeoClustering {
         }
     }
 
+    //generate Hash set from the csv
+    private Set<String> generatePopularProductSet(){
+        Set<String> productIdSet = new HashSet<String>();
+        FileReader fileReader = null;
+        BufferedReader bufferedReader = null;
+        try {
+            fileReader = new FileReader(new File((String)yamlMap.get("popular_products_file_path")));
+            bufferedReader = new BufferedReader(fileReader);
+            String line = bufferedReader.readLine();
+            while ((line = bufferedReader.readLine()) != null) {
+                String productId = line;
+                productIdSet.add(productId);
+            }
+        } catch (Exception e) {
+            logger.error("Error in generating popular products" +e.getMessage());
+        } finally {
+            try {
+                fileReader.close();
+                bufferedReader.close();
+            } catch (Exception e) {
+                logger.error(e.getMessage());
+            }
+        }
+        return productIdSet;
+    }
+
+
     public static void main(String[] args) {
         long time_s = System.currentTimeMillis();
         logger.info("Clustering logic start "+time_s);
         try {
             GeoClustering geoClustering = new GeoClustering();
-            geoClustering.readYAML();
-            geoClustering.createFreshClusteringIndices();
-            List<String> geoHashList = geoClustering.getBlrGeoHashes();
-//            List<String> geoHashList = new ArrayList<>();
-//            geoHashList = new ArrayList<String>();
-//            geoHashList.add("tdr4phx");
-//            geoHashList.add("tdr0ftn");
-//            geoHashList.add("tdr1vzc");
-//            geoHashList.add("tdr1yrb");
 
-            //generate both fnv and non-fnv sets
-            nfnvProdSet = geoClustering.generateProductSetFromCSV(nfnvFilePath, false);
-            logger.info("NFNV Set created. NFNV set is "+nfnvProdSet);
-            fnvProdSet = geoClustering.generateProductSetFromCSV(fnvFilePath, true);
-            logger.info("FNV Set created. FNV set is "+fnvProdSet);
+            //read configuration file
+            geoClustering.readYAML();
+
+            //generate popular products list if popular products are zero stop
+            popularProdSet = geoClustering.generatePopularProductSet();
+            if(popularProdSet.size() ==0 ){
+                logger.error("Popular products is zero. Stopping now");
+                return;
+            }
+
+            //create fresh indexes and get hashes to be ready
+            geoClustering.createFreshClusteringIndices();
+            //List<String> geoHashList = geoClustering.getBlrGeoHashes();
+            List<String> geoHashList = new ArrayList<>();
+            geoHashList = new ArrayList<String>();
+            geoHashList.add("tdr4phx");
+            geoHashList.add("tdr0ftn");
+            geoHashList.add("tdr1vzc");
+            geoHashList.add("tdr1yrb");
+
+
             ExecutorService executorService = Executors.newFixedThreadPool(10);
             List<Future<String>> futuresList = new ArrayList<>();
             for (String geoHash : geoHashList) {

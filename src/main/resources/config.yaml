@@ -2,9 +2,9 @@
 
 
 #Elastic Search configurations
-  geo_hash_index_name: geo_hash_test
+  geo_hash_index_name: geo_hash
   geo_hash_index_type: hash_type
-  clusters_index_name: live_geo_clusters_test
+  clusters_index_name: live_geo_clusters
   clusters_index_type: geo_cluster
   listing_index_name: listing
   listing_index_type: list

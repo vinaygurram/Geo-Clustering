@@ -31,7 +31,7 @@ http://www.w3.org/2001/XMLSchema-instance ">
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>reports.RelevantProducts</mainClass>
+                            <mainClass>clusters.create.GeoClustering</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>
@@ -90,6 +90,7 @@ http://www.w3.org/2001/XMLSchema-instance ">
             <artifactId>snakeyaml</artifactId>
             <version>1.16</version>
         </dependency>
+
 
     </dependencies>
 </project>
