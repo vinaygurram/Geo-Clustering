@@ -1,4 +1,4 @@
-##Geo Hash based Clustering Algorithm##
+## Geo Hash based Clustering Algorithm ##
 
 ### Introduction ###
 
