@@ -59,10 +59,3 @@ Method ::
  2.Get cluster with the formed cluster
 
 
-
-
-/**
-Add consumers as soon as possible
-discuss the plan tomorrow
-complete it  by weekend
-*/
