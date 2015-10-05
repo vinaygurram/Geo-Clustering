@@ -1,6 +1,6 @@
 package com.olastore.listing.clustering.algorithms;
 
-import com.olastore.listing.clustering.clients.clients;
+import com.olastore.listing.clustering.clients.ESClient;
 import com.olastore.listing.clustering.pojos.ClusterDefinition;
 import com.olastore.listing.clustering.pojos.ClusterPoint;
 import com.olastore.listing.clustering.pojos.Geopoint;
@@ -102,7 +102,7 @@ public class WorkerThread implements Callable<String> {
     LatLong gll = GeoHash.decodeHash(geohash);
     Geopoint geopoint = new Geopoint(gll.getLat(),gll.getLon());
     List<ClusterDefinition> clusterDefinitionList = new ClusterStrategy().createClusters(geopoint, points);
-    if(clusterDefinitionList.size()>0) clients.pushClusterToES(clusterDefinitionList);
+    if(clusterDefinitionList.size()>0) ESClient.pushClusterToES(clusterDefinitionList);
     points = null;
     clusterDefinitionList = null;
     if(GeoClustering.jobsRun.getAndIncrement()%50==0){

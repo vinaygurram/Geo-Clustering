@@ -6,12 +6,16 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -21,7 +25,55 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class ESClient {
 
-    public static Logger LOG = Logger.getLogger(ESClient.class);
+  ClustersHttpClientFactory clustersHttpClientFactory;
+  ClustersESURIBuilder clustersESURIBuilder;
+
+
+  public ESClient(String esHost){
+    clustersHttpClientFactory = new ClustersHttpClientFactory();
+    clustersESURIBuilder = new ClustersESURIBuilder(esHost);
+  }
+
+  public static Logger LOG = Logger.getLogger(ESClient.class);
+
+  public JSONObject searchES(String indexName,String indexType, String query) throws URISyntaxException {
+    HashMap<String,String> map = new HashMap<>();
+    if(!indexName.contentEquals("")) {
+      map.put("index_name",indexName);
+      if(!indexType.contentEquals("")) map.put("index_type",indexType);
+    }
+    URI searchUri = clustersESURIBuilder.getESSearchEndPoint(map);
+    return  new ClustersHttpClient(clustersHttpClientFactory.getHttpClient()).executePost(searchUri,query);
+  }
+
+  public JSONObject getESDoc(String indexName,String indexType,String docID) throws URISyntaxException {
+    HashMap<String,String> map = new HashMap<>();
+    map.put("index_name",indexName);
+    map.put("index_type",indexType);
+    map.put("id",docID);
+    URI docUri = clustersESURIBuilder.getDocEndPoint(map);
+    return new ClustersHttpClient(clustersHttpClientFactory.getHttpClient()).executeGet(docUri);
+  }
+
+  public JSONObject pushToES(String indexName,String indexType,String id, String data) throws URISyntaxException {
+    HashMap<String,String> map = new HashMap<>();
+    map.put("index_name",indexName);
+    map.put("index_type",indexType);
+    map.put("id",id);
+    URI docUri = clustersESURIBuilder.getDocEndPoint(map);
+    return new ClustersHttpClient(clustersHttpClientFactory.getHttpClient()).executePost(docUri,data);
+  }
+
+  public JSONObject pushToESBulk (String indexName,String indexType,String data) throws URISyntaxException {
+    HashMap<String,String> map = new HashMap<>();
+    if(!indexName.contentEquals("")) {
+      map.put("index_name",indexName);
+      if(!indexType.contentEquals("")) map.put("index_type",indexType);
+    }
+    URI bulkURI = clustersESURIBuilder.getBulkEndPoint(map);
+    return new ClustersHttpClient((clustersHttpClientFactory.getHttpClient())).executePost(bulkURI,data);
+
+  }
 
   public static void pushClusterToES(List<ClusterDefinition> clusterDefinitions){
     HttpClient httpClient;
@@ -55,7 +107,7 @@ public class ESClient {
           clusters_indexing_api = clusters_indexing_api.replace(":index_type",(String)GeoClustering.yamlMap.get("clusters_index_type"));
           clusters_indexing_api = clusters_indexing_api.replace(":id",hash);
           HttpPost postRequest = new HttpPost(clusters_indexing_api);
-          String jsonString = clusterDefinition.getJSON().toString();
+          String jsonString = clusterDefinition.toString();
           postRequest.setEntity(new StringEntity(jsonString));
           //send post request
           httpClient = HttpClientBuilder.create().build();
