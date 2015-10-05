@@ -1,6 +1,7 @@
-package com.olastore.listing.clustering.pojos;
+package com.olastore.listing.clustering.geo;
+
 /**
- * Bounding box class to define areas
+ * Bounding box class to define areas ex: city,zone,state ...
  */
 public class BoundingBox {
 

@@ -1,0 +1,18 @@
+#####Config File ########
+
+# configuration
+  clusters_geo_precision : 7
+  clusters_radius: 6
+
+#Location of the area Settings
+#we are using bangalore as of now
+  bbox_top_left :
+    lat : 13.11091
+    lon : 77.46253
+  bbox_bot_right :
+    lat : 12.81581
+    lon : 77.79075
+#path to files
+  popular_products_file_path : src/main/resources/data/popular_products.csv
+
+

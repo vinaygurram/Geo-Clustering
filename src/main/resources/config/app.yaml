@@ -36,4 +36,3 @@
   popular_products_file_path : src/main/resources/data/popular_products.csv
   cluster_mappings_file_path : src/main/resources/mappings/cluster_mappings.json
   geo_mappings_file_path : src/main/resources/mappings/geo_mappings.json
-

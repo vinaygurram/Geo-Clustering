@@ -7,36 +7,36 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 
 /**
- * Created by gurramvinay on 10/5/15.
+ * @author gurramvinay
  */
 public class ClustersESURIBuilder {
 
   private String ES_HOST;
   private String schme = "http";
-  private enum endPoints {
 
+  private enum endPoints {
     SEARCH("_search"),BULK("_bulk");
-    private final String name;
+    protected final String name;
 
     private endPoints(String name){
       this.name = name;
     }
 
     public boolean equalsName(String otherName){
-      return (otherName == null) ? false : name.equals(otherName);
+      return (otherName != null) && name.equals(otherName);
     }
 
     @Override
     public String toString(){
       return this.name;
     }
-  };
+  }
 
-  ClustersESURIBuilder(String esHOST) {
+  protected ClustersESURIBuilder(String esHOST) {
     this.ES_HOST = esHOST;
   }
 
-  ClustersESURIBuilder(String esHOST, String schme){
+  protected ClustersESURIBuilder(String esHOST, String schme){
     this.ES_HOST = esHOST;
     this.schme = schme;
   }
@@ -49,6 +49,7 @@ public class ClustersESURIBuilder {
     if(searchLevels.containsKey("index_type")){
       path.append("/").append(searchLevels.get("index_type"));
     }
+    path.append("/").append(endPoints.SEARCH);
     return  new URIBuilder().setScheme(schme).setHost(ES_HOST).setPath(path.toString()).build();
   }
 
@@ -75,5 +76,9 @@ public class ClustersESURIBuilder {
     path.append("/").append(docMap.get("id"));
     return  new URIBuilder().setScheme(schme).setHost(ES_HOST).setPath(path.toString()).build();
 
+  }
+
+  public URI getIndexURI(String indexName) throws URISyntaxException {
+    return new URIBuilder().setScheme(schme).setHost(ES_HOST).setPath("/"+indexName).build();
   }
 }

@@ -3,7 +3,7 @@ package com.olastore.listing.clustering.algorithms;
 import com.olastore.listing.clustering.clients.ESClient;
 import com.olastore.listing.clustering.pojos.ClusterDefinition;
 import com.olastore.listing.clustering.pojos.ClusterPoint;
-import com.olastore.listing.clustering.pojos.Geopoint;
+import com.olastore.listing.clustering.geo.Geopoint;
 import com.github.davidmoten.geo.GeoHash;
 import com.github.davidmoten.geo.LatLong;
 import org.apache.commons.io.IOUtils;

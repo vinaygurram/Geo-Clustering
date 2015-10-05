@@ -1,5 +1,7 @@
 package com.olastore.listing.clustering.pojos;
 
+import com.olastore.listing.clustering.geo.Geopoint;
+
 /**
  * Generic Object used to from the cluster. Independent of other schema. Created by gurramvinay on 8/10/15.
  */

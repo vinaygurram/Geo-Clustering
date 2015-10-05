@@ -1,10 +1,8 @@
 package com.olastore.listing.clustering.clients;
 
 import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.*;
+import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
@@ -26,79 +24,88 @@ public class ClustersHttpClient {
   private CloseableHttpClient closeableHttpClient;
   private static final Logger logger = LoggerFactory.getLogger(ClustersHttpClient.class);
 
-  public ClustersHttpClient(CloseableHttpClient closeableHttpClient) {
+  protected ClustersHttpClient(CloseableHttpClient closeableHttpClient) {
     this.closeableHttpClient = closeableHttpClient;
   }
 
   public JSONObject executeGet(URI uri) {
     JSONObject resultObject = null;
+    CloseableHttpResponse closeableHttpResponse = null;
     try {
       HttpGet httpGet = new HttpGet(uri);
-      HttpResponse httpResponse = closeableHttpClient.execute(httpGet);
-      int responseCode = httpResponse.getStatusLine().getStatusCode();
+      closeableHttpResponse = closeableHttpClient.execute(httpGet);
+      int responseCode = closeableHttpResponse.getStatusLine().getStatusCode();
       if(responseCode == 200){
-        resultObject = new JSONObject(EntityUtils.toString(httpResponse.getEntity()));
+        resultObject = new JSONObject(EntityUtils.toString(closeableHttpResponse.getEntity()));
       }else {
         logger.debug("Request failed "+ responseCode);
-        logger.debug("Message is"+ httpResponse.getStatusLine().getReasonPhrase());
+        logger.debug("Message is"+ closeableHttpResponse.getStatusLine().getReasonPhrase());
       }
+      EntityUtils.consume(closeableHttpResponse.getEntity());
     }catch (Exception e){
-      logger.error(e.getMessage());
+      logger.error("Exception happened!",e);
     }finally {
       try {
-        closeableHttpClient.close();
+        closeableHttpResponse.close();
+        //closeableHttpClient.close();
       }catch (IOException i){
-        logger.info(i.getMessage());
+        logger.error("Exception happened!",i);
       }
     }
     return resultObject;
   }
 
-  public JSONObject executePost(URI uri,String data) {
+  public JSONObject executePost(URI uri,AbstractHttpEntity entity) {
     JSONObject resultObject = null;
+    CloseableHttpResponse closeableHttpResponse = null;
     try {
       HttpPost httpPost = new HttpPost(uri);
-      httpPost.setEntity(new StringEntity(data, Charset.defaultCharset()));
-      HttpResponse httpResponse = closeableHttpClient.execute(httpPost);
-      int responseCode = httpResponse.getStatusLine().getStatusCode();
+      httpPost.setEntity(entity);
+      closeableHttpResponse = closeableHttpClient.execute(httpPost);
+      int responseCode = closeableHttpResponse.getStatusLine().getStatusCode();
       if(responseCode == 200 || responseCode == 201 || responseCode == 204){
-        resultObject = new JSONObject(EntityUtils.toString(httpResponse.getEntity()));
+        resultObject = new JSONObject(EntityUtils.toString(closeableHttpResponse.getEntity()));
       }else {
         logger.debug("Request failed" + responseCode);
-        logger.debug("Message is "+httpResponse.getStatusLine().getReasonPhrase());
+        logger.debug("Message is "+closeableHttpResponse.getStatusLine().getReasonPhrase());
       }
-    }catch (Exception e){
-      logger.error(e.getMessage());
+      EntityUtils.consume(closeableHttpResponse.getEntity());
+    }catch (Exception e) {
+    logger.error("Exception happened!",e);
     }finally {
       try {
-        closeableHttpClient.close();
+        closeableHttpResponse.close();
+        //closeableHttpClient.close();
       }catch (IOException i){
-        logger.error(i.getMessage());
+        logger.error("Exception happened!",i);
       }
     }
     return resultObject;
   }
 
-  public JSONObject executePut(URI uri,String data) {
+  public JSONObject executePut(URI uri,AbstractHttpEntity entity) {
     JSONObject resultObject = null;
+    CloseableHttpResponse closeableHttpResponse = null;
     try {
       HttpPut httpPut = new HttpPut(uri);
-      httpPut.setEntity(new StringEntity(data, Charset.defaultCharset()));
-      HttpResponse httpResponse = closeableHttpClient.execute(httpPut);
-      int responseCode = httpResponse.getStatusLine().getStatusCode();
+      httpPut.setEntity(entity);
+      closeableHttpResponse = closeableHttpClient.execute(httpPut);
+      int responseCode = closeableHttpResponse.getStatusLine().getStatusCode();
       if(responseCode == 200 || responseCode == 201 || responseCode == 204){
-        resultObject = new JSONObject(EntityUtils.toString(httpResponse.getEntity()));
+        resultObject = new JSONObject(EntityUtils.toString(closeableHttpResponse.getEntity()));
       }else {
         logger.debug("Request failed" + responseCode);
-        logger.debug("Message is "+httpResponse.getStatusLine().getReasonPhrase());
+        logger.debug("Message is "+closeableHttpResponse.getStatusLine().getReasonPhrase());
       }
+      EntityUtils.consume(closeableHttpResponse.getEntity());
     }catch (Exception e){
-      logger.error(e.getMessage());
+      logger.error("Exception happened!",e);
     }finally {
       try {
-        closeableHttpClient.close();
+        closeableHttpResponse.close();
+        //closeableHttpClient.close();
       }catch (IOException i){
-        logger.error(i.getMessage());
+        logger.error("Exception happened!",i);
       }
     }
     return resultObject;
@@ -109,23 +116,27 @@ public class ClustersHttpClient {
    * @param uri uri which is getting deleted
    */
   public void executeDelete(URI uri) {
+    CloseableHttpResponse closeableHttpResponse = null;
     try {
       HttpDelete httpDelete = new HttpDelete(uri);
-      HttpResponse httpResponse = closeableHttpClient.execute(httpDelete);
-      int responseCode = httpResponse.getStatusLine().getStatusCode();
+      closeableHttpResponse  = closeableHttpClient.execute(httpDelete);
+      int responseCode = closeableHttpResponse.getStatusLine().getStatusCode();
       if(responseCode == 200 || responseCode == 204){
-        logger.debug("deleted successfully");
+        logger.info("deleted successfully");
+        logger.info("response is " + EntityUtils.toString(closeableHttpResponse.getEntity()));
       }else {
-        logger.debug("Request failed "+ responseCode);
-        logger.debug("Message is"+ httpResponse.getStatusLine().getReasonPhrase());
+        logger.error("Request failed " + responseCode);
+        logger.error("Message is " + closeableHttpResponse.getStatusLine());
       }
+      EntityUtils.consume(closeableHttpResponse.getEntity());
     }catch (Exception e){
-      logger.error(e.getMessage());
+      logger.error("Exception happened!",e);
     }finally {
       try {
-        closeableHttpClient.close();
+        closeableHttpResponse.close();
+        //closeableHttpClient.close();
       }catch (IOException i){
-        logger.info(i.getMessage());
+        logger.error("Exception happened!",i);
       }
     }
   }

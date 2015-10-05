@@ -1,7 +1,8 @@
-package com.olastore.listing.clustering.pojos;
+package com.olastore.listing.clustering.Util;
 
 import com.olastore.listing.clustering.algorithms.GeoClustering;
 import com.github.davidmoten.geo.GeoHash;
+import com.olastore.listing.clustering.geo.Geopoint;
 import org.apache.commons.io.IOUtils;
 
 import java.net.HttpURLConnection;

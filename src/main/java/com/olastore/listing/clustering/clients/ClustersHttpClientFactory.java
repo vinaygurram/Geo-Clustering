@@ -13,7 +13,7 @@ import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 
 /**
- * Created by gurramvinay on 10/5/15.
+ * @author gurramvinay
  */
 public class ClustersHttpClientFactory {
 
@@ -21,9 +21,9 @@ public class ClustersHttpClientFactory {
   private static ConnectionKeepAliveStrategy keepAliveStrategy;
   private static final int TIME_OUT = 5;
 
-  public ClustersHttpClientFactory() {
+  protected ClustersHttpClientFactory() {
     init();
-  };
+  }
 
   private void init() {
     createConnectionPool();

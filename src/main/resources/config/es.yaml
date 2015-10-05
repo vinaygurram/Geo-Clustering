@@ -1,0 +1,21 @@
+#Elastic Search Configurations
+
+#host
+es_host_dev: localhost:9200
+es_host_staging: es.olahack.in
+es_host_qa: es.qa.olahack.in
+es_host_prod: escluster.olastore.com:9200
+
+#index names
+geo_hash_index_name: geo_hash
+geo_hash_index_type: hash_type
+clusters_index_name: live_geo_clusters
+clusters_index_type: geo_cluster
+listing_index_name: listing
+listing_index_type: list
+stores_index_name: stores_common
+stores_index_type: store
+
+#mapping files
+cluster_mappings_file_path : src/main/resources/mappings/cluster_mappings.json
+geo_mappings_file_path : src/main/resources/mappings/geo_mappings.json

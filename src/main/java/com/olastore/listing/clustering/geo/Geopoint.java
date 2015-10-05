@@ -1,8 +1,7 @@
-package com.olastore.listing.clustering.pojos;
+package com.olastore.listing.clustering.geo;
 
 /**
  * Generic Object to denote the location of any object
- * It has both latitude and longitude
  * Created by gurramvinay on 8/10/15.
  */
 public class Geopoint {

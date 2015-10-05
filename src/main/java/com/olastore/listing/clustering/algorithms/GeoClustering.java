@@ -1,9 +1,10 @@
 package com.olastore.listing.clustering.algorithms;
 
-import com.olastore.listing.clustering.pojos.BoundingBox;
+import com.olastore.listing.clustering.clients.ESClient;
+import com.olastore.listing.clustering.geo.BoundingBox;
 import com.olastore.listing.clustering.pojos.ClusterDefinition;
 import com.olastore.listing.clustering.pojos.ClusterPoint;
-import com.olastore.listing.clustering.pojos.Geopoint;
+import com.olastore.listing.clustering.geo.Geopoint;
 import com.github.davidmoten.geo.Coverage;
 import com.github.davidmoten.geo.GeoHash;
 import org.apache.http.HttpResponse;
@@ -14,6 +15,7 @@ import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
@@ -31,6 +33,10 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class GeoClustering {
 
+  public static ESClient esClient;
+  public static Map esConfig;
+  public static Map clustersConfig;
+
   public static ConcurrentHashMap<String, List<String>> map = new ConcurrentHashMap<String, List<String>>();
   public static ConcurrentHashMap<String, ClusterPoint> clusterPoints = new ConcurrentHashMap<String, ClusterPoint>();
   public static ConcurrentHashMap<String, List<ClusterDefinition>> computedClusters = new ConcurrentHashMap<String, List<ClusterDefinition>>();
@@ -44,6 +50,12 @@ public class GeoClustering {
   public static StringBuilder bulkDoc = new StringBuilder();
   public static Map yamlMap = null;
   public static Logger logger = LoggerFactory.getLogger(GeoClustering.class);
+
+  public GeoClustering(ESClient esClient, Map esConfig, Map clustersConfig){
+    this.esClient = esClient;
+    this.esConfig = esConfig;
+    this.clustersConfig = clustersConfig;
+  }
 
   private Set<String> getGeoHashOfBoundingBox(BoundingBox box, int precision) {
 
@@ -62,7 +74,7 @@ public class GeoClustering {
   public List<String> getBlrGeoHashes() {
 
     BoundingBox bbox = getBangaloreBox();
-    Set<String> hashes = getGeoHashOfBoundingBox(bbox, (Integer)yamlMap.get("clusters_geo_precision"));
+    Set<String> hashes = getGeoHashOfBoundingBox(bbox, (Integer) yamlMap.get("clusters_geo_precision"));
     Iterator<String> iterator = hashes.iterator();
     int valitGeoHashCount = 0;
     List<String> geohashList = new ArrayList<String>();
@@ -74,6 +86,17 @@ public class GeoClustering {
     return geohashList;
   }
 
+  //read yaml file to get the map
+  private void readYAML() {
+
+    try {
+      Yaml yaml = new Yaml();
+      yamlMap = (Map) yaml.load(new FileInputStream(new File("src/main/resources/config/app.yaml")));
+      logger.info("configuration reading is complete");
+    }catch (Exception e){
+      logger.error("configuration reading failed");
+    }
+  }
   public Set<String> generateProductSetFromCSV(String pathtoFile, boolean isFnv) {
 
     Set<String> productIdSet = new HashSet<String>();
@@ -105,48 +128,22 @@ public class GeoClustering {
   public void createFreshClusteringIndices() {
 
     try {
-      // delete both geo and cluster index
-      HttpClient httpClient = HttpClientBuilder.create().build();
-      String multi_delete_api = (String)yamlMap.get("es_multi_delete_api");
-      multi_delete_api = multi_delete_api.replace(":index_name1",(String) yamlMap.get("geo_hash_index_name"));
-      multi_delete_api = multi_delete_api.replace(":index_name2",(String) yamlMap.get("clusters_index_name"));
-      HttpDelete httpDelete = new HttpDelete(multi_delete_api);
-      HttpResponse httpResponse = httpClient.execute(httpDelete);
-      logger.info("ES response to delete geohash and cluster indexes is "+EntityUtils.toString(httpResponse.getEntity()));
+      //delete cluster related indices
+      String indexName = (String) esConfig.get("geo_hash_index_name") + "," +(String) esConfig.get("clusters_index_name");
+      esClient.deleteIndex(indexName);
 
-      // create geo hash index
-      httpClient = HttpClientBuilder.create().build();
-      String geo_settings_api = (String) yamlMap.get("es_settings_api");
-      geo_settings_api = geo_settings_api.replace(":index_name", (String) yamlMap.get("geo_hash_index_name"));
-      HttpPost httpPost = new HttpPost(geo_settings_api);
-      httpPost.setEntity(new FileEntity(new File((String)yamlMap.get("geo_mappings_file_path"))));
-      httpResponse = httpClient.execute(httpPost);
-      logger.info("ES response to insert mappings for geo hash index is "+EntityUtils.toString(httpResponse.getEntity()));
-
-      // create geo clusters index
-      httpClient = HttpClientBuilder.create().build();
-      String clusters_settings_api = (String)yamlMap.get("es_settings_api");
-      clusters_settings_api = clusters_settings_api.replace(":index_name",(String)yamlMap.get("clusters_index_name"));
-      httpPost = new HttpPost(clusters_settings_api);
-      httpPost.setEntity(new FileEntity(new File((String)yamlMap.get("cluster_mappings_file_path"))));
-      httpResponse = httpClient.execute(httpPost);
-      logger.info("ES response to insert mappings for geo clusters api is "+ EntityUtils.toString(httpResponse.getEntity()));
+      //create geo hash index
+      FileEntity fileEntity = new FileEntity(new File((String) esConfig.get("cluster_mappings_file_path")));
+      JSONObject create_geo_response = esClient.createIndex((String) esConfig.get("geo_hash_index_name"), new FileEntity(new File((String) esConfig.get("geo_mappings_file_path"))));
+      logger.info("Creating geo mappings ",create_geo_response.toString());
+      JSONObject create_cluster_response = esClient.createIndex((String) esConfig.get("clusters_index_name"), new FileEntity(new File((String) esConfig.get("cluster_mappings_file_path"))));
+      logger.info("Creating cluster mappings ",create_cluster_response.toString());
     }catch (Exception e){
-      logger.error(e.getMessage());
+      logger.error("Exception in create/delete indices ",e);
     }
   }
 
-  //read yaml file to get the map
-  private void readYAML() {
 
-    try {
-      Yaml yaml = new Yaml();
-      yamlMap = (Map) yaml.load(new FileInputStream(new File("src/main/resources/config/app.yaml")));
-      logger.info("configuration reading is complete");
-    }catch (Exception e){
-      logger.error("configuration reading failed");
-    }
-  }
 
   //generate Hash set from the csv
   private Set<String> generatePopularProductSet() {
@@ -155,23 +152,40 @@ public class GeoClustering {
     FileReader fileReader = null;
     BufferedReader bufferedReader = null;
     try {
-      fileReader = new FileReader(new File((String)yamlMap.get("popular_products_file_path")));
+      fileReader = new FileReader(new File((String)clustersConfig.get("popular_products_file_path")));
       bufferedReader = new BufferedReader(fileReader);
       String line = bufferedReader.readLine();
       while ((line = bufferedReader.readLine()) != null) {
         productIdSet.add(line);
       }
     } catch (Exception e) {
-      logger.error("Error in generating popular products" +e.getMessage());
+      logger.error("Exception happened!",e);
     } finally {
       try {
         fileReader.close();
         bufferedReader.close();
       } catch (Exception e) {
-        logger.error(e.getMessage());
+        logger.error("Exception happened!",e);
       }
     }
     return productIdSet;
+  }
+
+
+  public void createClusters(){
+
+    //generate popular products
+    popularProdSet = generatePopularProductSet();
+    if(popularProdSet.size() ==0 ){
+      logger.error("Popular products is zero. Stopping now");
+      return;
+    }
+    logger.info("Popular items reading completed. Total number of popular products are "+popularProdSet.size());
+
+    createFreshClusteringIndices();
+
+
+
   }
 
   public static void main(String[] args) {
@@ -179,9 +193,9 @@ public class GeoClustering {
     long time_s = System.currentTimeMillis();
     logger.info("Clustering logic start "+time_s);
     try {
-      GeoClustering geoClustering = new GeoClustering();
-      // read configuration file
+      GeoClustering geoClustering = new GeoClustering(null,null,null);
       geoClustering.readYAML();
+      // read configuration file
       //generate popular products list if popular products are zero stop
       popularProdSet = geoClustering.generatePopularProductSet();
       if(popularProdSet.size() ==0 ){

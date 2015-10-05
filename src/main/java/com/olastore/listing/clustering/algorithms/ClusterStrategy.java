@@ -2,8 +2,8 @@ package com.olastore.listing.clustering.algorithms;
 
 import com.github.davidmoten.geo.GeoHash;
 import com.olastore.listing.clustering.pojos.ClusterDefinition;
-import com.olastore.listing.clustering.pojos.DistanceMatrix;
-import com.olastore.listing.clustering.pojos.Geopoint;
+import com.olastore.listing.clustering.Util.DistanceMatrix;
+import com.olastore.listing.clustering.geo.Geopoint;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
