@@ -2,7 +2,6 @@ package com.olastore.listing.clustering.algorithms;
 
 import com.github.davidmoten.geo.GeoHash;
 import com.github.davidmoten.geo.LatLong;
-import com.olastore.listing.clustering.clients.ESClient;
 import com.olastore.listing.clustering.geo.Geopoint;
 import com.olastore.listing.clustering.pojos.ClusterDefinition;
 import com.olastore.listing.clustering.pojos.ClusterPoint;
@@ -45,7 +44,7 @@ public class ClusteringWorker implements Callable<String> {
       jsonObject = jsonObject.getJSONObject("aggregations");
       jsonObject = jsonObject.getJSONObject("stores_unique");
       JSONArray stores = jsonObject.getJSONArray("buckets");
-      logger.info("Stores for geo hash",stores);
+      //logger.info("Stores for geo hash",stores);
       for(int i=0;i<stores.length();i++){
         //Get location
         String id = stores.getJSONObject(i).getInt("key")+"";
@@ -55,27 +54,27 @@ public class ClusteringWorker implements Callable<String> {
           is_store_exists = true;
         }else {
           try {
-            JSONObject response2 = GeoClustering.esClient.getESDoc((String)GeoClustering.clustersConfig.get("stores_index_name"),
-            (String)GeoClustering.clustersConfig.get("stores_index_name"),id);
+            JSONObject response2 = GeoClustering.esClient.getESDoc((String) GeoClustering.esConfig.get("stores_index_name"),
+                (String) GeoClustering.esConfig.get("stores_index_type"), id);
             JSONObject response1 = response2.getJSONObject("_source").getJSONObject("store_details");
             if(!(!response2.getBoolean("found") || response1.getString("store_state").contentEquals("active"))) continue;
             double lat = response1.getJSONObject("location").getDouble("lat");
             double lng = response1.getJSONObject("location").getDouble("lon");
             clusterPoint = new ClusterPoint(id,new Geopoint(lat,lng));
-            logger.info("Cluster Point ",clusterPoint);
+            //logger.info("Cluster Point ",clusterPoint);
             GeoClustering.clusterPoints.put(id, clusterPoint);
             is_store_exists = true;
 
           }catch (Exception e){
-            GeoClustering.logger.error("Store not found error "+e.getMessage());
+            //GeoClustering.logger.error("Store not found error "+e.getMessage());
           }
         }
         if(is_store_exists)reShops.add(id);
       }
     }catch (JSONException e){
-      GeoClustering.logger.error(e.getMessage());
+      //GeoClustering.logger.error(e.getMessage());
     }catch (Exception e){
-      GeoClustering.logger.error(e.getMessage());
+      //GeoClustering.logger.error(e.getMessage());
     }
     return reShops;
   }
@@ -91,9 +90,9 @@ public class ClusteringWorker implements Callable<String> {
     points = null;
     clusterDefinitionList = null;
     if(GeoClustering.jobsRun.getAndIncrement()%50==0){
-      GeoClustering.logger.info("Jobs run total is "+ GeoClustering.jobsRun);
+      //GeoClustering.logger.info("Jobs run total is "+ GeoClustering.jobsRun);
     }
-    return "DONE for "+geohash+ " -- "+ clusterDefinitionList.size()+" clusters made";
+    return "DONE for "+geohash;
   }
 
   public void pushClusters(List<ClusterDefinition> clusterDefinitions){
@@ -123,21 +122,21 @@ public class ClusteringWorker implements Callable<String> {
 
         if(GeoClustering.pushedClusters.contains(hash)){
         }else {
-          GeoClustering.esClient.pushToES((String)GeoClustering.clustersConfig.get("clusters_index_name"),
-              (String)GeoClustering.clustersConfig.get("clusters_index_name"),hash,clusterDefinition.toString());
+          GeoClustering.esClient.pushToES((String)GeoClustering.esConfig.get("clusters_index_name"),
+              (String)GeoClustering.esConfig.get("clusters_index_type"),hash,clusterDefinition.toString());
           GeoClustering.pushedClusters.add(hash);
         }
       }
       //make doc for pushing
-      String thisDocAsString = "{\"index\" : {\"_index\" : \"" +(String)GeoClustering.yamlMap.get("geo_hash_index_name")+ "\",\"_type\" : \""
-          + (String)GeoClustering.yamlMap.get("geo_hash_index_type")+ "\",\"_id\":\""
+      String thisDocAsString = "{\"index\" : {\"_index\" : \"" +(String)GeoClustering.esConfig.get("geo_hash_index_name")+ "\",\"_type\" : \""
+          + (String)GeoClustering.esConfig.get("geo_hash_index_type")+ "\",\"_id\":\""
           + clusterDefinitions.get(0).getGeoHash() + "\" }}\n" +geoDoc.toString() + "\n";
       String maxString = "";
 
       synchronized (GeoClustering.bulkDoc){
         GeoClustering.bulkDoc.append(thisDocAsString);
         GeoClustering.bulkDocCount.incrementAndGet();
-        if(GeoClustering.bulkDocCount.get()>500){
+        if(GeoClustering.bulkDocCount.get()>5){
           maxString = GeoClustering.bulkDoc.toString();
           GeoClustering.bulkDoc = new StringBuilder();
           GeoClustering.bulkDocCount =new AtomicInteger(0);
@@ -149,7 +148,7 @@ public class ClusteringWorker implements Callable<String> {
       }
 
     }catch (Exception e){
-      logger.error("Something went wrong while pushing clusters "+ e.getMessage());
+      //logger.error("Something went wrong while pushing clusters " + e.getMessage());
     }
   }
 }

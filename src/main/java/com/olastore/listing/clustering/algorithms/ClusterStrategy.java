@@ -1,15 +1,9 @@
 package com.olastore.listing.clustering.algorithms;
 
 import com.github.davidmoten.geo.GeoHash;
-import com.olastore.listing.clustering.pojos.ClusterDefinition;
 import com.olastore.listing.clustering.Util.DistanceMatrix;
 import com.olastore.listing.clustering.geo.Geopoint;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.util.EntityUtils;
+import com.olastore.listing.clustering.pojos.ClusterDefinition;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -144,26 +138,17 @@ public class ClusterStrategy {
           "{\"term\":{\"product_details.status\":\"current\"}}]}}}}," +
           "\"aggregations\":{\"unique_products\":{\"terms\":{\"field\":\"product_details.id\",\"size\":0}}," +
           "\"sub_cat_count\":{\"cardinality\":{\"field\":\"product_details.sub_category_id\"}}}}";
-      HttpClient httpClient = HttpClientBuilder.create().build();
-      String listing_serach_api = (String)GeoClustering.yamlMap.get("es_search_api");
-      listing_serach_api = listing_serach_api.replace(":index_name",(String)GeoClustering.yamlMap.get("listing_index_name"));
-      listing_serach_api = listing_serach_api.replace(":index_type",(String)GeoClustering.yamlMap.get("listing_index_type"));
-      HttpPost httpPost = new HttpPost(listing_serach_api);
-      httpPost.setEntity(new StringEntity(query));
-      HttpResponse httpResponse = httpClient.execute(httpPost);
-      int status_code = httpResponse.getStatusLine().getStatusCode();
-      if(status_code==200){
-        JSONObject result = new JSONObject(EntityUtils.toString(httpResponse.getEntity()));
-        JSONObject esResult = result.getJSONObject("aggregations");
-        JSONArray uniqueProdBuckets = esResult.getJSONObject("unique_products").getJSONArray("buckets");
-        for(int i=0;i<uniqueProdBuckets.length();i++){
-          String productId = uniqueProdBuckets.getJSONObject(i).getString("key");
-          productsSet.add(productId);
-        }
-        subCatCount = esResult.getJSONObject("sub_cat_count").getInt("value");
+      JSONObject result = GeoClustering.esClient.searchES((String)GeoClustering.esConfig.get("listing_index_name"),
+          (String)GeoClustering.esConfig.get("listing_index_type"),query);
+      JSONObject esResult = result.getJSONObject("aggregations");
+      JSONArray uniqueProdBuckets = esResult.getJSONObject("unique_products").getJSONArray("buckets");
+      for(int i=0;i<uniqueProdBuckets.length();i++){
+        String productId = uniqueProdBuckets.getJSONObject(i).getString("key");
+        productsSet.add(productId);
       }
+      subCatCount = esResult.getJSONObject("sub_cat_count").getInt("value");
     }catch (Exception e){
-      GeoClustering.logger.error(" Getting products and sub cate for a stores combination failed. "+e.getMessage());
+      //GeoClustering.logger.error(" Getting products and sub cat for a stores combination failed. "+e.getMessage());
     }
 
     // store & set both product count and sub cat count
@@ -249,7 +234,7 @@ public class ClusterStrategy {
       }
       return  gDistance;
     }catch (Exception e){
-      GeoClustering.logger.error("shortest distance computation failed "+ e.getMessage());
+      //GeoClustering.logger.error("shortest distance computation failed "+ e.getMessage());
     }
     return Double.MAX_VALUE;
   }
