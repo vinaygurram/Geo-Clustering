@@ -6,10 +6,10 @@
 
 #Location of the area Settings
 #we are using bangalore as of now
-  bbox_top_left :
+  ban_bbox_top_left :
     lat : 13.11091
     lon : 77.46253
-  bbox_bot_right :
+  ban_bbox_bot_right :
     lat : 12.81581
     lon : 77.79075
 #path to files

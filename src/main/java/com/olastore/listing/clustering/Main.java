@@ -23,11 +23,8 @@ public class Main {
       Map esConfig = configReader.readConfig("src/main/resources/config/es.yaml");
       Map clustersConfig = configReader.readConfig("src/main/resources/config/clusters.yaml");
 
-      String esHostKey = "es_host_"+args[0];
-      ESClient esClient = new ESClient((String)esConfig.get(esHostKey));
-
-      GeoClustering geoClustering = new GeoClustering(esClient,esConfig,clustersConfig);
-      geoClustering.createClusters();
+      GeoClustering geoClustering = new GeoClustering(args[0],esConfig,clustersConfig);
+      geoClustering.createClusters(args[1]);
 
       long time_end = System.currentTimeMillis();
       logger.info("Total time took to complete clusters is "+ (time_end-time_start) + "ms");

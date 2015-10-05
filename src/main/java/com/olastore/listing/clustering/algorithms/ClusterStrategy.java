@@ -101,37 +101,6 @@ public class ClusterStrategy {
         }
       }
 
-//            if(clustersForCombination==0) return validClusters;
-//            clustersForCombination = 0;
-
-//            if(points.size()>4){
-//
-//                //create clusters with 5 shops
-//                clusters = get5CClusters(points);
-//                for(List<String> clusterObj : clusters){
-//                    temp = checkValidCluster(geoHash,clusterObj);
-//                    if(temp!=null){
-//                        temp.setGeoHash(encodedGeoHash);
-//                        clustersForCombination++;
-//                        validClusters.add(temp);
-//                    }
-//                }
-//
-//
-//                if(clustersForCombination==0) return validClusters;
-//
-//                if(points.size()>5){
-//                    //create clusters with 6 shops
-//                    clusters = get6CClusters(points);
-//                    for(List<String> clusterObj : clusters){
-//                        temp = checkValidCluster(geoHash,clusterObj);
-//                        if(temp!=null){
-//                            temp.setGeoHash(encodedGeoHash);
-//                            validClusters.add(temp);
-//                        }
-//                    }
-//                }
-//            }
     }
     this.distanceMatrix = null;
     return validClusters;
