@@ -1,24 +1,14 @@
 package com.olastore.listing.clustering.clients;
 
-import com.olastore.listing.clustering.algorithms.GeoClustering;
-import com.olastore.listing.clustering.pojos.ClusterDefinition;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.log4j.Logger;
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by meetanshugupta on 01/10/15.

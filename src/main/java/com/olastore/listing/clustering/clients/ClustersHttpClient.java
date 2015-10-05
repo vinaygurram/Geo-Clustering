@@ -5,6 +5,7 @@ import org.apache.http.client.methods.*;
 import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -27,13 +28,12 @@ public class ClustersHttpClient {
   protected ClustersHttpClient(CloseableHttpClient closeableHttpClient) {
     this.closeableHttpClient = closeableHttpClient;
   }
-
   public JSONObject executeGet(URI uri) {
     JSONObject resultObject = null;
     CloseableHttpResponse closeableHttpResponse = null;
     try {
       HttpGet httpGet = new HttpGet(uri);
-      closeableHttpResponse = closeableHttpClient.execute(httpGet);
+      closeableHttpResponse = closeableHttpClient.execute(httpGet, new BasicHttpContext());
       int responseCode = closeableHttpResponse.getStatusLine().getStatusCode();
       if(responseCode == 200){
         resultObject = new JSONObject(EntityUtils.toString(closeableHttpResponse.getEntity()));
@@ -61,7 +61,7 @@ public class ClustersHttpClient {
     try {
       HttpPost httpPost = new HttpPost(uri);
       httpPost.setEntity(entity);
-      closeableHttpResponse = closeableHttpClient.execute(httpPost);
+      closeableHttpResponse = closeableHttpClient.execute(httpPost, new BasicHttpContext());
       int responseCode = closeableHttpResponse.getStatusLine().getStatusCode();
       if(responseCode == 200 || responseCode == 201 || responseCode == 204){
         resultObject = new JSONObject(EntityUtils.toString(closeableHttpResponse.getEntity()));
@@ -89,7 +89,7 @@ public class ClustersHttpClient {
     try {
       HttpPut httpPut = new HttpPut(uri);
       httpPut.setEntity(entity);
-      closeableHttpResponse = closeableHttpClient.execute(httpPut);
+      closeableHttpResponse = closeableHttpClient.execute(httpPut , new BasicHttpContext());
       int responseCode = closeableHttpResponse.getStatusLine().getStatusCode();
       if(responseCode == 200 || responseCode == 201 || responseCode == 204){
         resultObject = new JSONObject(EntityUtils.toString(closeableHttpResponse.getEntity()));
@@ -119,7 +119,7 @@ public class ClustersHttpClient {
     CloseableHttpResponse closeableHttpResponse = null;
     try {
       HttpDelete httpDelete = new HttpDelete(uri);
-      closeableHttpResponse  = closeableHttpClient.execute(httpDelete);
+      closeableHttpResponse  = closeableHttpClient.execute(httpDelete, new BasicHttpContext());
       int responseCode = closeableHttpResponse.getStatusLine().getStatusCode();
       if(responseCode == 200 || responseCode == 204){
         logger.info("deleted successfully");

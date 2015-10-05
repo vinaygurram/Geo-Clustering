@@ -19,6 +19,7 @@ public class ClustersHttpClientFactory {
 
   private static PoolingHttpClientConnectionManager httpClientPoolManager;
   private static ConnectionKeepAliveStrategy keepAliveStrategy;
+  private static CloseableHttpClient closeableHttpClient;
   private static final int TIME_OUT = 5;
 
   protected ClustersHttpClientFactory() {
@@ -31,7 +32,10 @@ public class ClustersHttpClientFactory {
   }
 
   public CloseableHttpClient getHttpClient(){
-    return HttpClients.custom().setConnectionManager(httpClientPoolManager).setKeepAliveStrategy(keepAliveStrategy).build();
+    if(closeableHttpClient==null){
+      closeableHttpClient = HttpClients.custom().setConnectionManager(httpClientPoolManager).setKeepAliveStrategy(keepAliveStrategy).build();
+    }
+    return closeableHttpClient;
   }
 
   private void createConnectionPool() {
