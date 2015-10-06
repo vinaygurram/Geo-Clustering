@@ -41,12 +41,12 @@ public class ClustersHttpClient {
       }
       EntityUtils.consume(closeableHttpResponse.getEntity());
     }catch (Exception e){
-      logger.error("Exception happened!",e);
+      logger.error("Exception happened!{}",e);
     }finally {
       try {
         closeableHttpResponse.close();
       }catch (IOException i){
-        logger.error("Exception happened!",i);
+        logger.error("Exception happened!{}",i);
       }
     }
     return resultObject;
@@ -68,12 +68,12 @@ public class ClustersHttpClient {
       }
       EntityUtils.consume(closeableHttpResponse.getEntity());
     }catch (Exception e) {
-    logger.error("Exception happened!",e);
+    logger.error("Exception happened!{}",e);
     }finally {
       try {
         closeableHttpResponse.close();
       }catch (IOException i){
-        logger.error("Exception happened!",i);
+        logger.error("Exception happened!{}",i);
       }
     }
     return resultObject;
@@ -95,12 +95,12 @@ public class ClustersHttpClient {
       }
       EntityUtils.consume(closeableHttpResponse.getEntity());
     }catch (Exception e){
-      logger.error("Exception happened!",e);
+      logger.error("Exception happened!{}",e);
     }finally {
       try {
         closeableHttpResponse.close();
       }catch (IOException i){
-        logger.error("Exception happened!",i);
+        logger.error("Exception happened!{}",i);
       }
     }
     return resultObject;
@@ -125,12 +125,12 @@ public class ClustersHttpClient {
       }
       EntityUtils.consume(closeableHttpResponse.getEntity());
     }catch (Exception e){
-      logger.error("Exception happened!",e);
+      logger.error("Exception happened!{}",e);
     }finally {
       try {
         closeableHttpResponse.close();
       }catch (IOException i){
-        logger.error("Exception happened!",i);
+        logger.error("Exception happened!{}",i);
       }
     }
   }

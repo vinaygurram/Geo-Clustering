@@ -25,6 +25,7 @@ public class ClusterBuilder {
     public static Map clustersConfig;
 
     public static ConcurrentHashMap<String, ClusterPoint> clusterPoints = new ConcurrentHashMap<>();
+    public static List<String> deletedStores = new CopyOnWriteArrayList<>();
     public static List<String> pushedClusters = Collections.synchronizedList(new ArrayList<String>());
     public static ConcurrentHashMap<String, Integer> clusterProductCoverage = new ConcurrentHashMap<>();
     public static ConcurrentHashMap<String, Integer> clusterSubCatCoverage = new ConcurrentHashMap<>();
@@ -48,11 +49,11 @@ public class ClusterBuilder {
             esClient.deleteIndex(indexName);
 
             JSONObject create_geo_response = esClient.createIndex((String) esConfig.get("geo_hash_index_name"), new FileEntity(new File((String) esConfig.get("geo_mappings_file_path"))));
-            logger.info("Creating geo mappings ", create_geo_response.toString());
+            logger.info("Creating geo mappings {}", create_geo_response.toString());
             JSONObject create_cluster_response = esClient.createIndex((String) esConfig.get("clusters_index_name"), new FileEntity(new File((String) esConfig.get("cluster_mappings_file_path"))));
-            logger.info("Creating cluster mappings ", create_cluster_response.toString());
+            logger.info("Creating cluster mappings {}", create_cluster_response.toString());
         } catch (Exception e) {
-            logger.error("Exception in create/delete indices ", e);
+            logger.error("Exception in create/delete indices {}", e);
         }
     }
 
@@ -70,13 +71,13 @@ public class ClusterBuilder {
                 productIdSet.add(line);
             }
         } catch (Exception e) {
-            logger.error("Exception happened!", e);
+            logger.error("Exception happened!{}", e);
         } finally {
             try {
                 if (fileReader != null) fileReader.close();
                 if (bufferedReader != null) bufferedReader.close();
             } catch (Exception e) {
-                logger.error("Exception happened!", e);
+                logger.error("Exception happened!{}", e);
             }
         }
         return productIdSet;
@@ -100,7 +101,7 @@ public class ClusterBuilder {
 
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         for (String geoHash : geoHashList) {
-            executorService.submit(new ClusteringWorker(geoHash));
+            executorService.submit(new ClusterWorker(geoHash));
         }
         executorService.shutdown();
         executorService.awaitTermination(1, TimeUnit.DAYS);
