@@ -36,7 +36,7 @@ public class ClustersESURIBuilder {
     this.ES_HOST = esHOST;
   }
 
-  protected ClustersESURIBuilder(String esHOST, String schme){
+  protected ClustersESURIBuilder(String esHOST, String schme) {
     this.ES_HOST = esHOST;
     this.schme = schme;
   }

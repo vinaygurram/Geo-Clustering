@@ -101,13 +101,13 @@ public class GeoClustering {
 
     //get geo hashes for the area
     GeoHashUtil geoHashUtil = new GeoHashUtil();
-    //List<String> geoHashList = geoHashUtil.getGeoHashesForArea(city);
-
-    List<String> geoHashList = new ArrayList<>();
-    geoHashList.add("tdr4phx");
-    geoHashList.add("tdr0ftn");
-    geoHashList.add("tdr1vzc");
-    geoHashList.add("tdr1yrb");
+    List<String> geoHashList = geoHashUtil.getGeoHashesForArea(city);
+//
+//    List<String> geoHashList = new ArrayList<>();
+//    geoHashList.add("tdr4phx");
+//    geoHashList.add("tdr0ftn");
+//    geoHashList.add("tdr1vzc");
+//    geoHashList.add("tdr1yrb");
 
     //run clustering algo
     ExecutorService executorService = Executors.newFixedThreadPool(10);

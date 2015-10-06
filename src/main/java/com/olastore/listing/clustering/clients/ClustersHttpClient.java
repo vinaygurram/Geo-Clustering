@@ -1,9 +1,7 @@
 package com.olastore.listing.clustering.clients;
 
-import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.*;
 import org.apache.http.entity.AbstractHttpEntity;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.util.EntityUtils;
@@ -13,7 +11,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
-import java.nio.charset.Charset;
 
 /**
  * Can only execute one operation. Supporting creating resources both from POST and PUT.
@@ -28,6 +25,7 @@ public class ClustersHttpClient {
   protected ClustersHttpClient(CloseableHttpClient closeableHttpClient) {
     this.closeableHttpClient = closeableHttpClient;
   }
+
   public JSONObject executeGet(URI uri) {
     JSONObject resultObject = null;
     CloseableHttpResponse closeableHttpResponse = null;
@@ -140,6 +138,5 @@ public class ClustersHttpClient {
       }
     }
   }
-
 
 }
