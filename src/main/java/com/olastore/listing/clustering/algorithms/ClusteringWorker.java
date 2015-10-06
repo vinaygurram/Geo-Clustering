@@ -35,12 +35,12 @@ public class ClusteringWorker implements Callable<String> {
   public List<String> getClusetringPointsForGeoHash(String geohash) {
     List<String> reShops = new ArrayList<String>();
     try {
-      int cluster_radius = (Integer) GeoClustering.clustersConfig.get("clusters_radius");
+      int cluster_radius = (Integer) ClusterBuilder.clustersConfig.get("clusters_radius");
       String query ="{\"size\":0,\"query\":{\"filtered\":{\"filter\":{\"geo_distance\":{\"distance\":\""+cluster_radius+"km\"," +
           "\"store_details.location\":\""+geohash+"\"}}}}," +
           "\"aggregations\":{\"stores_unique\":{\"terms\":{\"field\":\"store_details.id\",\"size\":0}}}}";
-      JSONObject jsonObject = GeoClustering.esClient.searchES((String) GeoClustering.esConfig.get("listing_index_name"),
-          (String) GeoClustering.esConfig.get("listing_index_type"),query);
+      JSONObject jsonObject = ClusterBuilder.esClient.searchES((String) ClusterBuilder.esConfig.get("listing_index_name"),
+          (String) ClusterBuilder.esConfig.get("listing_index_type"),query);
       jsonObject = jsonObject.getJSONObject("aggregations");
       jsonObject = jsonObject.getJSONObject("stores_unique");
       JSONArray stores = jsonObject.getJSONArray("buckets");
@@ -49,19 +49,19 @@ public class ClusteringWorker implements Callable<String> {
         String id = stores.getJSONObject(i).getInt("key")+"";
         ClusterPoint clusterPoint;
         boolean is_store_exists = false;
-        if(GeoClustering.clusterPoints.containsKey(id)){
+        if(ClusterBuilder.clusterPoints.containsKey(id)){
           is_store_exists = true;
         }else {
           try {
-            JSONObject response2 = GeoClustering.esClient.getESDoc((String) GeoClustering.esConfig.get("stores_index_name"),
-                (String) GeoClustering.esConfig.get("stores_index_type"), id);
+            JSONObject response2 = ClusterBuilder.esClient.getESDoc((String) ClusterBuilder.esConfig.get("stores_index_name"),
+                (String) ClusterBuilder.esConfig.get("stores_index_type"), id);
             JSONObject response1 = response2.getJSONObject("_source").getJSONObject("store_details");
             if(!(!response2.getBoolean("found") || response1.getString("store_state").contentEquals("active"))) continue;
             double lat = response1.getJSONObject("location").getDouble("lat");
             double lng = response1.getJSONObject("location").getDouble("lon");
             clusterPoint = new ClusterPoint(id,new Geopoint(lat,lng));
             logger.info("Cluster Point ",clusterPoint);
-            GeoClustering.clusterPoints.put(id, clusterPoint);
+            ClusterBuilder.clusterPoints.put(id, clusterPoint);
             is_store_exists = true;
 
           }catch (Exception e){
@@ -88,8 +88,8 @@ public class ClusteringWorker implements Callable<String> {
     if(clusterDefinitionList.size()>0)pushClusters(clusterDefinitionList);
     points = null;
     clusterDefinitionList = null;
-    if(GeoClustering.jobsRun.getAndIncrement()%50==0){
-      logger.info("Jobs run total is "+ GeoClustering.jobsRun);
+    if(ClusterBuilder.jobsRun.getAndIncrement()%50==0){
+      logger.info("Jobs run total is "+ ClusterBuilder.jobsRun);
     }
     return "DONE for "+geohash;
   }
@@ -119,30 +119,29 @@ public class ClusteringWorker implements Callable<String> {
         thisCluster.put("rank", clusterDefinition.getRank());
         clusters.put(thisCluster);
 
-        if(GeoClustering.pushedClusters.contains(hash)){
-        }else {
-          GeoClustering.esClient.pushToES((String)GeoClustering.esConfig.get("clusters_index_name"),
-              (String)GeoClustering.esConfig.get("clusters_index_type"),hash,clusterDefinition.toString());
-          GeoClustering.pushedClusters.add(hash);
+        if(!ClusterBuilder.pushedClusters.contains(hash)){
+          ClusterBuilder.esClient.pushToES((String) ClusterBuilder.esConfig.get("clusters_index_name"),
+              (String) ClusterBuilder.esConfig.get("clusters_index_type"),hash,clusterDefinition.toString());
+          ClusterBuilder.pushedClusters.add(hash);
         }
       }
-      String thisDocAsString = "{\"index\" : {\"_index\" : \"" +(String)GeoClustering.esConfig.get("geo_hash_index_name")+ "\",\"_type\" : \""
-          + (String)GeoClustering.esConfig.get("geo_hash_index_type")+ "\",\"_id\":\""
+      String thisDocAsString = "{\"index\" : {\"_index\" : \"" +(String) ClusterBuilder.esConfig.get("geo_hash_index_name")+ "\",\"_type\" : \""
+          + (String) ClusterBuilder.esConfig.get("geo_hash_index_type")+ "\",\"_id\":\""
           + clusterDefinitions.get(0).getGeoHash() + "\" }}\n" +geoDoc.toString() + "\n";
       String maxString = "";
 
-      synchronized (GeoClustering.bulkDoc){
-        GeoClustering.bulkDoc.append(thisDocAsString);
-        GeoClustering.bulkDocCount.incrementAndGet();
-        if(GeoClustering.bulkDocCount.get()>5){
-          maxString = GeoClustering.bulkDoc.toString();
-          GeoClustering.bulkDoc = new StringBuilder();
-          GeoClustering.bulkDocCount =new AtomicInteger(0);
+      synchronized (ClusterBuilder.bulkDoc){
+        ClusterBuilder.bulkDoc.append(thisDocAsString);
+        ClusterBuilder.bulkDocCount.incrementAndGet();
+        if(ClusterBuilder.bulkDocCount.get()>5){
+          maxString = ClusterBuilder.bulkDoc.toString();
+          ClusterBuilder.bulkDoc = new StringBuilder();
+          ClusterBuilder.bulkDocCount =new AtomicInteger(0);
         }
       }
 
       if(!maxString.isEmpty()){
-        GeoClustering.esClient.pushToESBulk("","",maxString);
+        ClusterBuilder.esClient.pushToESBulk("","",maxString);
       }
 
     }catch (Exception e){

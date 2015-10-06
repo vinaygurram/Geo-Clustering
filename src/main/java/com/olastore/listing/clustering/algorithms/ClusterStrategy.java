@@ -112,10 +112,10 @@ public class ClusterStrategy {
     clusterId = clusterId.substring(1);
     storeIdString = storeIdString.substring(0,storeIdString.length()-1);
 
-    if(GeoClustering.clusterRankMap.containsKey(clusterId)){
-      clusterObj.setProductsCount(GeoClustering.clusterProductCoverage.get(clusterId));
-      clusterObj.setSubCatCount(GeoClustering.clusterSubCatCoverage.get(clusterId));
-      clusterObj.setRank(GeoClustering.clusterRankMap.get(clusterId));
+    if(ClusterBuilder.clusterRankMap.containsKey(clusterId)){
+      clusterObj.setProductsCount(ClusterBuilder.clusterProductCoverage.get(clusterId));
+      clusterObj.setSubCatCount(ClusterBuilder.clusterSubCatCoverage.get(clusterId));
+      clusterObj.setRank(ClusterBuilder.clusterRankMap.get(clusterId));
       return;
     }
 
@@ -129,8 +129,8 @@ public class ClusterStrategy {
           "{\"term\":{\"product_details.status\":\"current\"}}]}}}}," +
           "\"aggregations\":{\"unique_products\":{\"terms\":{\"field\":\"product_details.id\",\"size\":0}}," +
           "\"sub_cat_count\":{\"cardinality\":{\"field\":\"product_details.sub_category_id\"}}}}";
-      JSONObject result = GeoClustering.esClient.searchES((String)GeoClustering.esConfig.get("listing_index_name"),
-          (String)GeoClustering.esConfig.get("listing_index_type"),query);
+      JSONObject result = ClusterBuilder.esClient.searchES((String) ClusterBuilder.esConfig.get("listing_index_name"),
+              (String) ClusterBuilder.esConfig.get("listing_index_type"), query);
       JSONObject esResult = result.getJSONObject("aggregations");
       JSONArray uniqueProdBuckets = esResult.getJSONObject("unique_products").getJSONArray("buckets");
       for(int i=0;i<uniqueProdBuckets.length();i++){
@@ -141,8 +141,8 @@ public class ClusterStrategy {
     }catch (Exception e){
     }
 
-    GeoClustering.clusterProductCoverage.put(clusterId,productsSet.size());
-    GeoClustering.clusterSubCatCoverage.put(clusterId,subCatCount);
+    ClusterBuilder.clusterProductCoverage.put(clusterId,productsSet.size());
+    ClusterBuilder.clusterSubCatCoverage.put(clusterId,subCatCount);
     clusterObj.setProductsCount(productsSet.size());
     clusterObj.setSubCatCount(subCatCount);
 
@@ -151,7 +151,7 @@ public class ClusterStrategy {
     int popular_products_count = intesection.size();
     double rank = ((double) popular_products_count/(double)popularProductsSet.size());
 
-    GeoClustering.clusterRankMap.put(clusterId,rank);
+    ClusterBuilder.clusterRankMap.put(clusterId,rank);
     clusterObj.setRank(rank);
   }
 
@@ -341,7 +341,7 @@ public class ClusterStrategy {
   public ClusterDefinition checkValidCluster(Geopoint geoHash,List<String> storeIdList){
     double shortDistance = Double.MAX_VALUE ;
     if(storeIdList.size()==1){
-      shortDistance = Geopoint.getDistance(geoHash, GeoClustering.clusterPoints.get(storeIdList.get(0)).getLocation());
+      shortDistance = Geopoint.getDistance(geoHash, ClusterBuilder.clusterPoints.get(storeIdList.get(0)).getLocation());
     }else if(storeIdList.size()==2){
       shortDistance =getShortestDistanceFor2(geoHash, storeIdList);
     }else if(storeIdList.size()>=3){
@@ -354,7 +354,7 @@ public class ClusterStrategy {
       clusterDefinition.addPoint(s);
     }
     clusterDefinition.setDistance(shortDistance);
-    setRankParameters(GeoClustering.popularProdSet, clusterDefinition);
+    setRankParameters(ClusterBuilder.popularProdSet, clusterDefinition);
 
     clusterDefinition.setStatus(true);
     return clusterDefinition;

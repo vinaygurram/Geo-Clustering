@@ -2,7 +2,7 @@ package com.olastore.listing.clustering.geo;
 
 import com.github.davidmoten.geo.Coverage;
 import com.github.davidmoten.geo.GeoHash;
-import com.olastore.listing.clustering.algorithms.GeoClustering;
+import com.olastore.listing.clustering.algorithms.ClusterBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,14 +21,14 @@ public class GeoHashUtil {
   }
 
   private BoundingBox getBBox(String city) {
-    Geopoint topleft = new Geopoint((Double)((HashMap) GeoClustering.clustersConfig.get(city+"_bbox_top_left")).get("lat"), (Double)((HashMap)GeoClustering.clustersConfig.get(city+"_bbox_top_left")).get("lon"));
-    Geopoint botright = new Geopoint((Double)((HashMap)GeoClustering.clustersConfig.get(city+"_bbox_bot_right")).get("lat"), (Double)((HashMap)GeoClustering.clustersConfig.get(city+"_bbox_bot_right")).get("lon"));
+    Geopoint topleft = new Geopoint((Double)((HashMap) ClusterBuilder.clustersConfig.get(city+"_bbox_top_left")).get("lat"), (Double)((HashMap) ClusterBuilder.clustersConfig.get(city+"_bbox_top_left")).get("lon"));
+    Geopoint botright = new Geopoint((Double)((HashMap) ClusterBuilder.clustersConfig.get(city+"_bbox_bot_right")).get("lat"), (Double)((HashMap) ClusterBuilder.clustersConfig.get(city+"_bbox_bot_right")).get("lon"));
     return new BoundingBox(topleft, botright);
   }
 
   public List<String> getGeoHashesForArea(String city) {
     BoundingBox bbox = getBBox(city);
-    Set<String> hashes = getGeoHashOfBoundingBox(bbox, (Integer) GeoClustering.clustersConfig.get("clusters_geo_precision"));
+    Set<String> hashes = getGeoHashOfBoundingBox(bbox, (Integer) ClusterBuilder.clustersConfig.get("clusters_geo_precision"));
     Iterator<String> iterator = hashes.iterator();
     List<String> geohashList = new ArrayList<>();
     while (iterator.hasNext()) {

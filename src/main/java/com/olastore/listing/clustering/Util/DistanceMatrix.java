@@ -1,12 +1,9 @@
 package com.olastore.listing.clustering.Util;
 
-import com.olastore.listing.clustering.algorithms.GeoClustering;
+import com.olastore.listing.clustering.algorithms.ClusterBuilder;
 import com.github.davidmoten.geo.GeoHash;
 import com.olastore.listing.clustering.geo.Geopoint;
-import org.apache.commons.io.IOUtils;
 
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
@@ -58,7 +55,7 @@ public class DistanceMatrix {
   synchronized private void computeDistancMatrix(Geopoint geoHashString,List<String> clusteringPoints) {
 
     for(String cp: clusteringPoints){
-      dMatrix.put(getHash(GeoHash.encodeHash(geoHashString.getLatitude(),geoHashString.getLongitude(),7),cp,true),Geopoint.getDistance(geoHashString, GeoClustering.clusterPoints.get(cp).getLocation()));
+      dMatrix.put(getHash(GeoHash.encodeHash(geoHashString.getLatitude(),geoHashString.getLongitude(),7),cp,true),Geopoint.getDistance(geoHashString, ClusterBuilder.clusterPoints.get(cp).getLocation()));
 
       for(String tp: clusteringPoints){
         if(!cp.contentEquals(tp)){
@@ -66,7 +63,7 @@ public class DistanceMatrix {
           String hashId2 = getHash(tp,cp,false);
           if(dMatrix.containsKey(hashId) || dMatrix.containsKey(hashId2)){
           }else {
-            dMatrix.put(hashId,Geopoint.getDistance(GeoClustering.clusterPoints.get(cp).getLocation(), GeoClustering.clusterPoints.get(tp).getLocation()));
+            dMatrix.put(hashId,Geopoint.getDistance(ClusterBuilder.clusterPoints.get(cp).getLocation(), ClusterBuilder.clusterPoints.get(tp).getLocation()));
           }
         }
       }

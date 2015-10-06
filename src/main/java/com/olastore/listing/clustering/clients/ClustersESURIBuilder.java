@@ -11,6 +11,8 @@ import java.util.HashMap;
  */
 public class ClustersESURIBuilder {
 
+  public static final String INDEX_NAME = "index_name";
+  public static final String INDEX_TYPE = "index_type";
   private String ES_HOST;
   private String schme = "http";
 
@@ -43,11 +45,11 @@ public class ClustersESURIBuilder {
 
   public URI getESSearchEndPoint(HashMap<String,String> searchLevels) throws URISyntaxException {
     StringBuilder path = new StringBuilder();
-    if(searchLevels.containsKey("index_name")){
-      path.append("/").append(searchLevels.get("index_name"));
+    if(searchLevels.containsKey(INDEX_NAME)){
+      path.append("/").append(searchLevels.get(INDEX_NAME));
     }
-    if(searchLevels.containsKey("index_type")){
-      path.append("/").append(searchLevels.get("index_type"));
+    if(searchLevels.containsKey(INDEX_TYPE)){
+      path.append("/").append(searchLevels.get(INDEX_TYPE));
     }
     path.append("/").append(endPoints.SEARCH);
     return  new URIBuilder().setScheme(schme).setHost(ES_HOST).setPath(path.toString()).build();
@@ -55,11 +57,11 @@ public class ClustersESURIBuilder {
 
   public URI getBulkEndPoint(HashMap<String,String> bulkLevels) throws URISyntaxException {
     StringBuilder path = new StringBuilder();
-    if(bulkLevels.containsKey("index_name")){
-      path.append("/").append(bulkLevels.get("index_name"));
+    if(bulkLevels.containsKey(INDEX_NAME)){
+      path.append("/").append(bulkLevels.get(INDEX_NAME));
     }
-    if(bulkLevels.containsKey("index_type")){
-      path.append("/").append(bulkLevels.get("index_type"));
+    if(bulkLevels.containsKey(INDEX_TYPE)){
+      path.append("/").append(bulkLevels.get(INDEX_TYPE));
     }
     path.append("/").append(endPoints.BULK);
     return  new URIBuilder().setScheme(schme).setHost(ES_HOST).setPath(path.toString()).build();
@@ -71,8 +73,8 @@ public class ClustersESURIBuilder {
 
   public URI getDocEndPoint(HashMap<String,String> docMap) throws URISyntaxException {
     StringBuilder path = new StringBuilder();
-    path.append("/").append(docMap.get("index_name"));
-    path.append("/").append(docMap.get("index_type"));
+    path.append("/").append(docMap.get(INDEX_NAME));
+    path.append("/").append(docMap.get(INDEX_TYPE));
     path.append("/").append(docMap.get("id"));
     return  new URIBuilder().setScheme(schme).setHost(ES_HOST).setPath(path.toString()).build();
 
