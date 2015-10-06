@@ -7,10 +7,10 @@ es_host_qa: es.qa.olahack.in
 es_host_prod: escluster.olastore.com:9200
 
 #index names
-geo_hash_index_name: geo_hash
-geo_hash_index_type: hash_type
-clusters_index_name: live_geo_clusters
-clusters_index_type: geo_cluster
+geo_hash_index_name: geo_hashes
+geo_hash_index_type: hash
+clusters_index_name: geo_clusters
+clusters_index_type: cluster
 listing_index_name: listing
 listing_index_type: list
 stores_index_name: stores_common

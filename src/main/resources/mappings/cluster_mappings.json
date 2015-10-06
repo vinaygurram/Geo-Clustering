@@ -4,7 +4,7 @@
         "index.mapper.dynamic": false
     },
     "mappings": {
-        "geo_cluster": {
+        "cluster": {
             "properties": {
                 "stores": {
                     "properties": {

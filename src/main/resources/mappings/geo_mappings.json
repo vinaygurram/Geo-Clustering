@@ -6,7 +6,7 @@
         }
     },
     "mappings": {
-        "hash_type": {
+        "hash": {
             "properties": {
                 "id": {
                     "type": "string"
