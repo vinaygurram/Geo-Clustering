@@ -44,22 +44,19 @@ public class GeoClustering {
 
   public void createFreshClusteringIndices() {
     try {
-      //delete cluster related indices
       String indexName = esConfig.get("geo_hash_index_name") + "," + esConfig.get("clusters_index_name");
       esClient.deleteIndex(indexName);
 
-      //create geo hash index
       JSONObject create_geo_response = esClient.createIndex((String) esConfig.get("geo_hash_index_name"), new FileEntity(new File((String) esConfig.get("geo_mappings_file_path"))));
-      //logger.info("Creating geo mappings ",create_geo_response.toString());
+      logger.info("Creating geo mappings ",create_geo_response.toString());
       JSONObject create_cluster_response = esClient.createIndex((String) esConfig.get("clusters_index_name"), new FileEntity(new File((String) esConfig.get("cluster_mappings_file_path"))));
-      //logger.info("Creating cluster mappings ",create_cluster_response.toString());
+      logger.info("Creating cluster mappings ",create_cluster_response.toString());
     }catch (Exception e){
-      //logger.error("Exception in create/delete indices ",e);
+      logger.error("Exception in create/delete indices ",e);
     }
   }
 
 
-  //generate Hash set from the csv
   private Set<String> generatePopularProductSet() {
 
     Set<String> productIdSet = new HashSet<>();
@@ -73,13 +70,13 @@ public class GeoClustering {
         productIdSet.add(line);
       }
     } catch (Exception e) {
-      //logger.error("Exception happened!",e);
+      logger.error("Exception happened!",e);
     } finally {
       try {
         if(fileReader!=null)fileReader.close();
         if(bufferedReader!=null)bufferedReader.close();
       } catch (Exception e) {
-        //logger.error("Exception happened!",e);
+        logger.error("Exception happened!",e);
       }
     }
     return productIdSet;
@@ -91,25 +88,16 @@ public class GeoClustering {
     //generate popular products
     popularProdSet = generatePopularProductSet();
     if(popularProdSet.size() ==0 ){
-      //logger.error("Popular products is zero. Stopping now");
+      logger.error("Popular products is zero. Stopping now");
       return;
     }
-    //logger.info("Popular items reading completed. Total number of popular products are "+popularProdSet.size());
+    logger.info("Popular items reading completed. Total number of popular products are "+popularProdSet.size());
 
-    //re create cluster indices
     createFreshClusteringIndices();
 
-    //get geo hashes for the area
     GeoHashUtil geoHashUtil = new GeoHashUtil();
     List<String> geoHashList = geoHashUtil.getGeoHashesForArea(city);
-//
-//    List<String> geoHashList = new ArrayList<>();
-//    geoHashList.add("tdr4phx");
-//    geoHashList.add("tdr0ftn");
-//    geoHashList.add("tdr1vzc");
-//    geoHashList.add("tdr1yrb");
 
-    //run clustering algo
     ExecutorService executorService = Executors.newFixedThreadPool(10);
     for (String geoHash : geoHashList) {
       executorService.submit(new ClusteringWorker(geoHash));
@@ -118,7 +106,7 @@ public class GeoClustering {
     executorService.awaitTermination(1, TimeUnit.DAYS);
     if(!bulkDoc.toString().isEmpty()){
       JSONObject result = esClient.pushToESBulk("", "", bulkDoc.toString());
-      //logger.info("Response from ES for  is "+ result);
+      logger.info("Response from ES for  is "+ result);
     }
   }
 

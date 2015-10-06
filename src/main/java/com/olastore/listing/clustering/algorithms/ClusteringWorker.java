@@ -44,9 +44,8 @@ public class ClusteringWorker implements Callable<String> {
       jsonObject = jsonObject.getJSONObject("aggregations");
       jsonObject = jsonObject.getJSONObject("stores_unique");
       JSONArray stores = jsonObject.getJSONArray("buckets");
-      //logger.info("Stores for geo hash",stores);
+      logger.info("Stores for geo hash",stores);
       for(int i=0;i<stores.length();i++){
-        //Get location
         String id = stores.getJSONObject(i).getInt("key")+"";
         ClusterPoint clusterPoint;
         boolean is_store_exists = false;
@@ -61,20 +60,20 @@ public class ClusteringWorker implements Callable<String> {
             double lat = response1.getJSONObject("location").getDouble("lat");
             double lng = response1.getJSONObject("location").getDouble("lon");
             clusterPoint = new ClusterPoint(id,new Geopoint(lat,lng));
-            //logger.info("Cluster Point ",clusterPoint);
+            logger.info("Cluster Point ",clusterPoint);
             GeoClustering.clusterPoints.put(id, clusterPoint);
             is_store_exists = true;
 
           }catch (Exception e){
-            //GeoClustering.logger.error("Store not found error "+e.getMessage());
+            logger.error("Store not found error "+e.getMessage());
           }
         }
         if(is_store_exists)reShops.add(id);
       }
     }catch (JSONException e){
-      //GeoClustering.logger.error(e.getMessage());
+      logger.error(e.getMessage());
     }catch (Exception e){
-      //GeoClustering.logger.error(e.getMessage());
+      logger.error(e.getMessage());
     }
     return reShops;
   }
@@ -90,7 +89,7 @@ public class ClusteringWorker implements Callable<String> {
     points = null;
     clusterDefinitionList = null;
     if(GeoClustering.jobsRun.getAndIncrement()%50==0){
-      //GeoClustering.logger.info("Jobs run total is "+ GeoClustering.jobsRun);
+      logger.info("Jobs run total is "+ GeoClustering.jobsRun);
     }
     return "DONE for "+geohash;
   }
@@ -127,7 +126,6 @@ public class ClusteringWorker implements Callable<String> {
           GeoClustering.pushedClusters.add(hash);
         }
       }
-      //make doc for pushing
       String thisDocAsString = "{\"index\" : {\"_index\" : \"" +(String)GeoClustering.esConfig.get("geo_hash_index_name")+ "\",\"_type\" : \""
           + (String)GeoClustering.esConfig.get("geo_hash_index_type")+ "\",\"_id\":\""
           + clusterDefinitions.get(0).getGeoHash() + "\" }}\n" +geoDoc.toString() + "\n";
@@ -148,7 +146,7 @@ public class ClusteringWorker implements Callable<String> {
       }
 
     }catch (Exception e){
-      //logger.error("Something went wrong while pushing clusters " + e.getMessage());
+      logger.error("Something went wrong while pushing clusters " + e.getMessage());
     }
   }
 }

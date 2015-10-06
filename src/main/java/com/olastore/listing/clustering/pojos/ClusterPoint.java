@@ -16,7 +16,6 @@ public class ClusterPoint {
         this.location = location;
     }
 
-    //Getter and Setter Methods
     public Geopoint getLocation() {
         return location;
     }

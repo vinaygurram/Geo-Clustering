@@ -26,8 +26,6 @@ public class ClusterStrategy {
 
   }
 
-  //TODO
-  // Need to re write the code
   public List<ClusterDefinition> createClusters(Geopoint geoHash,  List<String>points) {
 
     if(points==null || points.size()==0) return new ArrayList<ClusterDefinition>();
@@ -37,7 +35,6 @@ public class ClusterStrategy {
     List<ClusterDefinition> validClusters = new ArrayList<ClusterDefinition>();
     String encodedGeoHash = GeoHash.encodeHash(geoHash.getLatitude(),geoHash.getLongitude(),7);
     ClusterDefinition temp;
-    // create clusters with 1 shops
     for(String s: points){
 
       List<String> thisList = new ArrayList<String>();
@@ -53,7 +50,6 @@ public class ClusterStrategy {
     if(clustersForCombination==0) return validClusters;
     clustersForCombination = 0;
 
-    // create clusters with 2 shops
     List<List<String>>clusters = get2CClusters(points);
     for(List<String> clusterObj : clusters){
       temp = checkValidCluster(geoHash,clusterObj);
@@ -68,7 +64,6 @@ public class ClusterStrategy {
     if(clustersForCombination==0) return validClusters;
     clustersForCombination = 0;
 
-    // create clusters with 3 shops
     clusters =get3CClusters(points);
     for(List<String> clusterObj : clusters){
       temp = checkValidCluster(geoHash,clusterObj);
@@ -83,7 +78,6 @@ public class ClusterStrategy {
     if(clustersForCombination==0) return validClusters;
     clustersForCombination = 0;
 
-    // create clusters with 4 shops
     if(points.size()>3){
       clusters = get4CClusters(points);
       for(List<String> clusterObj : clusters){
@@ -107,7 +101,6 @@ public class ClusterStrategy {
    */
   public void setRankParameters(Set<String> popularProductsSet,ClusterDefinition clusterObj) {
 
-    // create cluster ID and Stores array
     String storeIdString = "";
     String clusterId = "";
     List<String> stores = clusterObj.getPoints();
@@ -119,7 +112,6 @@ public class ClusterStrategy {
     clusterId = clusterId.substring(1);
     storeIdString = storeIdString.substring(0,storeIdString.length()-1);
 
-    // check if data is already computed
     if(GeoClustering.clusterRankMap.containsKey(clusterId)){
       clusterObj.setProductsCount(GeoClustering.clusterProductCoverage.get(clusterId));
       clusterObj.setSubCatCount(GeoClustering.clusterSubCatCoverage.get(clusterId));
@@ -127,7 +119,6 @@ public class ClusterStrategy {
       return;
     }
 
-    // Get products set and sub cat count and product count
     Set<String> productsSet = new HashSet<>();
     int subCatCount = 0;
     try {
@@ -148,24 +139,18 @@ public class ClusterStrategy {
       }
       subCatCount = esResult.getJSONObject("sub_cat_count").getInt("value");
     }catch (Exception e){
-      //GeoClustering.logger.error(" Getting products and sub cat for a stores combination failed. "+e.getMessage());
     }
 
-    // store & set both product count and sub cat count
     GeoClustering.clusterProductCoverage.put(clusterId,productsSet.size());
     GeoClustering.clusterSubCatCoverage.put(clusterId,subCatCount);
     clusterObj.setProductsCount(productsSet.size());
     clusterObj.setSubCatCount(subCatCount);
 
-    // compute popular products in cluster
     Set<String> intesection = new HashSet<String>(productsSet);
     intesection.retainAll(popularProductsSet);
     int popular_products_count = intesection.size();
-
-    // compute rank
     double rank = ((double) popular_products_count/(double)popularProductsSet.size());
 
-    // store and set
     GeoClustering.clusterRankMap.put(clusterId,rank);
     clusterObj.setRank(rank);
   }
@@ -184,7 +169,6 @@ public class ClusterStrategy {
     return dfg>dsg?dsg:dfg;
   }
 
-  // For more than 3 shops
   public double getShortestDistanceForMultiPoints(Geopoint geohashPoint, List<String> points) {
     double smallestDistace = Double.MAX_VALUE;
     String geoString  = GeoHash.encodeHash(geohashPoint.getLatitude(),geohashPoint.getLongitude(),7);
@@ -234,7 +218,6 @@ public class ClusterStrategy {
       }
       return  gDistance;
     }catch (Exception e){
-      //GeoClustering.logger.error("shortest distance computation failed "+ e.getMessage());
     }
     return Double.MAX_VALUE;
   }
@@ -366,7 +349,6 @@ public class ClusterStrategy {
     }
     if(shortDistance>8) return null;
 
-    // make the clusterObject
     ClusterDefinition clusterDefinition = new ClusterDefinition();
     for(String s: storeIdList){
       clusterDefinition.addPoint(s);
@@ -374,7 +356,6 @@ public class ClusterStrategy {
     clusterDefinition.setDistance(shortDistance);
     setRankParameters(GeoClustering.popularProdSet, clusterDefinition);
 
-    // set cluster status offline/online
     clusterDefinition.setStatus(true);
     return clusterDefinition;
   }
@@ -384,11 +365,8 @@ public class ClusterStrategy {
    */
   public List<List<String>> permute(String[] ids) {
     List<List<String>> permutations = new ArrayList<List<String>>();
-    // empty list to continue the loop
     permutations.add(new ArrayList<String>());
     for ( int i = 0; i < ids.length; i++ ) {
-      // create a temporary container to hold the new permutations
-      // while we iterate over the old ones
       List<List<String>> current = new ArrayList<List<String>>();
       for ( List<String> permutation : permutations ) {
         for ( int j = 0, n = permutation.size() + 1; j < n; j++ ) {

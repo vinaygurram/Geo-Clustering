@@ -58,7 +58,6 @@ public class DistanceMatrix {
   synchronized private void computeDistancMatrix(Geopoint geoHashString,List<String> clusteringPoints) {
 
     for(String cp: clusteringPoints){
-      //geoHash Calculation
       dMatrix.put(getHash(GeoHash.encodeHash(geoHashString.getLatitude(),geoHashString.getLongitude(),7),cp,true),Geopoint.getDistance(geoHashString, GeoClustering.clusterPoints.get(cp).getLocation()));
 
       for(String tp: clusteringPoints){
@@ -74,24 +73,4 @@ public class DistanceMatrix {
     }
   }
 
-
-  public void getGoogleDistanceBetweenPoints(Geopoint g1, Geopoint g2) {
-
-    try {
-      String API= "https://maps.googleapis.com/maps/api/distancematrix/json?" +
-          "key=AIzaSyDonh7jhpT3yEUXTNCj_o1a_Fo5NSPpdUA&" +
-          "origins="+g1.getLatitude()+","+g1.getLongitude()+"&" +
-          "destinations="+g1.getLatitude()+","+g2.getLongitude()+"&mode=driving";
-      URL url = new URL(API);
-      HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-
-      String result = IOUtils.toString(urlConnection.getInputStream());
-
-
-
-    }catch (Exception e){
-      e.printStackTrace();
-    }
-
-  }
 }

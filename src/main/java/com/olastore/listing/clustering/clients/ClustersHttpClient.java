@@ -45,7 +45,6 @@ public class ClustersHttpClient {
     }finally {
       try {
         closeableHttpResponse.close();
-        //closeableHttpClient.close();
       }catch (IOException i){
         logger.error("Exception happened!",i);
       }
@@ -73,7 +72,6 @@ public class ClustersHttpClient {
     }finally {
       try {
         closeableHttpResponse.close();
-        //closeableHttpClient.close();
       }catch (IOException i){
         logger.error("Exception happened!",i);
       }
@@ -101,7 +99,6 @@ public class ClustersHttpClient {
     }finally {
       try {
         closeableHttpResponse.close();
-        //closeableHttpClient.close();
       }catch (IOException i){
         logger.error("Exception happened!",i);
       }
@@ -132,7 +129,6 @@ public class ClustersHttpClient {
     }finally {
       try {
         closeableHttpResponse.close();
-        //closeableHttpClient.close();
       }catch (IOException i){
         logger.error("Exception happened!",i);
       }
