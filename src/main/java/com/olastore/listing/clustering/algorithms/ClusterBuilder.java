@@ -1,6 +1,7 @@
 package com.olastore.listing.clustering.algorithms;
 
 import com.olastore.listing.clustering.clients.ESClient;
+import com.olastore.listing.clustering.utils.ConfigReader;
 import com.olastore.listing.clustering.utils.GeoHashUtil;
 import com.olastore.listing.clustering.lib.models.ClusterPoint;
 import org.apache.http.entity.FileEntity;
@@ -21,8 +22,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ClusterBuilder {
 
     public static ESClient esClient;
-    public static Map esConfig;
-    public static Map clustersConfig;
+    private Map esConfig;
+    private Map clustersConfig;
 
     public static ConcurrentHashMap<String, ClusterPoint> clusterPoints = new ConcurrentHashMap<>();
     public static List<String> deletedStores = new CopyOnWriteArrayList<>();
@@ -36,11 +37,11 @@ public class ClusterBuilder {
     public static StringBuilder bulkDoc = new StringBuilder();
     public static Logger logger = LoggerFactory.getLogger(ClusterBuilder.class);
 
-    public ClusterBuilder(String env, Map esConfig, Map clustersConfig) {
+    public ClusterBuilder(String env, ConfigReader esConfigReader, ConfigReader clustersConfigReader) {
         String esHostKey = "es_host_" + env;
         this.esClient = new ESClient((String) esConfig.get(esHostKey));
-        this.esConfig = esConfig;
-        this.clustersConfig = clustersConfig;
+        this.esConfig = esConfigReader.readAllValues();
+        this.clustersConfig = clustersConfigReader.readAllValues();
     }
 
     public void reinitializeClusteringIndices() {
@@ -96,11 +97,11 @@ public class ClusterBuilder {
         reinitializeClusteringIndices();
 
         GeoHashUtil geoHashUtil = new GeoHashUtil();
-        List<String> geoHashList = geoHashUtil.getGeoHashesForArea(city);
+        List<String> geoHashList = geoHashUtil.getGeoHashesForArea(city, this.clustersConfig);
 
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         for (String geoHash : geoHashList) {
-            executorService.submit(new ClusterWorker(geoHash));
+            executorService.submit(new ClusterWorker(geoHash, esConfig, clustersConfig));
         }
         executorService.shutdown();
         executorService.awaitTermination(1, TimeUnit.DAYS);

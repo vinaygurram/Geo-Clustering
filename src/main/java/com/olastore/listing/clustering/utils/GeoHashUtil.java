@@ -22,15 +22,17 @@ public class GeoHashUtil {
     return boxCoverage.getHashes();
   }
 
-  private BoundingBox getBBox(String city) {
-    Geopoint topleft = new Geopoint((Double)((HashMap) ClusterBuilder.clustersConfig.get(city+"_bbox_top_left")).get("lat"), (Double)((HashMap) ClusterBuilder.clustersConfig.get(city+"_bbox_top_left")).get("lon"));
-    Geopoint botright = new Geopoint((Double)((HashMap) ClusterBuilder.clustersConfig.get(city+"_bbox_bot_right")).get("lat"), (Double)((HashMap) ClusterBuilder.clustersConfig.get(city+"_bbox_bot_right")).get("lon"));
+  private BoundingBox getBBox(String city, Map clustersConfig) {
+    Geopoint topleft = new Geopoint((Double)((HashMap) clustersConfig.get(city+"_bbox_top_left")).get("lat"),
+            (Double)((HashMap) clustersConfig.get(city+"_bbox_top_left")).get("lon"));
+    Geopoint botright = new Geopoint((Double)((HashMap) clustersConfig.get(city+"_bbox_bot_right")).get("lat"),
+            (Double)((HashMap) clustersConfig.get(city+"_bbox_bot_right")).get("lon"));
     return new BoundingBox(topleft, botright);
   }
 
-  public List<String> getGeoHashesForArea(String city) {
-    BoundingBox bbox = getBBox(city);
-    Set<String> hashes = getGeoHashOfBoundingBox(bbox, (Integer) ClusterBuilder.clustersConfig.get("clusters_geo_precision"));
+  public List<String> getGeoHashesForArea(String city, Map clustersConfig) {
+    BoundingBox bbox = getBBox(city, clustersConfig);
+    Set<String> hashes = getGeoHashOfBoundingBox(bbox, (Integer) clustersConfig.get("clusters_geo_precision"));
     Iterator<String> iterator = hashes.iterator();
     List<String> geohashList = new ArrayList<>();
     while (iterator.hasNext()) {

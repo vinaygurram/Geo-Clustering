@@ -6,11 +6,12 @@ import com.olastore.listing.clustering.lib.models.Geopoint;
 import com.olastore.listing.clustering.lib.models.ClusterDefinition;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
 /**
- * Created by gurramvinay on 6/26/15.
  * defining strategy to create the geo hash based cluster.
  * Covers point selection criteria, Sample Space for Cluster, Max Distance Coverage,Cluster Selection Criteria
  * distance matrix is computed for each geo hash
@@ -18,16 +19,19 @@ import java.util.*;
 
 public class ClusterStrategy {
 
+  private static Logger LOG = LoggerFactory.getLogger(ClusterStrategy.class);
+
   private DistanceMatrix distanceMatrix;
+    private Map esConfig;
 
   public void createDistanceMatrix(Geopoint geoHash, List<String> points) {
     List<String> ttpoints = new ArrayList<String>(points);
     this.distanceMatrix = new DistanceMatrix(geoHash,ttpoints);
-
   }
 
-  public List<ClusterDefinition> createClusters(Geopoint geoHash,  List<String>points) {
+  public List<ClusterDefinition> createClusters(Geopoint geoHash,  List<String>points, Map esConfig) {
 
+      this.esConfig = esConfig;
     if(points==null || points.size()==0) return new ArrayList<ClusterDefinition>();
     int clustersForCombination = 0;
 
@@ -129,8 +133,8 @@ public class ClusterStrategy {
           "{\"term\":{\"product_details.status\":\"current\"}}]}}}}," +
           "\"aggregations\":{\"unique_products\":{\"terms\":{\"field\":\"product_details.id\",\"size\":0}}," +
           "\"sub_cat_count\":{\"cardinality\":{\"field\":\"product_details.sub_category_id\"}}}}";
-      JSONObject result = ClusterBuilder.esClient.searchES((String) ClusterBuilder.esConfig.get("listing_index_name"),
-              (String) ClusterBuilder.esConfig.get("listing_index_type"), query);
+      JSONObject result = ClusterBuilder.esClient.searchES((String) esConfig.get("listing_index_name"),
+              (String) esConfig.get("listing_index_type"), query);
       JSONObject esResult = result.getJSONObject("aggregations");
       JSONArray uniqueProdBuckets = esResult.getJSONObject("unique_products").getJSONArray("buckets");
       for(int i=0;i<uniqueProdBuckets.length();i++){
@@ -139,6 +143,7 @@ public class ClusterStrategy {
       }
       subCatCount = esResult.getJSONObject("sub_cat_count").getInt("value");
     }catch (Exception e){
+      LOG.error("Found error while setting ranks " + e.toString());
     }
 
     ClusterBuilder.clusterProductCoverage.put(clusterId,productsSet.size());
@@ -320,7 +325,7 @@ public class ClusterStrategy {
    */
   public List<List<String>> get2CClusters(List<String> strings){
 
-    if(strings.size()<2) return new ArrayList<List<String>>();
+    if(strings.size()<2) return new ArrayList<>();
     List<List<String>> totalList = new ArrayList<List<String>>();
     for(int i=0;i<strings.size();i++){
       List<String> tempList = new ArrayList<String>();
@@ -375,23 +380,10 @@ public class ClusterStrategy {
           current.add(temp);
         }
       }
-      permutations = new ArrayList<List<String>>(current);
+      permutations = new ArrayList<>(current);
     }
     return permutations;
   }
 
-  /*
-   * Creates the hash for a list of strings
-   * Hash will be same for different combination of same strings
-   */
-  public String getHashForCHM(List<String> strings) {
-    Collections.sort(strings);
-    StringBuilder sb = new StringBuilder();
-    for(String s : strings){
-      sb.append("-");
-      sb.append(s);
-    }
-    return sb.toString().substring(1);
-  }
 
 }

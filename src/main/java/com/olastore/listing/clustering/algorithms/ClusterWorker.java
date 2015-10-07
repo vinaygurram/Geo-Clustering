@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -23,8 +24,14 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class ClusterWorker implements Callable<String> {
   String geohash;
-  ClusterWorker(String geohash){
+  Map esConfig;
+  Map clustersConfig;
+
+  ClusterWorker(String geohash, Map esConfig, Map clustersConfig) {
     this.geohash = geohash;
+      this.clustersConfig = clustersConfig;
+      this.esConfig = esConfig;
+
   }
   private static final Logger logger = LoggerFactory.getLogger(ClusterWorker.class);
 
@@ -35,12 +42,12 @@ public class ClusterWorker implements Callable<String> {
   public List<String> getClusetringPointsForGeoHash(String geohash) {
     List<String> reShops = new ArrayList<String>();
     try {
-      int cluster_radius = (Integer) ClusterBuilder.clustersConfig.get("clusters_radius");
+      int cluster_radius = (Integer) clustersConfig.get("clusters_radius");
       String query ="{\"size\":0,\"query\":{\"filtered\":{\"filter\":{\"geo_distance\":{\"distance\":\""+cluster_radius+"km\"," +
           "\"store_details.location\":\""+geohash+"\"}}}}," +
           "\"aggregations\":{\"stores_unique\":{\"terms\":{\"field\":\"store_details.id\",\"size\":0}}}}";
-      JSONObject jsonObject = ClusterBuilder.esClient.searchES((String) ClusterBuilder.esConfig.get("listing_index_name"),
-          (String) ClusterBuilder.esConfig.get("listing_index_type"),query);
+      JSONObject jsonObject = ClusterBuilder.esClient.searchES((String) esConfig.get("listing_index_name"),
+          (String) esConfig.get("listing_index_type"),query);
       jsonObject = jsonObject.getJSONObject("aggregations");
       jsonObject = jsonObject.getJSONObject("stores_unique");
       JSONArray stores = jsonObject.getJSONArray("buckets");
@@ -54,8 +61,8 @@ public class ClusterWorker implements Callable<String> {
         }else if(ClusterBuilder.deletedStores.contains(id)){
         }else {
           try {
-            JSONObject response2 = ClusterBuilder.esClient.getESDoc((String) ClusterBuilder.esConfig.get("stores_index_name"),
-                (String) ClusterBuilder.esConfig.get("stores_index_type"), id);
+            JSONObject response2 = ClusterBuilder.esClient.getESDoc((String) esConfig.get("stores_index_name"),
+                (String) esConfig.get("stores_index_type"), id);
             if(response2!=null){
               JSONObject response1 = response2.getJSONObject("_source").getJSONObject("store_details");
               if(!(!response2.getBoolean("found") || response1.getString("store_state").contentEquals("active"))) continue;
@@ -125,13 +132,13 @@ public class ClusterWorker implements Callable<String> {
         clusters.put(thisCluster);
 
         if(!ClusterBuilder.pushedClusters.contains(hash)){
-          ClusterBuilder.esClient.pushToES((String) ClusterBuilder.esConfig.get("clusters_index_name"),
-              (String) ClusterBuilder.esConfig.get("clusters_index_type"),hash,clusterDefinition.toString());
+          ClusterBuilder.esClient.pushToES((String) esConfig.get("clusters_index_name"),
+              (String) esConfig.get("clusters_index_type"),hash,clusterDefinition.toString());
           ClusterBuilder.pushedClusters.add(hash);
         }
       }
-      String thisDocAsString = "{\"index\" : {\"_index\" : \"" +(String) ClusterBuilder.esConfig.get("geo_hash_index_name")+ "\",\"_type\" : \""
-          + (String) ClusterBuilder.esConfig.get("geo_hash_index_type")+ "\",\"_id\":\""
+      String thisDocAsString = "{\"index\" : {\"_index\" : \"" +(String) esConfig.get("geo_hash_index_name")+ "\",\"_type\" : \""
+          + (String) esConfig.get("geo_hash_index_type")+ "\",\"_id\":\""
           + clusterDefinitions.get(0).getGeoHash() + "\" }}\n" +geoDoc.toString() + "\n";
       String maxString = "";
 

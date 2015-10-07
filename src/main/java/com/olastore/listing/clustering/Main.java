@@ -28,11 +28,10 @@ public class Main {
         return;
       }
 
-      ConfigReader configReader = new ConfigReader();
-      Map esConfig = configReader.readConfig("src/main/resources/config/es.yaml");
-      Map clustersConfig = configReader.readConfig("src/main/resources/config/clusters.yaml");
+      ConfigReader esConfigReader = new ConfigReader("src/main/resources/config/es.yaml");
+      ConfigReader clustersConfigReader = new ConfigReader("src/main/resources/config/clusters.yaml");
 
-      ClusterBuilder clusterBuilder = new ClusterBuilder(args[0],esConfig,clustersConfig);
+      ClusterBuilder clusterBuilder = new ClusterBuilder(args[0],esConfigReader,clustersConfigReader);
       clusterBuilder.createClusters(args[1]);
 
       long time_end = System.currentTimeMillis();

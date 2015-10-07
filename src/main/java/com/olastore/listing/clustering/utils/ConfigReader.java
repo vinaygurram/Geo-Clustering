@@ -12,8 +12,18 @@ import java.util.Map;
  */
 public class ConfigReader {
 
-  public Map readConfig(String configFilePath) throws FileNotFoundException {
+  private Map configValues;
+
+  public ConfigReader(String configFilePath) throws FileNotFoundException {
     Yaml yaml = new Yaml();
-    return  (Map) yaml.load(new FileInputStream(new File(configFilePath)));
+    this.configValues = (Map) yaml.load(new FileInputStream(new File(configFilePath)));
+  }
+
+  public Object readValue(String key) {
+    return configValues.get(key);
+  }
+
+  public Map readAllValues() {
+    return configValues;
   }
 }
