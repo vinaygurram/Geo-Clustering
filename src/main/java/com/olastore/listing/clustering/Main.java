@@ -18,6 +18,16 @@ public class Main {
     try {
       long time_start = System.currentTimeMillis();
 
+      if(args[0] == null || args[0].isEmpty()){
+        logger.error("Please provide valid environment variable");
+        return;
+      }
+
+      if(args[1] == null || args[1].isEmpty()){
+        logger.error("Please provide valid city name");
+        return;
+      }
+
       ConfigReader configReader = new ConfigReader();
       Map esConfig = configReader.readConfig("src/main/resources/config/es.yaml");
       Map clustersConfig = configReader.readConfig("src/main/resources/config/clusters.yaml");

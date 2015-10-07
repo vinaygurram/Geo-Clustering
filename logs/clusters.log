@@ -1,4 +1,0 @@
-2015-10-06 12:50:40,496 ERROR ClustersHttpClient:com.olastore.listing.clustering.clients.ClustersHttpClient executeDelete 126 - Request failed 404 
-2015-10-06 12:50:40,497 ERROR ClustersHttpClient:com.olastore.listing.clustering.clients.ClustersHttpClient executeDelete 127 - Message is HTTP/1.1 404 Not Found 
-2015-10-06 12:50:41,145 INFO  GeoHashUtil:com.olastore.listing.clustering.utils.GeoHashUtil getGeoHashesForArea 38 - Total number of hashes
-2015-10-06 12:57:19,714 INFO  Main:com.olastore.listing.clustering.Main main 30 - Total time took to complete clusters is 399631ms 

@@ -37,7 +37,7 @@ public class GeoHashUtil {
       String thisHash = iterator.next();
       geohashList.add(thisHash);
     }
-    logger.info("Total number of hashes", geohashList.size());
+    logger.info("Total number of hashes {}", geohashList.size());
     return geohashList;
   }
 }

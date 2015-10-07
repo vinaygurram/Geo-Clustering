@@ -21,12 +21,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * This Class creates clusters for a geo hash and push the clusters into ES. Created by gurramvinay on 7/1/15.
  */
-public class ClusteringWorker implements Callable<String> {
+public class ClusterWorker implements Callable<String> {
   String geohash;
-  ClusteringWorker(String geohash){
+  ClusterWorker(String geohash){
     this.geohash = geohash;
   }
-  private static final Logger logger = LoggerFactory.getLogger(ClusteringWorker.class);
+  private static final Logger logger = LoggerFactory.getLogger(ClusterWorker.class);
 
   /**
    * Calls listing index to find stores within 6kms
@@ -44,36 +44,41 @@ public class ClusteringWorker implements Callable<String> {
       jsonObject = jsonObject.getJSONObject("aggregations");
       jsonObject = jsonObject.getJSONObject("stores_unique");
       JSONArray stores = jsonObject.getJSONArray("buckets");
-      logger.info("Stores for geo hash",stores);
+      logger.info("Stores for geo hash {}",stores);
       for(int i=0;i<stores.length();i++){
         String id = stores.getJSONObject(i).getInt("key")+"";
         ClusterPoint clusterPoint;
         boolean is_store_exists = false;
         if(ClusterBuilder.clusterPoints.containsKey(id)){
           is_store_exists = true;
+        }else if(ClusterBuilder.deletedStores.contains(id)){
         }else {
           try {
             JSONObject response2 = ClusterBuilder.esClient.getESDoc((String) ClusterBuilder.esConfig.get("stores_index_name"),
                 (String) ClusterBuilder.esConfig.get("stores_index_type"), id);
-            JSONObject response1 = response2.getJSONObject("_source").getJSONObject("store_details");
-            if(!(!response2.getBoolean("found") || response1.getString("store_state").contentEquals("active"))) continue;
-            double lat = response1.getJSONObject("location").getDouble("lat");
-            double lng = response1.getJSONObject("location").getDouble("lon");
-            clusterPoint = new ClusterPoint(id,new Geopoint(lat,lng));
-            logger.info("Cluster Point ",clusterPoint);
-            ClusterBuilder.clusterPoints.put(id, clusterPoint);
-            is_store_exists = true;
-
+            if(response2!=null){
+              JSONObject response1 = response2.getJSONObject("_source").getJSONObject("store_details");
+              if(!(!response2.getBoolean("found") || response1.getString("store_state").contentEquals("active"))) continue;
+              double lat = response1.getJSONObject("location").getDouble("lat");
+              double lng = response1.getJSONObject("location").getDouble("lon");
+              clusterPoint = new ClusterPoint(id,new Geopoint(lat,lng));
+              logger.info("Cluster Point {}",clusterPoint);
+              ClusterBuilder.clusterPoints.put(id, clusterPoint);
+              is_store_exists = true;
+            }else {
+              logger.error("Store not found");
+              ClusterBuilder.deletedStores.add(id);
+            }
           }catch (Exception e){
-            logger.error("Store not found error "+e.getMessage());
+            logger.error("Store not found {}",e);
           }
         }
         if(is_store_exists)reShops.add(id);
       }
     }catch (JSONException e){
-      logger.error(e.getMessage());
+      logger.error("Json exceptions {}",e);
     }catch (Exception e){
-      logger.error(e.getMessage());
+      logger.error("Exception {}",e);
     }
     return reShops;
   }
@@ -89,7 +94,7 @@ public class ClusteringWorker implements Callable<String> {
     points = null;
     clusterDefinitionList = null;
     if(ClusterBuilder.jobsRun.getAndIncrement()%50==0){
-      logger.info("Jobs run total is "+ ClusterBuilder.jobsRun);
+      logger.info("Jobs run total is {}", ClusterBuilder.jobsRun);
     }
     return "DONE for "+geohash;
   }
@@ -133,7 +138,7 @@ public class ClusteringWorker implements Callable<String> {
       synchronized (ClusterBuilder.bulkDoc){
         ClusterBuilder.bulkDoc.append(thisDocAsString);
         ClusterBuilder.bulkDocCount.incrementAndGet();
-        if(ClusterBuilder.bulkDocCount.get()>5){
+        if(ClusterBuilder.bulkDocCount.get()>500){
           maxString = ClusterBuilder.bulkDoc.toString();
           ClusterBuilder.bulkDoc = new StringBuilder();
           ClusterBuilder.bulkDocCount =new AtomicInteger(0);
@@ -145,7 +150,7 @@ public class ClusteringWorker implements Callable<String> {
       }
 
     }catch (Exception e){
-      logger.error("Something went wrong while pushing clusters " + e.getMessage());
+      logger.error("Something went wrong while pushing clusters {}", e);
     }
   }
 }
