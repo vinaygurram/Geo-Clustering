@@ -1,4 +1,4 @@
-package com.olastore.listing.clustering.pojos;
+package com.olastore.listing.clustering.lib.models;
 
 import org.json.JSONArray;
 import org.json.JSONObject;

@@ -22,7 +22,7 @@ public class ClustersHttpClient {
   private CloseableHttpClient closeableHttpClient;
   private static final Logger logger = LoggerFactory.getLogger(ClustersHttpClient.class);
 
-  protected ClustersHttpClient(CloseableHttpClient closeableHttpClient) {
+  public ClustersHttpClient(CloseableHttpClient closeableHttpClient) {
     this.closeableHttpClient = closeableHttpClient;
   }
 

@@ -1,8 +1,8 @@
 package com.olastore.listing.clustering.algorithms;
 
 import com.olastore.listing.clustering.clients.ESClient;
-import com.olastore.listing.clustering.geo.GeoHashUtil;
-import com.olastore.listing.clustering.pojos.ClusterPoint;
+import com.olastore.listing.clustering.utils.GeoHashUtil;
+import com.olastore.listing.clustering.lib.models.ClusterPoint;
 import org.apache.http.entity.FileEntity;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -42,7 +42,7 @@ public class ClusterBuilder {
         this.clustersConfig = clustersConfig;
     }
 
-    public void createFreshClusteringIndices() {
+    public void reinitializeClusteringIndices() {
         try {
             String indexName = esConfig.get("geo_hash_index_name") + "," + esConfig.get("clusters_index_name");
             esClient.deleteIndex(indexName);
@@ -56,8 +56,7 @@ public class ClusterBuilder {
         }
     }
 
-
-    private Set<String> generatePopularProductSet() {
+    private Set<String> initializePopularProductSet() {
 
         Set<String> productIdSet = new HashSet<>();
         FileReader fileReader = null;
@@ -86,14 +85,14 @@ public class ClusterBuilder {
     public void createClusters(String city) throws Exception {
 
         //generate popular products
-        popularProdSet = generatePopularProductSet();
+        popularProdSet = initializePopularProductSet();
         if (popularProdSet.size() == 0) {
             logger.error("Popular products is zero. Stopping now");
             return;
         }
         logger.info("Popular items reading completed. Total number of popular products are " + popularProdSet.size());
 
-        createFreshClusteringIndices();
+        reinitializeClusteringIndices();
 
         GeoHashUtil geoHashUtil = new GeoHashUtil();
         List<String> geoHashList = geoHashUtil.getGeoHashesForArea(city);

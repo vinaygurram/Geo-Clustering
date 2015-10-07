@@ -1,8 +1,8 @@
-package com.olastore.listing.clustering.Util;
+package com.olastore.listing.clustering.utils;
 
 import com.olastore.listing.clustering.algorithms.ClusterBuilder;
 import com.github.davidmoten.geo.GeoHash;
-import com.olastore.listing.clustering.geo.Geopoint;
+import com.olastore.listing.clustering.lib.models.Geopoint;
 
 import java.util.HashMap;
 import java.util.List;

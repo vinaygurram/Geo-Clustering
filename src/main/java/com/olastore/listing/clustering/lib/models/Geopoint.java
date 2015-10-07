@@ -1,4 +1,4 @@
-package com.olastore.listing.clustering.geo;
+package com.olastore.listing.clustering.lib.models;
 
 /**
  * Generic Object to denote the location of any object

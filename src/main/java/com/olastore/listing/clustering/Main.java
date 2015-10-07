@@ -1,6 +1,6 @@
 package com.olastore.listing.clustering;
 
-import com.olastore.listing.clustering.Util.ConfigReader;
+import com.olastore.listing.clustering.utils.ConfigReader;
 import com.olastore.listing.clustering.algorithms.ClusterBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +16,7 @@ public class Main {
 
   public static void main(String[] args) {
     try {
-      long time_start =System.currentTimeMillis();
+      long time_start = System.currentTimeMillis();
 
       ConfigReader configReader = new ConfigReader();
       Map esConfig = configReader.readConfig("src/main/resources/config/es.yaml");

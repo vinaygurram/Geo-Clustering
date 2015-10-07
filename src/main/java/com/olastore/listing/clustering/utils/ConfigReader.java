@@ -1,4 +1,4 @@
-package com.olastore.listing.clustering.Util;
+package com.olastore.listing.clustering.utils;
 
 import org.yaml.snakeyaml.Yaml;
 

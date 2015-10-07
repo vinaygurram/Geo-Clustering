@@ -2,9 +2,9 @@ package com.olastore.listing.clustering.algorithms;
 
 import com.github.davidmoten.geo.GeoHash;
 import com.github.davidmoten.geo.LatLong;
-import com.olastore.listing.clustering.geo.Geopoint;
-import com.olastore.listing.clustering.pojos.ClusterDefinition;
-import com.olastore.listing.clustering.pojos.ClusterPoint;
+import com.olastore.listing.clustering.lib.models.Geopoint;
+import com.olastore.listing.clustering.lib.models.ClusterDefinition;
+import com.olastore.listing.clustering.lib.models.ClusterPoint;
 import org.apache.http.client.HttpClient;
 import org.json.JSONArray;
 import org.json.JSONException;

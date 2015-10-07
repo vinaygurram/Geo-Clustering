@@ -1,9 +1,9 @@
 package com.olastore.listing.clustering.algorithms;
 
 import com.github.davidmoten.geo.GeoHash;
-import com.olastore.listing.clustering.Util.DistanceMatrix;
-import com.olastore.listing.clustering.geo.Geopoint;
-import com.olastore.listing.clustering.pojos.ClusterDefinition;
+import com.olastore.listing.clustering.utils.DistanceMatrix;
+import com.olastore.listing.clustering.lib.models.Geopoint;
+import com.olastore.listing.clustering.lib.models.ClusterDefinition;
 import org.json.JSONArray;
 import org.json.JSONObject;
 

@@ -1,8 +1,10 @@
-package com.olastore.listing.clustering.geo;
+package com.olastore.listing.clustering.utils;
 
 import com.github.davidmoten.geo.Coverage;
 import com.github.davidmoten.geo.GeoHash;
 import com.olastore.listing.clustering.algorithms.ClusterBuilder;
+import com.olastore.listing.clustering.lib.models.BoundingBox;
+import com.olastore.listing.clustering.lib.models.Geopoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

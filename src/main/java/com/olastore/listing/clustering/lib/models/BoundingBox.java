@@ -1,4 +1,4 @@
-package com.olastore.listing.clustering.geo;
+package com.olastore.listing.clustering.lib.models;
 
 /**
  * Bounding box class to define areas ex: city,zone,state ...

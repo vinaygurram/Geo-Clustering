@@ -35,7 +35,7 @@ public class ESClient {
       if(!indexType.contentEquals("")) map.put("index_type",indexType);
     }
     URI searchUri = clustersESURIBuilder.getESSearchEndPoint(map);
-    return  new ClustersHttpClient(clustersHttpClientFactory.getHttpClient()).executePost(searchUri,stringEntity);
+    return clustersHttpClientFactory.getHttpClient().executePost(searchUri,stringEntity);
   }
 
   public JSONObject getESDoc(String indexName,String indexType,String docID) throws URISyntaxException {
@@ -44,7 +44,7 @@ public class ESClient {
     map.put("index_type",indexType);
     map.put("id",docID);
     URI docUri = clustersESURIBuilder.getDocEndPoint(map);
-    return new ClustersHttpClient(clustersHttpClientFactory.getHttpClient()).executeGet(docUri);
+    return clustersHttpClientFactory.getHttpClient().executeGet(docUri);
   }
 
   public JSONObject pushToES(String indexName,String indexType,String id, String data) throws URISyntaxException {
@@ -54,7 +54,7 @@ public class ESClient {
     map.put("index_type",indexType);
     map.put("id",id);
     URI docUri = clustersESURIBuilder.getDocEndPoint(map);
-    return new ClustersHttpClient(clustersHttpClientFactory.getHttpClient()).executePost(docUri,entity);
+    return clustersHttpClientFactory.getHttpClient().executePost(docUri,entity);
   }
 
   public JSONObject pushToESBulk (String indexName,String indexType,String data) throws URISyntaxException {
@@ -65,18 +65,18 @@ public class ESClient {
       if(!indexType.contentEquals("")) map.put("index_type",indexType);
     }
     URI bulkURI = clustersESURIBuilder.getBulkEndPoint(map);
-    return new ClustersHttpClient((clustersHttpClientFactory.getHttpClient())).executePost(bulkURI,entity);
+    return clustersHttpClientFactory.getHttpClient().executePost(bulkURI,entity);
 
   }
 
   public JSONObject createIndex(String indexName, FileEntity fileEntity) throws URISyntaxException {
     URI indexUri = clustersESURIBuilder.getIndexURI(indexName);
-    return new ClustersHttpClient(clustersHttpClientFactory.getHttpClient()).executePut(indexUri,fileEntity);
+    return clustersHttpClientFactory.getHttpClient().executePut(indexUri,fileEntity);
   }
 
   public void deleteIndex(String indexName) throws URISyntaxException {
     URI indexUri = clustersESURIBuilder.getIndexURI(indexName);
-    new ClustersHttpClient(clustersHttpClientFactory.getHttpClient()).executeDelete(indexUri);
+      clustersHttpClientFactory.getHttpClient().executeDelete(indexUri);
   }
 
 
