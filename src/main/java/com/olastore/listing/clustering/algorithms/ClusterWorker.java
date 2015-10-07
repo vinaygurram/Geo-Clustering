@@ -96,7 +96,7 @@ public class ClusterWorker implements Callable<String> {
     if(points.size()==0) return "DONE for "+geohash+"-- no shops within the raidus";
     LatLong gll = GeoHash.decodeHash(geohash);
     Geopoint geopoint = new Geopoint(gll.getLat(),gll.getLon());
-    List<ClusterDefinition> clusterDefinitionList = new ClusterStrategy().createClusters(geopoint, points);
+    List<ClusterDefinition> clusterDefinitionList = new ClusterStrategy().createClusters(geopoint, points, esConfig);
     if(clusterDefinitionList.size()>0)pushClusters(clusterDefinitionList);
     points = null;
     clusterDefinitionList = null;
@@ -137,7 +137,8 @@ public class ClusterWorker implements Callable<String> {
           ClusterBuilder.pushedClusters.add(hash);
         }
       }
-      String thisDocAsString = "{\"index\" : {\"_index\" : \"" +(String) esConfig.get("geo_hash_index_name")+ "\",\"_type\" : \""
+      String thisDocAsString = "{\"index\" : {\"_index\" : \"" +
+              (String) esConfig.get("geo_hash_index_name")+ "\",\"_type\" : \""
           + (String) esConfig.get("geo_hash_index_type")+ "\",\"_id\":\""
           + clusterDefinitions.get(0).getGeoHash() + "\" }}\n" +geoDoc.toString() + "\n";
       String maxString = "";
