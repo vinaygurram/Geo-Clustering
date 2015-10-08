@@ -17,5 +17,5 @@ stores_index_name: stores_common
 stores_index_type: store
 
 #mapping files
-cluster_mappings_file_path : src/main/resources/mappings/cluster_mappings.json
-geo_mappings_file_path : src/main/resources/mappings/geo_mappings.json
+cluster_mappings_file_path : mappings/cluster_mappings.json
+geo_mappings_file_path : mappings/geo_mappings.json

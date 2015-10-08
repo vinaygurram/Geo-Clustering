@@ -1,10 +1,9 @@
 package com.olastore.listing.clustering.utils;
 
+import org.apache.commons.io.FileUtils;
 import org.yaml.snakeyaml.Yaml;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.*;
 import java.util.Map;
 
 /**
@@ -16,7 +15,14 @@ public class ConfigReader {
 
   public ConfigReader(String configFilePath) throws FileNotFoundException {
     Yaml yaml = new Yaml();
-    this.configValues = (Map) yaml.load(new FileInputStream(new File(configFilePath)));
+    this.configValues = (Map)yaml.load(this.getClass().getClassLoader().getResourceAsStream(configFilePath));
+  }
+
+  public File readFile(String path) throws IOException {
+
+    File file = new File("tmpFile");
+    FileUtils.copyInputStreamToFile(getClass().getClassLoader().getResourceAsStream(path), file);
+    return file;
   }
 
   public Object readValue(String key) {

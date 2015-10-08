@@ -13,6 +13,6 @@
     lat : 12.81581
     lon : 77.79075
 #path to files
-  popular_products_file_path : src/main/resources/data/popular_products.csv
+  popular_products_file_path : data/popular_products.csv
 
 
