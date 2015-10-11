@@ -108,6 +108,8 @@ public class ClusterBuilder {
     reinitializeClusteringIndices();
 
     esConfig = Util.setListingIndexNameForCity(esConfig,"listing_index_name",city);
+    esConfig = Util.setListingIndexNameForCity(esConfig,"geo_hash_index_name",city);
+    esConfig = Util.setListingIndexNameForCity(esConfig,"clusters_index_name",city);
 
     GeoHashUtil geoHashUtil = new GeoHashUtil();
     List<String> geoHashList = geoHashUtil.getGeoHashesForArea(city, this.clustersConfig);
