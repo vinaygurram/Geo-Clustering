@@ -18,7 +18,7 @@ public class ClusterDefinition {
   private int num_stores;
   private int productsCount;
   private int subCatCount;
-  private boolean status;
+  private String status;
 
   public void addPoint(String p) {
     points.add(p);
@@ -90,11 +90,11 @@ public class ClusterDefinition {
     this.subCatCount = subCatCount;
   }
 
-  public boolean isStatus() {
+  public String getStatus() {
     return status;
   }
 
-  public void setStatus(boolean status) {
+  public void setStatus(String status) {
     this.status = status;
   }
 
@@ -118,6 +118,7 @@ public class ClusterDefinition {
     cluster.put("product_count",productsCount);
     cluster.put("stores", storeIdArry);
     cluster.put("stores_count",num_stores);
+    cluster.put("status",status);
     return cluster;
   }
 }

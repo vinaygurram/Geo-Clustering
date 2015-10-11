@@ -25,11 +25,8 @@
                 "rank": {
                     "type": "double"
                 },
-                "is_online" : {
-                    "type" : "boolean"
-                },
-                "is_active" :{
-                    "type" : "boolean"
+                "status" : {
+                    "type" : "String"
                 }
             }
         }

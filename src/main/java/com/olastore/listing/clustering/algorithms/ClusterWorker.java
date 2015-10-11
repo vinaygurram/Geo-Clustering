@@ -29,8 +29,8 @@ public class ClusterWorker implements Callable<String> {
 
   ClusterWorker(String geohash, Map esConfig, Map clustersConfig) {
     this.geohash = geohash;
-      this.clustersConfig = clustersConfig;
-      this.esConfig = esConfig;
+    this.clustersConfig = clustersConfig;
+    this.esConfig = esConfig;
 
   }
   private static final Logger logger = LoggerFactory.getLogger(ClusterWorker.class);
@@ -65,9 +65,10 @@ public class ClusterWorker implements Callable<String> {
                 (String) esConfig.get("stores_index_type"), id);
             if(response2!=null){
               JSONObject response1 = response2.getJSONObject("_source").getJSONObject("store_details");
-              if(!(!response2.getBoolean("found") || response1.getString("store_state").contentEquals("active"))) continue;
+              if(!response2.getBoolean("found")) continue;
               double lat = response1.getJSONObject("location").getDouble("lat");
               double lng = response1.getJSONObject("location").getDouble("lon");
+              ClusterBuilder.storeStatusMap.put(id,response1.getString("store_state"));
               clusterPoint = new ClusterPoint(id,new Geopoint(lat,lng));
               logger.info("Cluster Point {}",clusterPoint);
               ClusterBuilder.clusterPoints.put(id, clusterPoint);
@@ -127,7 +128,7 @@ public class ClusterWorker implements Callable<String> {
         JSONObject thisCluster = new JSONObject();
         thisCluster.put("cluster_id", hash);
         thisCluster.put("distance", clusterDefinition.getDistance());
-        thisCluster.put("status", clusterDefinition.isStatus());
+        thisCluster.put("status", clusterDefinition.getStatus());
         thisCluster.put("rank", clusterDefinition.getRank());
         clusters.put(thisCluster);
 
@@ -138,7 +139,7 @@ public class ClusterWorker implements Callable<String> {
         }
       }
       String thisDocAsString = "{\"index\" : {\"_index\" : \"" +
-              (String) esConfig.get("geo_hash_index_name")+ "\",\"_type\" : \""
+          (String) esConfig.get("geo_hash_index_name")+ "\",\"_type\" : \""
           + (String) esConfig.get("geo_hash_index_type")+ "\",\"_id\":\""
           + clusterDefinitions.get(0).getGeoHash() + "\" }}\n" +geoDoc.toString() + "\n";
       String maxString = "";

@@ -5,6 +5,7 @@ import com.olastore.listing.clustering.utils.ConfigReader;
 import com.olastore.listing.clustering.utils.GeoHashUtil;
 import com.olastore.listing.clustering.lib.models.ClusterPoint;
 import com.olastore.listing.clustering.utils.Util;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.entity.FileEntity;
@@ -37,6 +38,7 @@ public class ClusterBuilder {
   public static AtomicInteger bulkDocCount = new AtomicInteger(0);
   public static StringBuilder bulkDoc = new StringBuilder();
   public static Logger logger = LoggerFactory.getLogger(ClusterBuilder.class);
+  public static ConcurrentHashMap<String,String> storeStatusMap = new ConcurrentHashMap<>();
 
   public ClusterBuilder(String env, ConfigReader esConfigReader, ConfigReader clustersConfigReader) {
     String esHostKey = "es_host_" + env;

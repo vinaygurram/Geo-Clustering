@@ -356,12 +356,12 @@ public class ClusterStrategy {
 
     ClusterDefinition clusterDefinition = new ClusterDefinition();
     for(String s: storeIdList){
+      clusterDefinition.setStatus(ClusterBuilder.storeStatusMap.get(s));
       clusterDefinition.addPoint(s);
     }
     clusterDefinition.setDistance(shortDistance);
     setRankParameters(ClusterBuilder.popularProdSet, clusterDefinition);
 
-    clusterDefinition.setStatus(true);
     return clusterDefinition;
   }
 
