@@ -27,6 +27,7 @@ public class ClusterWorker implements Callable<String> {
   Map esConfig;
   Map clustersConfig;
 
+
   ClusterWorker(String geohash, Map esConfig, Map clustersConfig) {
     this.geohash = geohash;
     this.clustersConfig = clustersConfig;
@@ -128,8 +129,6 @@ public class ClusterWorker implements Callable<String> {
         JSONObject thisCluster = new JSONObject();
         thisCluster.put("cluster_id", hash);
         thisCluster.put("distance", clusterDefinition.getDistance());
-        thisCluster.put("status", clusterDefinition.getStatus());
-        thisCluster.put("rank", clusterDefinition.getRank());
         clusters.put(thisCluster);
 
         if(!ClusterBuilder.pushedClusters.contains(hash)){

@@ -106,7 +106,6 @@ public class ClusterDefinition {
   public JSONObject getJSON() {
 
     JSONObject cluster = new JSONObject();
-    cluster.put("load",1);
     cluster.put("rank",rank);
     JSONArray storeIdArry = new JSONArray();
     for (String c:  points) {
