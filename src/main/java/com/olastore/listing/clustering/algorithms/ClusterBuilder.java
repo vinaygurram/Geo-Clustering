@@ -105,11 +105,11 @@ public class ClusterBuilder {
     }
     logger.info("Popular items reading completed. Total number of popular products are " + popularProdSet.size());
 
-    reinitializeClusteringIndices();
-
     esConfig = Util.setListingIndexNameForCity(esConfig,"listing_index_name",city);
     esConfig = Util.setListingIndexNameForCity(esConfig,"geo_hash_index_name",city);
     esConfig = Util.setListingIndexNameForCity(esConfig,"clusters_index_name",city);
+    reinitializeClusteringIndices();
+
 
     GeoHashUtil geoHashUtil = new GeoHashUtil();
     List<String> geoHashList = geoHashUtil.getGeoHashesForArea(city, this.clustersConfig);
