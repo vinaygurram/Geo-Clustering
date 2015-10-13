@@ -223,6 +223,8 @@ public class ClusterStrategy {
       }
       return  gDistance;
     }catch (Exception e){
+      LOG.error("Error in calculating distance {}",e);
+
     }
     return Double.MAX_VALUE;
   }

@@ -8,7 +8,7 @@ public class Geopoint {
 
   private double longitude;
   private double latitude;
-  private static final double earthRadius = 6378.1; // kilometers
+  private static final double earthRadius = 6372.8; // kilometers
 
   public Geopoint(double lat, double lon) {
 
@@ -18,13 +18,14 @@ public class Geopoint {
 
   public static double getDistance(Geopoint l1,Geopoint l2) {
 
+    double dLat = Math.toRadians(l2.getLatitude() - l1.getLatitude());
+    double dLon = Math.toRadians(l2.getLongitude() - l1.getLongitude());
     double lat1 = Math.toRadians(l1.getLatitude());
     double lat2 = Math.toRadians(l2.getLatitude());
-    double long1 = Math.toRadians(l1.getLongitude());
-    double long2 = Math.toRadians(l2.getLongitude());
-    double dist = earthRadius * Math.acos(Math.sin(lat1) * Math.sin(lat2)
-        + Math.cos(lat1) * Math.cos(lat2) * Math.cos(Math.abs(long1 - long2)));
-    return dist;
+
+    double a = Math.pow(Math.sin(dLat / 2),2) + Math.pow(Math.sin(dLon / 2),2) * Math.cos(lat1) * Math.cos(lat2);
+    double c = 2 * Math.asin(Math.sqrt(a));
+    return earthRadius * c;
   }
 
   public double getLongitude() {
