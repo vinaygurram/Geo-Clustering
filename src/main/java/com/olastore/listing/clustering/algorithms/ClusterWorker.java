@@ -44,46 +44,22 @@ public class ClusterWorker implements Callable<String> {
     List<String> reShops = new ArrayList<String>();
     try {
       int cluster_radius = (Integer) clustersConfig.get("clusters_radius");
-      String query ="{\"size\":0,\"query\":{\"filtered\":{\"filter\":{\"geo_distance\":{\"distance\":\""+cluster_radius+"km\"," +
-          "\"store_details.location\":\""+geohash+"\"}}}}," +
-          "\"aggregations\":{\"stores_unique\":{\"terms\":{\"field\":\"store_details.id\",\"size\":0}}}}";
-      JSONObject jsonObject = ClusterBuilder.esClient.searchES((String) esConfig.get("listing_index_name"),
-          (String) esConfig.get("listing_index_type"),query);
-      jsonObject = jsonObject.getJSONObject("aggregations");
-      jsonObject = jsonObject.getJSONObject("stores_unique");
-      JSONArray stores = jsonObject.getJSONArray("buckets");
-      logger.info("Stores for geo hash {}",stores);
-      for(int i=0;i<stores.length();i++){
-        String id = stores.getJSONObject(i).getInt("key")+"";
-        ClusterPoint clusterPoint;
-        boolean is_store_exists = false;
-        if(ClusterBuilder.clusterPoints.containsKey(id)){
-          is_store_exists = true;
-        }else if(ClusterBuilder.deletedStores.contains(id)){
-        }else {
-          try {
-            JSONObject response2 = ClusterBuilder.esClient.getESDoc((String) esConfig.get("stores_index_name"),
-                (String) esConfig.get("stores_index_type"), id);
-            if(response2!=null){
-              JSONObject response1 = response2.getJSONObject("_source").getJSONObject("store_details");
-              if(!response2.getBoolean("found")) continue;
-              double lat = response1.getJSONObject("location").getDouble("lat");
-              double lng = response1.getJSONObject("location").getDouble("lon");
-              ClusterBuilder.storeStatusMap.put(id,response1.getString("store_state"));
-              clusterPoint = new ClusterPoint(id,new Geopoint(lat,lng));
-              logger.info("Cluster Point {}",clusterPoint);
-              ClusterBuilder.clusterPoints.put(id, clusterPoint);
-              is_store_exists = true;
-            }else {
-              logger.error("Store not found");
-              ClusterBuilder.deletedStores.add(id);
-            }
-          }catch (Exception e){
-            logger.error("Store not found {}",e);
-          }
-        }
-        if(is_store_exists)reShops.add(id);
+      String query = "{\"size\":\"100\",\"query\":{\"filtered\":{\"filter\":{\"geo_distance\":{\"location\":\""+geohash+"\",\"distance\":\""+cluster_radius+"km\"}}}}}";
+      JSONObject jsonObject = ClusterBuilder.esClient.searchES((String) esConfig.get("stores_index_name"),
+          (String) esConfig.get("stores_index_type"),query);
+      JSONArray hits = jsonObject.getJSONObject("hits").getJSONArray("hits");
+      for(int i=0;i<hits.length();i++){
+        JSONObject thisStoreObject = hits.getJSONObject(i);
+        String id = thisStoreObject.getJSONObject("_source").getJSONObject("store_details").getString("id");
+        double lat = thisStoreObject.getJSONObject("_source").getJSONObject("store_details").getJSONObject("location").getDouble("lat");
+        double lng = thisStoreObject.getJSONObject("_source").getJSONObject("store_details").getJSONObject("location").getDouble("lon");
+        reShops.add(id);
+        ClusterBuilder.storeStatusMap.put(id, thisStoreObject.getJSONObject("_source").getJSONObject("store_details").getString("store_state"));
+        ClusterPoint clusterPoint = new ClusterPoint(id,new Geopoint(lat,lng));
+        ClusterBuilder.clusterPoints.put(id, clusterPoint);
       }
+      logger.info("Clustering points for geohash {} are {}",geohash,reShops);
+
     }catch (JSONException e){
       logger.error("Json exceptions {}",e);
     }catch (Exception e){
@@ -146,7 +122,7 @@ public class ClusterWorker implements Callable<String> {
       synchronized (ClusterBuilder.bulkDoc){
         ClusterBuilder.bulkDoc.append(thisDocAsString);
         ClusterBuilder.bulkDocCount.incrementAndGet();
-        if(ClusterBuilder.bulkDocCount.get()>500){
+        if(ClusterBuilder.bulkDocCount.get()>100){
           maxString = ClusterBuilder.bulkDoc.toString();
           ClusterBuilder.bulkDoc = new StringBuilder();
           ClusterBuilder.bulkDocCount =new AtomicInteger(0);

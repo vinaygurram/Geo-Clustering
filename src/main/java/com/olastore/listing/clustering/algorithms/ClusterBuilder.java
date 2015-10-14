@@ -114,8 +114,14 @@ public class ClusterBuilder {
     GeoHashUtil geoHashUtil = new GeoHashUtil();
     List<String> geoHashList = geoHashUtil.getGeoHashesForArea(city, this.clustersConfig);
 
-    ExecutorService executorService = Executors.newFixedThreadPool(5);
+    ExecutorService executorService = Executors.newFixedThreadPool(10);
+    int count =0;
     for (String geoHash : geoHashList) {
+//      count++;
+//      if(count > 100){
+//        count =0;
+//        Thread.sleep(1000);
+//      }
       executorService.submit(new ClusterWorker(geoHash, esConfig, clustersConfig));
     }
     executorService.shutdown();

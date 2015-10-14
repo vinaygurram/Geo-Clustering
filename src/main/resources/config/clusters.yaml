@@ -12,6 +12,18 @@
   ban_bbox_bot_right :
     lat : 12.81581
     lon : 77.79075
+  vpm_bbox_top_left :
+    lat : 17.9598
+    lon : 82.9289
+  vpm_bbox_bot_right :
+    lat : 17.4869
+    lon : 83.6732
+  ggn_bbox_top_left :
+    lat : 28.52541
+    lon : 76.96884
+  ggn_bbox_bot_right :
+    lat : 28.38898
+    lon : 77.13294
 #path to files
   popular_products_file_path : data/popular_products.csv
 

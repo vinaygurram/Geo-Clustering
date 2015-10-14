@@ -143,7 +143,7 @@ public class ClusterStrategy {
       }
       subCatCount = esResult.getJSONObject("sub_cat_count").getInt("value");
     }catch (Exception e){
-      LOG.error("Found error while setting ranks " + e.toString());
+      LOG.error("Found error while setting ranks {}" , e);
     }
 
     ClusterBuilder.clusterProductCoverage.put(clusterId,productsSet.size());
