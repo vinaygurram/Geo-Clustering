@@ -12,10 +12,7 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -93,6 +90,18 @@ public class ClusterWorker implements Callable<String> {
       JSONArray clusters = new JSONArray();
       geoDoc.put("clusters", clusters);
 
+
+      Collections.sort(clusterDefinitions, new Comparator<ClusterDefinition>() {
+        @Override
+        public int compare(ClusterDefinition o1, ClusterDefinition o2) {
+          double diff = o1.getDistance()-o2.getDistance();
+          if(diff>0) return 1;
+          if(diff<0) return -1;
+          if(diff == 0) return 0;
+          return 1;
+        }
+      });
+
       for(ClusterDefinition clusterDefinition : clusterDefinitions){
         List<String> stringList = clusterDefinition.getPoints();
         Collections.sort(stringList);
@@ -102,10 +111,7 @@ public class ClusterWorker implements Callable<String> {
           sb.append(s);
         }
         String hash = sb.toString().substring(1);
-        JSONObject thisCluster = new JSONObject();
-        thisCluster.put("cluster_id", hash);
-        thisCluster.put("distance", clusterDefinition.getDistance());
-        clusters.put(thisCluster);
+        clusters.put(hash);
 
         if(!ClusterBuilder.pushedClusters.contains(hash)){
           ClusterBuilder.esClient.pushToES((String) esConfig.get("clusters_index_name"),

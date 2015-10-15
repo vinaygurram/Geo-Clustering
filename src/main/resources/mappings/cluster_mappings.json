@@ -1,34 +1,24 @@
 {
-    "settings": {
-        "number_of_shards": 1,
-        "index.mapper.dynamic": false
-    },
-    "mappings": {
-        "cluster": {
-            "properties": {
-                "stores": {
-                    "properties": {
-                        "id": {
-                            "type": "integer"
-                        }
-                    }
-                },
-                "stores_count": {
-                    "type": "integer"
-                },
-                "product_count": {
-                    "type": "integer"
-                },
-                "sub_cat_count": {
-                    "type": "integer"
-                },
-                "rank": {
-                    "type": "double"
-                },
-                "status" : {
-                    "type" : "String"
-                }
-            }
+  "settings": {
+    "number_of_shards": 1,
+    "index.mapper.dynamic": false
+  },
+  "mappings": {
+    "cluster": {
+      "properties": {
+        "stores": {
+          "type": "integer"
+        },
+        "stores_count": {
+          "type": "integer"
+        },
+        "rank": {
+          "type": "double"
+        },
+        "status" : {
+          "type" : "String"
         }
+      }
     }
+  }
 }

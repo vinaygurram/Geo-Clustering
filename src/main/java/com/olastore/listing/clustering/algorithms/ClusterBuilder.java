@@ -28,10 +28,7 @@ public class ClusterBuilder {
   private Map clustersConfig;
 
   public static ConcurrentHashMap<String, ClusterPoint> clusterPoints = new ConcurrentHashMap<>();
-  public static List<String> deletedStores = new CopyOnWriteArrayList<>();
   public static List<String> pushedClusters = Collections.synchronizedList(new ArrayList<String>());
-  public static ConcurrentHashMap<String, Integer> clusterProductCoverage = new ConcurrentHashMap<>();
-  public static ConcurrentHashMap<String, Integer> clusterSubCatCoverage = new ConcurrentHashMap<>();
   public static AtomicInteger jobsRun = new AtomicInteger();
   public static ConcurrentHashMap<String, Double> clusterRankMap = new ConcurrentHashMap<>();
   public static Set<String> popularProdSet = new HashSet<>();
@@ -93,8 +90,6 @@ public class ClusterBuilder {
     return productIdSet;
   }
 
-
-
   public void createClusters(String city) throws Exception {
 
     //generate popular products
@@ -106,13 +101,16 @@ public class ClusterBuilder {
     logger.info("Popular items reading completed. Total number of popular products are " + popularProdSet.size());
 
     esConfig = Util.setListingIndexNameForCity(esConfig,"listing_index_name",city);
-    esConfig = Util.setListingIndexNameForCity(esConfig,"geo_hash_index_name",city);
-    esConfig = Util.setListingIndexNameForCity(esConfig,"clusters_index_name",city);
     reinitializeClusteringIndices();
 
 
     GeoHashUtil geoHashUtil = new GeoHashUtil();
     List<String> geoHashList = geoHashUtil.getGeoHashesForArea(city, this.clustersConfig);
+//    List<String> geoHashList = new ArrayList<>();
+//            geoHashList.add("tdr4phx");
+//            geoHashList.add("tdr0ftn");
+//            geoHashList.add("tdr1vzc");
+//            geoHashList.add("tdr1yrb");
 
     ExecutorService executorService = Executors.newFixedThreadPool(10);
     int count =0;

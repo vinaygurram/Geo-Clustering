@@ -117,8 +117,6 @@ public class ClusterStrategy {
     storeIdString = storeIdString.substring(0,storeIdString.length()-1);
 
     if(ClusterBuilder.clusterRankMap.containsKey(clusterId)){
-      clusterObj.setProductsCount(ClusterBuilder.clusterProductCoverage.get(clusterId));
-      clusterObj.setSubCatCount(ClusterBuilder.clusterSubCatCoverage.get(clusterId));
       clusterObj.setRank(ClusterBuilder.clusterRankMap.get(clusterId));
       return;
     }
@@ -141,16 +139,9 @@ public class ClusterStrategy {
         String productId = uniqueProdBuckets.getJSONObject(i).getString("key");
         productsSet.add(productId);
       }
-      subCatCount = esResult.getJSONObject("sub_cat_count").getInt("value");
     }catch (Exception e){
       LOG.error("Found error while setting ranks {}" , e);
     }
-
-    ClusterBuilder.clusterProductCoverage.put(clusterId,productsSet.size());
-    ClusterBuilder.clusterSubCatCoverage.put(clusterId,subCatCount);
-    clusterObj.setProductsCount(productsSet.size());
-    clusterObj.setSubCatCount(subCatCount);
-
     Set<String> intesection = new HashSet<String>(productsSet);
     intesection.retainAll(popularProductsSet);
     int popular_products_count = intesection.size();

@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * Cluster Object with all the properties required. Created by gurramvinay on 6/30/15.
  */
-public class ClusterDefinition {
+public class ClusterDefinition{
 
   private String name;
   private List<String> points = new ArrayList<String>();
@@ -16,8 +16,6 @@ public class ClusterDefinition {
   private String geoHash;
   private double rank;
   private int num_stores;
-  private int productsCount;
-  private int subCatCount;
   private String status;
 
   public void addPoint(String p) {
@@ -74,22 +72,6 @@ public class ClusterDefinition {
     this.rank = rank;
   }
 
-  public int getProductsCount() {
-    return productsCount;
-  }
-
-  public void setProductsCount(int productsCount) {
-    this.productsCount = productsCount;
-  }
-
-  public int getSubCatCount() {
-    return subCatCount;
-  }
-
-  public void setSubCatCount(int subCatCount) {
-    this.subCatCount = subCatCount;
-  }
-
   public String getStatus() {
     return status;
   }
@@ -109,15 +91,12 @@ public class ClusterDefinition {
     cluster.put("rank",rank);
     JSONArray storeIdArry = new JSONArray();
     for (String c:  points) {
-      JSONObject storeIdObj = new JSONObject();
-      storeIdObj.put("store_id", c);
-      storeIdArry.put(storeIdObj);
+      storeIdArry.put(c);
     }
-    cluster.put("sub_cat_count",subCatCount);
-    cluster.put("product_count",productsCount);
     cluster.put("stores", storeIdArry);
     cluster.put("stores_count",num_stores);
     cluster.put("status",status);
     return cluster;
   }
+
 }
