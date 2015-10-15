@@ -348,10 +348,20 @@ public class ClusterStrategy {
     if(shortDistance>8) return null;
 
     ClusterDefinition clusterDefinition = new ClusterDefinition();
+    clusterDefinition.setStatus("active");
+    StringBuilder storesStatus = new StringBuilder();
+    Collections.sort(storeIdList);
     for(String s: storeIdList){
-      clusterDefinition.setStatus(ClusterBuilder.storeStatusMap.get(s));
+      String thisStoreStatus = ClusterBuilder.storeStatusMap.get(s);
+      if(thisStoreStatus.contentEquals("inactive")) {
+        clusterDefinition.setStatus("inactive");
+        storesStatus.append(0);
+      }else {
+        storesStatus.append(1);
+      }
       clusterDefinition.addPoint(s);
     }
+    clusterDefinition.setStoresStatus(storesStatus.toString());
     clusterDefinition.setDistance(shortDistance);
     setRankParameters(ClusterBuilder.popularProdSet, clusterDefinition);
 

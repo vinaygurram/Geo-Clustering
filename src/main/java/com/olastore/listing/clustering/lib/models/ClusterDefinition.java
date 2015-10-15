@@ -17,6 +17,7 @@ public class ClusterDefinition{
   private double rank;
   private int num_stores;
   private String status;
+  private String storesStatus;
 
   public void addPoint(String p) {
     points.add(p);
@@ -80,6 +81,14 @@ public class ClusterDefinition{
     this.status = status;
   }
 
+  public String getStoresStatus() {
+    return storesStatus;
+  }
+
+  public void setStoresStatus(String storesStatus) {
+    this.storesStatus = storesStatus;
+  }
+
   @Override
   public String toString() {
     return getJSON().toString();
@@ -96,6 +105,7 @@ public class ClusterDefinition{
     cluster.put("stores", storeIdArry);
     cluster.put("stores_count",num_stores);
     cluster.put("status",status);
+    cluster.put("stores_status",storesStatus);
     return cluster;
   }
 
