@@ -1,7 +1,7 @@
 #####Config File ########
 
 # configuration
-  clusters_geo_precision : 7
+  clusters_geo_precision : 6
   clusters_radius: 6
   clusters_max_shops : 4
 

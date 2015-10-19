@@ -1,11 +1,13 @@
 package com.olastore.listing.clustering.utils;
 
+import com.olastore.listing.clustering.Main;
 import com.olastore.listing.clustering.algorithms.ClusterBuilder;
 import com.github.davidmoten.geo.GeoHash;
 import com.olastore.listing.clustering.lib.models.Geopoint;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 /**
  * Generic Class to Calculate all the distances for all the clustering points
@@ -18,8 +20,8 @@ public class DistanceMatrix {
   private final HashMap<String, Double> dMatrix = new HashMap<String, Double>();
   private final String CCATTERM = "##";
 
-  public DistanceMatrix(Geopoint geoHash, List<String> points) {
-    computeDistancMatrix(geoHash,points);
+  public DistanceMatrix(Geopoint geoHash, List<String> points, Map clustersConfig) {
+    computeDistancMatrix(geoHash,points,clustersConfig);
   }
 
   private String getHash(String id1, String id2,boolean order) {
@@ -52,10 +54,10 @@ public class DistanceMatrix {
     return 0d;
   }
 
-  synchronized private void computeDistancMatrix(Geopoint geoHashString,List<String> clusteringPoints) {
+  synchronized private void computeDistancMatrix(Geopoint geoHashString,List<String> clusteringPoints, Map clusterConfig) {
 
     for(String cp: clusteringPoints){
-      dMatrix.put(getHash(GeoHash.encodeHash(geoHashString.getLatitude(),geoHashString.getLongitude(),7),cp,true),Geopoint.getDistance(geoHashString, ClusterBuilder.clusterPoints.get(cp).getLocation()));
+      dMatrix.put(getHash(GeoHash.encodeHash(geoHashString.getLatitude(),geoHashString.getLongitude(),(Integer)clusterConfig.get("clusters_geo_precision")),cp,true),Geopoint.getDistance(geoHashString, ClusterBuilder.clusterPoints.get(cp).getLocation()));
 
       for(String tp: clusteringPoints){
         if(!cp.contentEquals(tp)){

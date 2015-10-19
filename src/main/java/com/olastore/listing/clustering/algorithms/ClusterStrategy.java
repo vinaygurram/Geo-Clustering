@@ -28,7 +28,7 @@ public class ClusterStrategy {
 
   public void createDistanceMatrix(Geopoint geoHash, List<String> points) {
     List<String> ttpoints = new ArrayList<String>(points);
-    this.distanceMatrix = new DistanceMatrix(geoHash,ttpoints);
+    this.distanceMatrix = new DistanceMatrix(geoHash,ttpoints,clusterConfig);
   }
 
   public List<ClusterDefinition> createClusters(Geopoint geoHash,  List<String>points, Map esConfig, Map clusterConfig) {
@@ -41,7 +41,7 @@ public class ClusterStrategy {
     createDistanceMatrix(geoHash, points);
     List<ClusterDefinition> validClusters = new ArrayList<ClusterDefinition>();
     Set<String> subSetCombination = new HashSet<>();
-    String encodedGeoHash = GeoHash.encodeHash(geoHash.getLatitude(),geoHash.getLongitude(),7);
+    String encodedGeoHash = GeoHash.encodeHash(geoHash.getLatitude(),geoHash.getLongitude(),(Integer)clusterConfig.get("clusters_geo_precision"));
     ClusterDefinition temp;
     Set<List<String>>clusters;
 
@@ -60,64 +60,6 @@ public class ClusterStrategy {
         }
       }
     }
-
-
-//
-//    for(String s: points){
-//
-//      List<String> thisList = new ArrayList<String>();
-//      thisList.add(s);
-//      temp = checkValidCluster(geoHash,thisList);
-//      if(temp!=null){
-//        clustersForCombination++;
-//        temp.setGeoHash(encodedGeoHash);
-//        validClusters.add(temp);
-//      }
-//    }
-//
-//    if(clustersForCombination==0) return validClusters;
-//    clustersForCombination = 0;
-//
-//    clusters = getAllCombinations(points,2);
-//    for(List<String> clusterObj : clusters){
-//      temp = checkValidCluster(geoHash,clusterObj);
-//      if(temp!=null){
-//        clustersForCombination++;
-//        temp.setGeoHash(encodedGeoHash);
-//        validClusters.add(temp);
-//      }
-//
-//    }
-//
-//    if(clustersForCombination==0) return validClusters;
-//    clustersForCombination = 0;
-//
-//    clusters =getAllCombinations(points,3);
-//    for(List<String> clusterObj : clusters){
-//      temp = checkValidCluster(geoHash,clusterObj);
-//      if(temp!=null){
-//        clustersForCombination++;
-//        temp.setGeoHash(encodedGeoHash);
-//        validClusters.add(temp);
-//      }
-//
-//    }
-//
-//    if(clustersForCombination==0) return validClusters;
-//    clustersForCombination = 0;
-//
-//    if(points.size()>3){
-//      clusters =getAllCombinations(points,4);
-//      for(List<String> clusterObj : clusters){
-//        temp = checkValidCluster(geoHash,clusterObj);
-//        if(temp!=null){
-//          clustersForCombination++;
-//          temp.setGeoHash(encodedGeoHash);
-//          validClusters.add(temp);
-//        }
-//      }
-//
-//    }
     this.distanceMatrix = null;
     return validClusters;
   }
@@ -181,7 +123,7 @@ public class ClusterStrategy {
   public double getShortestDistanceFor2(Geopoint geohashPoint, List<String> points) {
 
     double dbp = distanceMatrix.getDistance(points.get(0),points.get(1));
-    String geoString  = GeoHash.encodeHash(geohashPoint.getLatitude(),geohashPoint.getLongitude(),7);
+    String geoString  = GeoHash.encodeHash(geohashPoint.getLatitude(),geohashPoint.getLongitude(),(Integer)clusterConfig.get("clusters_geo_precision"));
     double dfg = distanceMatrix.getDistance(geoString,points.get(0));
     double dsg = distanceMatrix.getDistance(geoString,points.get(1));
     dfg = dfg + dbp;
@@ -191,7 +133,7 @@ public class ClusterStrategy {
 
   public double getShortestDistanceForMultiPoints(Geopoint geohashPoint, List<String> points) {
     double smallestDistace = Double.MAX_VALUE;
-    String geoString  = GeoHash.encodeHash(geohashPoint.getLatitude(),geohashPoint.getLongitude(),7);
+    String geoString  = GeoHash.encodeHash(geohashPoint.getLatitude(),geohashPoint.getLongitude(),(Integer)clusterConfig.get("clusters_geo_precision"));
     for(String tp : points){
       double di = distanceBtPoints(tp,geoString);
 
@@ -246,6 +188,7 @@ public class ClusterStrategy {
 
 
   public Set<List<String>> getAllCombinations(List<String> inputArray, int combinationSize){
+    if(combinationSize > inputArray.size()) return new HashSet<List<String>>();
     Set<List<String>> total =new HashSet<>();
     combinationUtil(0,0,inputArray.size(),combinationSize,inputArray,new ArrayList<String>(),total);
     return total;
@@ -295,7 +238,6 @@ public class ClusterStrategy {
     }
     String hash = sb.toString().substring(1);
     if(subCombinationsSet.contains(hash)) return null;
-
     double shortDistance = Double.MAX_VALUE ;
     if(storeIdList.size()==1){
       shortDistance = Geopoint.getDistance(geoHash, ClusterBuilder.clusterPoints.get(storeIdList.get(0)).getLocation());
@@ -322,7 +264,7 @@ public class ClusterStrategy {
     clusterDefinition.setStoresStatus(storesStatus.toString());
     clusterDefinition.setDistance(shortDistance);
     setRankParameters(ClusterBuilder.popularProdSet, clusterDefinition);
-    getAllCombinations(storeIdList,storeIdList.size()-1);
+    getAllCombinations(storeIdList, storeIdList.size() - 1);
     Set<String> subSets = getAllSubSets(storeIdList);
     subCombinationsSet.addAll(subSets);
     return clusterDefinition;

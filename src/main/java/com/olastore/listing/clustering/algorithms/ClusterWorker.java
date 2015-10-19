@@ -94,15 +94,23 @@ public class ClusterWorker implements Callable<String> {
       Collections.sort(clusterDefinitions, new Comparator<ClusterDefinition>() {
         @Override
         public int compare(ClusterDefinition o1, ClusterDefinition o2) {
-          double diff = o1.getDistance()-o2.getDistance();
+          double diff = o2.getRank()-o1.getRank();
           if(diff>0) return 1;
           if(diff<0) return -1;
-          if(diff == 0) return 0;
+          if(diff == 0) {
+            double distanceDiff = o1.getDistance() - o2.getDistance();
+            if(distanceDiff>0) return 1;
+            if(distanceDiff<0) return -1;
+            if(distanceDiff==0) return 0;
+          };
           return 1;
         }
       });
 
+      int count = 0;
       for(ClusterDefinition clusterDefinition : clusterDefinitions){
+        count++;
+        if(count>50) break;
         List<String> stringList = clusterDefinition.getPoints();
         Collections.sort(stringList);
         StringBuilder sb = new StringBuilder();
