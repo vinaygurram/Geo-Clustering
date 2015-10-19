@@ -3,6 +3,7 @@
 # configuration
   clusters_geo_precision : 7
   clusters_radius: 6
+  clusters_max_shops : 4
 
 #Location of the area Settings
 #we are using bangalore as of now

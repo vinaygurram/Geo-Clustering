@@ -22,78 +22,102 @@ public class ClusterStrategy {
   private static Logger LOG = LoggerFactory.getLogger(ClusterStrategy.class);
 
   private DistanceMatrix distanceMatrix;
-    private Map esConfig;
+  private Map esConfig;
+  private Map clusterConfig;
+
 
   public void createDistanceMatrix(Geopoint geoHash, List<String> points) {
     List<String> ttpoints = new ArrayList<String>(points);
     this.distanceMatrix = new DistanceMatrix(geoHash,ttpoints);
   }
 
-  public List<ClusterDefinition> createClusters(Geopoint geoHash,  List<String>points, Map esConfig) {
+  public List<ClusterDefinition> createClusters(Geopoint geoHash,  List<String>points, Map esConfig, Map clusterConfig) {
 
-      this.esConfig = esConfig;
+    this.esConfig = esConfig;
+    this.clusterConfig = clusterConfig;
     if(points==null || points.size()==0) return new ArrayList<ClusterDefinition>();
     int clustersForCombination = 0;
 
     createDistanceMatrix(geoHash, points);
     List<ClusterDefinition> validClusters = new ArrayList<ClusterDefinition>();
+    Set<String> subSetCombination = new HashSet<>();
     String encodedGeoHash = GeoHash.encodeHash(geoHash.getLatitude(),geoHash.getLongitude(),7);
     ClusterDefinition temp;
-    for(String s: points){
+    Set<List<String>>clusters;
 
-      List<String> thisList = new ArrayList<String>();
-      thisList.add(s);
-      temp = checkValidCluster(geoHash,thisList);
-      if(temp!=null){
-        clustersForCombination++;
-        temp.setGeoHash(encodedGeoHash);
-        validClusters.add(temp);
-      }
-    }
+    int maxShops = (Integer)clusterConfig.get("clusters_max_shops");
 
-    if(clustersForCombination==0) return validClusters;
-    clustersForCombination = 0;
-
-    Set<List<String>>clusters = getAllCombinations(points,2);
-    for(List<String> clusterObj : clusters){
-      temp = checkValidCluster(geoHash,clusterObj);
-      if(temp!=null){
-        clustersForCombination++;
-        temp.setGeoHash(encodedGeoHash);
-        validClusters.add(temp);
-      }
-
-    }
-
-    if(clustersForCombination==0) return validClusters;
-    clustersForCombination = 0;
-
-    clusters =getAllCombinations(points,3);
-    for(List<String> clusterObj : clusters){
-      temp = checkValidCluster(geoHash,clusterObj);
-      if(temp!=null){
-        clustersForCombination++;
-        temp.setGeoHash(encodedGeoHash);
-        validClusters.add(temp);
-      }
-
-    }
-
-    if(clustersForCombination==0) return validClusters;
-    clustersForCombination = 0;
-
-    if(points.size()>3){
-      clusters =getAllCombinations(points,4);
-      for(List<String> clusterObj : clusters){
-        temp = checkValidCluster(geoHash,clusterObj);
-        if(temp!=null){
-          clustersForCombination++;
-          temp.setGeoHash(encodedGeoHash);
-          validClusters.add(temp);
+    for(int i=maxShops;i>0;i--){
+      if(points.size()>i){
+        clusters = getAllCombinations(points,i);
+        for(List<String> clusterObj : clusters){
+          temp = checkValidCluster(geoHash,clusterObj,subSetCombination);
+          if(temp!=null){
+            clustersForCombination++;
+            temp.setGeoHash(encodedGeoHash);
+            validClusters.add(temp);
+          }
         }
       }
-
     }
+
+
+//
+//    for(String s: points){
+//
+//      List<String> thisList = new ArrayList<String>();
+//      thisList.add(s);
+//      temp = checkValidCluster(geoHash,thisList);
+//      if(temp!=null){
+//        clustersForCombination++;
+//        temp.setGeoHash(encodedGeoHash);
+//        validClusters.add(temp);
+//      }
+//    }
+//
+//    if(clustersForCombination==0) return validClusters;
+//    clustersForCombination = 0;
+//
+//    clusters = getAllCombinations(points,2);
+//    for(List<String> clusterObj : clusters){
+//      temp = checkValidCluster(geoHash,clusterObj);
+//      if(temp!=null){
+//        clustersForCombination++;
+//        temp.setGeoHash(encodedGeoHash);
+//        validClusters.add(temp);
+//      }
+//
+//    }
+//
+//    if(clustersForCombination==0) return validClusters;
+//    clustersForCombination = 0;
+//
+//    clusters =getAllCombinations(points,3);
+//    for(List<String> clusterObj : clusters){
+//      temp = checkValidCluster(geoHash,clusterObj);
+//      if(temp!=null){
+//        clustersForCombination++;
+//        temp.setGeoHash(encodedGeoHash);
+//        validClusters.add(temp);
+//      }
+//
+//    }
+//
+//    if(clustersForCombination==0) return validClusters;
+//    clustersForCombination = 0;
+//
+//    if(points.size()>3){
+//      clusters =getAllCombinations(points,4);
+//      for(List<String> clusterObj : clusters){
+//        temp = checkValidCluster(geoHash,clusterObj);
+//        if(temp!=null){
+//          clustersForCombination++;
+//          temp.setGeoHash(encodedGeoHash);
+//          validClusters.add(temp);
+//        }
+//      }
+//
+//    }
     this.distanceMatrix = null;
     return validClusters;
   }
@@ -132,7 +156,7 @@ public class ClusterStrategy {
           "\"aggregations\":{\"unique_products\":{\"terms\":{\"field\":\"product_details.id\",\"size\":0}}," +
           "\"sub_cat_count\":{\"cardinality\":{\"field\":\"product_details.sub_category_id\"}}}}";
       JSONObject result = ClusterBuilder.esClient.searchES((String) esConfig.get("listing_index_name"),
-              (String) esConfig.get("listing_index_type"), query);
+          (String) esConfig.get("listing_index_type"), query);
       JSONObject esResult = result.getJSONObject("aggregations");
       JSONArray uniqueProdBuckets = esResult.getJSONObject("unique_products").getJSONArray("buckets");
       for(int i=0;i<uniqueProdBuckets.length();i++){
@@ -240,10 +264,38 @@ public class ClusterStrategy {
     }
   }
 
+  public Set<String> getAllSubSets(List<String> storeIdList){
+    Set<String> subSets = new HashSet<String>();
+    for(int i=1;i<storeIdList.size();i++){
+      Set<List<String>> allCombinations = getAllCombinations(storeIdList,i);
+      for(List<String> tempList : allCombinations){
+        Collections.sort(tempList);
+        StringBuilder sb = new StringBuilder();
+        for(String s : tempList){
+          sb.append("-");
+          sb.append(s);
+        }
+        String hash = sb.toString().substring(1);
+        subSets.add(hash);
+      }
+    }
+    return subSets;
+  }
+
   /**
    * Check if the point cluster is valid
    */
-  public ClusterDefinition checkValidCluster(Geopoint geoHash,List<String> storeIdList){
+  public ClusterDefinition checkValidCluster(Geopoint geoHash,List<String> storeIdList,Set<String> subCombinationsSet){
+
+    Collections.sort(storeIdList);
+    StringBuilder sb = new StringBuilder();
+    for(String s : storeIdList){
+      sb.append("-");
+      sb.append(s);
+    }
+    String hash = sb.toString().substring(1);
+    if(subCombinationsSet.contains(hash)) return null;
+
     double shortDistance = Double.MAX_VALUE ;
     if(storeIdList.size()==1){
       shortDistance = Geopoint.getDistance(geoHash, ClusterBuilder.clusterPoints.get(storeIdList.get(0)).getLocation());
@@ -257,7 +309,6 @@ public class ClusterStrategy {
     ClusterDefinition clusterDefinition = new ClusterDefinition();
     clusterDefinition.setStatus("active");
     StringBuilder storesStatus = new StringBuilder();
-    Collections.sort(storeIdList);
     for(String s: storeIdList){
       String thisStoreStatus = ClusterBuilder.storeStatusMap.get(s);
       if(thisStoreStatus.contentEquals("inactive")) {
@@ -271,7 +322,9 @@ public class ClusterStrategy {
     clusterDefinition.setStoresStatus(storesStatus.toString());
     clusterDefinition.setDistance(shortDistance);
     setRankParameters(ClusterBuilder.popularProdSet, clusterDefinition);
-
+    getAllCombinations(storeIdList,storeIdList.size()-1);
+    Set<String> subSets = getAllSubSets(storeIdList);
+    subCombinationsSet.addAll(subSets);
     return clusterDefinition;
   }
 

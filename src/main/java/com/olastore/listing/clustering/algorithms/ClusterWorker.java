@@ -71,7 +71,7 @@ public class ClusterWorker implements Callable<String> {
     if(points.size()==0) return "DONE for "+geohash+"-- no shops within the raidus";
     LatLong gll = GeoHash.decodeHash(geohash);
     Geopoint geopoint = new Geopoint(gll.getLat(),gll.getLon());
-    List<ClusterDefinition> clusterDefinitionList = new ClusterStrategy().createClusters(geopoint, points, esConfig);
+    List<ClusterDefinition> clusterDefinitionList = new ClusterStrategy().createClusters(geopoint, points, esConfig,clustersConfig);
     if(clusterDefinitionList.size()>0)pushClusters(clusterDefinitionList);
     points = null;
     clusterDefinitionList = null;
