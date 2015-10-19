@@ -54,7 +54,7 @@ public class ClusterStrategy {
     if(clustersForCombination==0) return validClusters;
     clustersForCombination = 0;
 
-    List<List<String>>clusters = get2CClusters(points);
+    Set<List<String>>clusters = getAllCombinations(points,2);
     for(List<String> clusterObj : clusters){
       temp = checkValidCluster(geoHash,clusterObj);
       if(temp!=null){
@@ -68,7 +68,7 @@ public class ClusterStrategy {
     if(clustersForCombination==0) return validClusters;
     clustersForCombination = 0;
 
-    clusters =get3CClusters(points);
+    clusters =getAllCombinations(points,3);
     for(List<String> clusterObj : clusters){
       temp = checkValidCluster(geoHash,clusterObj);
       if(temp!=null){
@@ -83,7 +83,7 @@ public class ClusterStrategy {
     clustersForCombination = 0;
 
     if(points.size()>3){
-      clusters = get4CClusters(points);
+      clusters =getAllCombinations(points,4);
       for(List<String> clusterObj : clusters){
         temp = checkValidCluster(geoHash,clusterObj);
         if(temp!=null){
@@ -220,117 +220,24 @@ public class ClusterStrategy {
     return Double.MAX_VALUE;
   }
 
-  /**
-   * Create 3 possible combinations with everything
-   */
-  public List<List<String>> get3CClusters(List<String> stringList) {
 
-    if(stringList.size()<3) return new ArrayList<List<String>>();
-
-    List<List<String>> totalList = new ArrayList<List<String>>();
-    for(int i=0;i<stringList.size();i++){
-      List<String> tempList = new ArrayList<String>();
-      tempList.add(stringList.get(i));
-      for(int j=i+1;j+1<stringList.size() ;j++){
-        tempList.add(stringList.get(j));
-        tempList.add(stringList.get(j+1));
-        totalList.add(tempList);
-        tempList = new ArrayList<String>();
-        tempList.add(stringList.get(i));
-      }
-    }
-    return totalList;
-
+  public Set<List<String>> getAllCombinations(List<String> inputArray, int combinationSize){
+    Set<List<String>> total =new HashSet<>();
+    combinationUtil(0,0,inputArray.size(),combinationSize,inputArray,new ArrayList<String>(),total);
+    return total;
   }
 
-  /**
-   *Get all 4 possible combinations
-   */
-  public List<List<String>> get4CClusters(List<String> idList) {
-
-    if(idList.size()<4) return new ArrayList<List<String>>();
-
-    List<List<String>> totalList = new ArrayList<List<String>>();
-    for(int i=0;i<idList.size();i++){
-      List<String> tempList = new ArrayList<String>();
-      tempList.add(idList.get(i));
-      for(int j=i+1;j+2<idList.size();j++){
-        tempList.add(idList.get(j));
-        tempList.add(idList.get(j+1));
-        tempList.add(idList.get(j+2));
-        totalList.add(tempList);
-        tempList = new ArrayList<String>();
-        tempList.add(idList.get(i));
-      }
+  public void combinationUtil(int index, int start,int end, int combinationSize,
+                              List<String> inputArray,List<String> thisCombination,Set<List<String>> totalCombinations){
+    if(index==combinationSize){
+      totalCombinations.add(new ArrayList<>(thisCombination));
+      return;
     }
-    return totalList;
-  }
-
-  /**
-   * Get all 5 possible combinations
-   */
-  public List<List<String>> get5CClusters(List<String> idList) {
-
-    if(idList.size()<5) return new ArrayList<List<String>>();
-    List<List<String>> totalList = new ArrayList<List<String>>();
-    for(int i=0;i<idList.size();i++){
-      List<String> tempList = new ArrayList<String>();
-      tempList.add(idList.get(i));
-      for(int j=i+1;j+3<idList.size();j++){
-        tempList.add(idList.get(j));
-        tempList.add(idList.get(j+1));
-        tempList.add(idList.get(j+2));
-        tempList.add(idList.get(j+3));
-        totalList.add(tempList);
-        tempList = new ArrayList<String>();
-        tempList.add(idList.get(i));
-      }
+    for(int i= start;i<end && end+i-1 >= combinationSize-index;i++){
+      thisCombination.add(inputArray.get(i));
+      combinationUtil(index+1,i+1,end,combinationSize,inputArray,thisCombination,totalCombinations);
+      thisCombination.remove(inputArray.get(i));
     }
-    return totalList;
-  }
-
-  /**
-   * Get all possible 6 combinations
-   */
-  public List<List<String>> get6CClusters(List<String> idList) {
-
-    if(idList.size()<6) return new ArrayList<List<String>>();
-    List<List<String>> totalList = new ArrayList<List<String>>();
-    for(int i=0;i<idList.size();i++){
-      List<String> tempList = new ArrayList<String>();
-      tempList.add(idList.get(i));
-      for(int j=i+1;j+4<idList.size();j++){
-        tempList.add(idList.get(j));
-        tempList.add(idList.get(j+1));
-        tempList.add(idList.get(j+2));
-        tempList.add(idList.get(j+3));
-        tempList.add(idList.get(j+4));
-        totalList.add(tempList);
-        tempList = new ArrayList<String>();
-        tempList.add(idList.get(i));
-      }
-    }
-    return totalList;
-  }
-
-  /**
-   * Get all 2 possible combinations
-   */
-  public List<List<String>> get2CClusters(List<String> strings){
-
-    if(strings.size()<2) return new ArrayList<>();
-    List<List<String>> totalList = new ArrayList<List<String>>();
-    for(int i=0;i<strings.size();i++){
-      List<String> tempList = new ArrayList<String>();
-      tempList.add(strings.get(i));
-      for(int j=i+1;j<strings.size() ;j++){
-        tempList.add(strings.get(j));
-        totalList.add(tempList);
-        tempList = new ArrayList<String>();
-        tempList.add(strings.get(i));
-      }
-    }
-    return totalList;
   }
 
   /**
