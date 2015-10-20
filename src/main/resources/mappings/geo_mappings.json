@@ -2,7 +2,14 @@
   "settings": {
     "index": {
       "number_of_shards": 1,
-      "index.mapper.dynamic": false
+      "index.mapper.dynamic": false,
+      "analysis": {
+        "analyzer": {
+          "default": {
+            "type": "keyword"
+          }
+        }
+      }
     }
   },
   "mappings": {
