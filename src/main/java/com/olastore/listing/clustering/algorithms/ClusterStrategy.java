@@ -264,7 +264,6 @@ public class ClusterStrategy {
     clusterDefinition.setStoresStatus(storesStatus.toString());
     clusterDefinition.setDistance(shortDistance);
     setRankParameters(ClusterBuilder.popularProdSet, clusterDefinition);
-    getAllCombinations(storeIdList, storeIdList.size() - 1);
     Set<String> subSets = getAllSubSets(storeIdList);
     subCombinationsSet.addAll(subSets);
     return clusterDefinition;
