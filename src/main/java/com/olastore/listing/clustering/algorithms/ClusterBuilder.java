@@ -100,8 +100,9 @@ public class ClusterBuilder {
     }
     logger.info("Popular items reading completed. Total number of popular products are " + popularProdSet.size());
 
-    esConfig = Util.setListingIndexNameForCity(esConfig,"listing_index_name",city);
-    reinitializeClusteringIndices();
+    esConfig = com.olastore.listing.clustering.utils.Util.setListingIndexNameForCity(esConfig, "listing_index_name", city);
+    esConfig = com.olastore.listing.clustering.utils.Util.setClusterIndexes(esConfig, "geo_hash_index_name", "clusters_index_name");
+    //reinitializeClusteringIndices();
 
 
     GeoHashUtil geoHashUtil = new GeoHashUtil();
