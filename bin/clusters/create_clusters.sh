@@ -31,7 +31,7 @@ elif [ ! -r ../../src/main/resources/mappings/cluster_mappings.json ]
  then
   is_exit=true
   error_message=$(echo "Cluster Mappings file does not exist")
-elif [ ! -r ../../target/clustering-1.0-SNAPSHOT.jar ]
+elif [ ! -r clustering-1.0-SNAPSHOT.jar ]
  then
   is_exit=true
   error_message=$(echo "Clustering jar file does not exist")
@@ -77,7 +77,7 @@ if [ $geo_response -eq 200 ] && [ $cluster_response -eq  200 ];then
  echo "Mappings are successfully created"
  for city in $city_array
  do
-   algo_response=$(java -jar ../../target/clustering-1.0-SNAPSHOT.jar ${ENV} ${city})
+   algo_response=$(java -jar clustering-1.0-SNAPSHOT.jar ${ENV} ${city})
    error_code=$?
    if (( $error_code )); then
       echo "algo did not run successfully. Please check the logs" | mail -s "Clustering algo error" "$user_email"
