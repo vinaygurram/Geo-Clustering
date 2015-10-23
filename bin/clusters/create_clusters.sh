@@ -64,9 +64,9 @@ dt_2_b=$(date --date='2 days ago' '+%m_%d_%Y')
 #dt_2_b=$(date -v -2d '+%m_%d_%Y')
 ES_GEO_INDEX_tday=${ES_GEO_INDEX}_${dt}
 ES_CLUSTER_INDEX_tday=${ES_CLUSTER_INDEX}_${dt}
-ES_GEO_YESDAY_INDEX=${ES_GEO_INDEX}_${dt_1_b}
-ES_CLUSTER_YESDAY_INDEX=${ES_CLUSTER_INDEX}_${dt_1_b}
-ES_GEO_DEL_INDEXES=${ES_GEO_INDEX}_${date_2_b},${ES_CLUSTER_INDEX}_${date_2_b}
+ES_GEO_INDEX_yday=${ES_GEO_INDEX}_${dt_1_b}
+ES_CLUSTER_INDEX_yday=${ES_CLUSTER_INDEX}_${dt_1_b}
+ES_GEO_DEL_INDEXES=${ES_GEO_INDEX}_${dt_2_b},${ES_CLUSTER_INDEX}_${dt_2_b}
 
 #create mappings
 geo_response=$(curl -s -w "%{http_code}\\n" -XPOST ${ES_HOST}/${ES_GEO_INDEX_tday} -T ../../src/main/resources/mappings/geo_mappings.json -o /dev/null)
