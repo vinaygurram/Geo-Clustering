@@ -58,10 +58,10 @@ fi
 ES_GEO_INDEX=geo_hashes
 ES_CLUSTER_INDEX=geo_clusters
 dt=$(date '+%m_%d_%Y');
-#dt_1_b=$(date --date='1 day ago' '+%m_%d_%Y');
-#dt_2_b=$(date -d "2 days ago" '+%m_%d_%Y')
-dt_1_b=$(date -v -1d '+%m_%d_%Y');
-dt_2_b=$(date -v -2d '+%m_%d_%Y')
+dt_1_b=$(date --date='1 day ago' '+%m_%d_%Y');
+dt_2_b=$(date --date='2 days ago' '+%m_%d_%Y')
+#dt_1_b=$(date -v -1d '+%m_%d_%Y');
+#dt_2_b=$(date -v -2d '+%m_%d_%Y')
 ES_GEO_INDEX_tday=${ES_GEO_INDEX}_${dt}
 ES_CLUSTER_INDEX_tday=${ES_CLUSTER_INDEX}_${dt}
 ES_GEO_YESDAY_INDEX=${ES_GEO_INDEX}_${dt_1_b}
