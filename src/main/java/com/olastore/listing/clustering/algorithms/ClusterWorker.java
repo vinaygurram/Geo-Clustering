@@ -68,7 +68,7 @@ public class ClusterWorker implements Callable<String> {
   @Override
   public String call() throws Exception {
     List<String>points = getClusetringPointsForGeoHash(geohash);
-    if(points.size()==0) return "DONE for "+geohash+"-- no shops within the raidus";
+    if(points.size()==0) return "DONE for "+geohash+"-- no shops within the radius";
     LatLong gll = GeoHash.decodeHash(geohash);
     Geopoint geopoint = new Geopoint(gll.getLat(),gll.getLon());
     List<ClusterDefinition> clusterDefinitionList = new ClusterStrategy().createClusters(geopoint, points, esConfig,clustersConfig);
@@ -107,6 +107,12 @@ public class ClusterWorker implements Callable<String> {
         }
       });
 
+      StringBuilder stringBuilder = new StringBuilder();
+      for(int i=0;i<50;i++){
+        stringBuilder.append(clusterDefinitions.get(i).getPoints()+";;;");
+      }
+      logger.info("Top clusters are "+stringBuilder.toString());
+
       int count = 0;
       for(ClusterDefinition clusterDefinition : clusterDefinitions){
         count++;
@@ -142,7 +148,6 @@ public class ClusterWorker implements Callable<String> {
           ClusterBuilder.bulkDocCount =new AtomicInteger(0);
         }
       }
-
       if(!maxString.isEmpty()){
         ClusterBuilder.esClient.pushToESBulk("","",maxString);
       }
