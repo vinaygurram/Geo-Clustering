@@ -55,7 +55,6 @@ public class ClusterWorker implements Callable<String> {
         ClusterPoint clusterPoint = new ClusterPoint(id,new Geopoint(lat,lng));
         ClusterBuilder.clusterPoints.put(id, clusterPoint);
       }
-      logger.info("Clustering points for geohash {} are {}",geohash,reShops);
 
     }catch (JSONException e){
       logger.error("Json exceptions {}",e);
@@ -66,23 +65,26 @@ public class ClusterWorker implements Callable<String> {
   }
 
   @Override
-  public String call() throws Exception {
-    List<String>points = getClusetringPointsForGeoHash(geohash);
-    if(points.size()==0) return "DONE for "+geohash+"-- no shops within the raidus";
-    LatLong gll = GeoHash.decodeHash(geohash);
-    Geopoint geopoint = new Geopoint(gll.getLat(),gll.getLon());
-    List<ClusterDefinition> clusterDefinitionList = new ClusterStrategy().createClusters(geopoint, points, esConfig,clustersConfig);
-    if(clusterDefinitionList.size()>0)pushClusters(clusterDefinitionList);
-    points = null;
-    clusterDefinitionList = null;
-    if(ClusterBuilder.jobsRun.getAndIncrement()%50==0){
-      logger.info("Jobs run total is {}", ClusterBuilder.jobsRun);
+  public String call() {
+    try {
+      List<String>points = getClusetringPointsForGeoHash(geohash);
+      if(points.size()==0) return "DONE for "+geohash+"-- no shops within the raidus";
+      LatLong gll = GeoHash.decodeHash(geohash);
+      Geopoint geopoint = new Geopoint(gll.getLat(),gll.getLon());
+      List<ClusterDefinition> clusterDefinitionList = null;
+      clusterDefinitionList = new ClusterStrategy().createClusters(geopoint, points, esConfig,clustersConfig);
+      logger.info("Geohash : "+geohash+", Number of shops : "+points.size()+", Number of Clusters : "+clusterDefinitionList.size());
+      if(clusterDefinitionList.size()>0){
+        pushClusters(clusterDefinitionList);
+      }
+    }catch (Exception e){
+      logger.error("Exception {}",e);
     }
+
     return "DONE for "+geohash;
   }
 
   public void pushClusters(List<ClusterDefinition> clusterDefinitions){
-    HttpClient httpClient;
     try {
       JSONObject geoDoc = new JSONObject();
       geoDoc.put("id", clusterDefinitions.get(0).getGeoHash());
@@ -113,18 +115,13 @@ public class ClusterWorker implements Callable<String> {
         if(count>50) break;
         List<String> stringList = clusterDefinition.getPoints();
         Collections.sort(stringList);
-        StringBuilder sb = new StringBuilder();
-        for(String s : stringList){
-          sb.append("-");
-          sb.append(s);
-        }
-        String hash = sb.toString().substring(1);
-        clusters.put(hash);
+        String clusterId = clusterDefinition.getId();
+        clusters.put(clusterDefinition.getId());
 
-        if(!ClusterBuilder.pushedClusters.contains(hash)){
+        if(!ClusterBuilder.pushedClusters.contains(clusterId)){
           ClusterBuilder.esClient.pushToES((String) esConfig.get("clusters_index_name"),
-              (String) esConfig.get("clusters_index_type"),hash,clusterDefinition.toString());
-          ClusterBuilder.pushedClusters.add(hash);
+              (String) esConfig.get("clusters_index_type"),clusterId,clusterDefinition.toString());
+          ClusterBuilder.pushedClusters.add(clusterId);
         }
       }
       String thisDocAsString = "{\"index\" : {\"_index\" : \"" +

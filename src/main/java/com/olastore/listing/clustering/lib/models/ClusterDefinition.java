@@ -10,14 +10,13 @@ import java.util.List;
  */
 public class ClusterDefinition{
 
+  private String id;
   private String name;
   private List<String> points = new ArrayList<String>();
   private double distance ;
   private String geoHash;
   private double rank;
   private int num_stores;
-  private String status;
-  private String storesStatus;
 
   public void addPoint(String p) {
     points.add(p);
@@ -73,20 +72,12 @@ public class ClusterDefinition{
     this.rank = rank;
   }
 
-  public String getStatus() {
-    return status;
+  public String getId() {
+    return id;
   }
 
-  public void setStatus(String status) {
-    this.status = status;
-  }
-
-  public String getStoresStatus() {
-    return storesStatus;
-  }
-
-  public void setStoresStatus(String storesStatus) {
-    this.storesStatus = storesStatus;
+  public void setId(String id) {
+    this.id = id;
   }
 
   @Override
@@ -104,8 +95,6 @@ public class ClusterDefinition{
     }
     cluster.put("stores", storeIdArry);
     cluster.put("stores_count",num_stores);
-    cluster.put("status",status);
-    cluster.put("stores_status",storesStatus);
     return cluster;
   }
 

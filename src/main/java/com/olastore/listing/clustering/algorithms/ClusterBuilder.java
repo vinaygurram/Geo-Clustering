@@ -29,7 +29,6 @@ public class ClusterBuilder {
 
   public static ConcurrentHashMap<String, ClusterPoint> clusterPoints = new ConcurrentHashMap<>();
   public static List<String> pushedClusters = Collections.synchronizedList(new ArrayList<String>());
-  public static AtomicInteger jobsRun = new AtomicInteger();
   public static ConcurrentHashMap<String, Double> clusterRankMap = new ConcurrentHashMap<>();
   public static Set<String> popularProdSet = new HashSet<>();
   public static AtomicInteger bulkDocCount = new AtomicInteger(0);
@@ -114,13 +113,7 @@ public class ClusterBuilder {
 //            geoHashList.add("tdr1yrb");
 
     ExecutorService executorService = Executors.newFixedThreadPool(10);
-    int count =0;
     for (String geoHash : geoHashList) {
-//      count++;
-//      if(count > 100){
-//        count =0;
-//        Thread.sleep(1000);
-//      }
       executorService.submit(new ClusterWorker(geoHash, esConfig, clustersConfig));
     }
     executorService.shutdown();

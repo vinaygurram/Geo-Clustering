@@ -31,8 +31,7 @@ public class ClusterStrategy {
     this.distanceMatrix = new DistanceMatrix(geoHash,ttpoints,clusterConfig);
   }
 
-  public List<ClusterDefinition> createClusters(Geopoint geoHash,  List<String>points, Map esConfig, Map clusterConfig) {
-
+  public List<ClusterDefinition> createClusters (Geopoint geoHash,  List<String>points, Map esConfig, Map clusterConfig) throws Exception{
     this.esConfig = esConfig;
     this.clusterConfig = clusterConfig;
     if(points==null || points.size()==0) return new ArrayList<ClusterDefinition>();
@@ -48,7 +47,7 @@ public class ClusterStrategy {
     int maxShops = (Integer)clusterConfig.get("clusters_max_shops");
 
     for(int i=maxShops;i>0;i--){
-      if(points.size()>i){
+      if(points.size()>=i){
         clusters = getAllCombinations(points,i);
         for(List<String> clusterObj : clusters){
           temp = checkValidCluster(geoHash,clusterObj,subSetCombination);
@@ -71,6 +70,7 @@ public class ClusterStrategy {
    */
   public void setRankParameters(Set<String> popularProductsSet,ClusterDefinition clusterObj) {
 
+    if(clusterObj.getPoints().size()==0) return;
     String storeIdString = "";
     String clusterId = "";
     List<String> stores = clusterObj.getPoints();
@@ -200,7 +200,7 @@ public class ClusterStrategy {
       totalCombinations.add(new ArrayList<>(thisCombination));
       return;
     }
-    for(int i= start;i<end && end+i-1 >= combinationSize-index;i++){
+    for(int i= start;i<end && end+i+1 >= combinationSize-index;i++){
       thisCombination.add(inputArray.get(i));
       combinationUtil(index+1,i+1,end,combinationSize,inputArray,thisCombination,totalCombinations);
       thisCombination.remove(inputArray.get(i));
@@ -249,19 +249,13 @@ public class ClusterStrategy {
     if(shortDistance>8) return null;
 
     ClusterDefinition clusterDefinition = new ClusterDefinition();
-    clusterDefinition.setStatus("active");
-    StringBuilder storesStatus = new StringBuilder();
     for(String s: storeIdList){
       String thisStoreStatus = ClusterBuilder.storeStatusMap.get(s);
-      if(thisStoreStatus.contentEquals("inactive")) {
-        clusterDefinition.setStatus("inactive");
-        storesStatus.append(0);
-      }else {
-        storesStatus.append(1);
+      if(thisStoreStatus.contentEquals("active")) {
+        clusterDefinition.addPoint(s);
       }
-      clusterDefinition.addPoint(s);
     }
-    clusterDefinition.setStoresStatus(storesStatus.toString());
+    clusterDefinition.setId(hash);
     clusterDefinition.setDistance(shortDistance);
     setRankParameters(ClusterBuilder.popularProdSet, clusterDefinition);
     Set<String> subSets = getAllSubSets(storeIdList);
