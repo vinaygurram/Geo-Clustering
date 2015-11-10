@@ -6,96 +6,96 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Cluster Object with all the properties required. Created by gurramvinay on 6/30/15.
+ * Cluster Object with all the properties required.
  */
-public class ClusterDefinition{
+public class ClusterDefinition {
 
-  private String id;
-  private String name;
-  private List<String> points = new ArrayList<String>();
-  private double distance ;
-  private String geoHash;
-  private double rank;
-  private int num_stores;
+	private String id;
+	private String name;
+	private List<String> points = new ArrayList<String>();
+	private double distance;
+	private String geoHash;
+	private double rank;
+	private int num_stores;
 
-  public void addPoint(String p) {
-    points.add(p);
-    num_stores++;
+	public void addPoint(String p) {
+		points.add(p);
+		num_stores++;
 
-  }
+	}
 
-  public String getName() {
-    return name;
-  }
+	public String getName() {
+		return name;
+	}
 
-  public void setName(String name) {
-    this.name = name;
-  }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-  public List<String> getPoints() {
-    return points;
-  }
+	public List<String> getPoints() {
+		return points;
+	}
 
-  public void setPoints(List<String> points) {
-    this.points = points;
-  }
+	public void setPoints(List<String> points) {
+		this.points = points;
+	}
 
-  public double getDistance() {
-    return distance;
-  }
+	public double getDistance() {
+		return distance;
+	}
 
-  public void setDistance(double distance) {
-    this.distance = distance;
-  }
+	public void setDistance(double distance) {
+		this.distance = distance;
+	}
 
-  public String getGeoHash() {
-    return geoHash;
-  }
+	public String getGeoHash() {
+		return geoHash;
+	}
 
-  public void setGeoHash(String geoHash) {
-    this.geoHash = geoHash;
-  }
+	public void setGeoHash(String geoHash) {
+		this.geoHash = geoHash;
+	}
 
-  public int getNum_stores() {
-    return num_stores;
-  }
+	public int getNum_stores() {
+		return num_stores;
+	}
 
-  public void setNum_stores(int num_stores) {
-    this.num_stores = num_stores;
-  }
+	public void setNum_stores(int num_stores) {
+		this.num_stores = num_stores;
+	}
 
-  public double getRank() {
-    return rank;
-  }
+	public double getRank() {
+		return rank;
+	}
 
-  public void setRank(double rank) {
-    this.rank = rank;
-  }
+	public void setRank(double rank) {
+		this.rank = rank;
+	}
 
-  public String getId() {
-    return id;
-  }
+	public String getId() {
+		return id;
+	}
 
-  public void setId(String id) {
-    this.id = id;
-  }
+	public void setId(String id) {
+		this.id = id;
+	}
 
-  @Override
-  public String toString() {
-    return getJSON().toString();
-  }
+	@Override
+	public String toString() {
+		return getJSON().toString();
+	}
 
-  public JSONObject getJSON() {
+	public JSONObject getJSON() {
 
-    JSONObject cluster = new JSONObject();
-    cluster.put("rank",rank);
-    JSONArray storeIdArry = new JSONArray();
-    for (String c:  points) {
-      storeIdArry.put(c);
-    }
-    cluster.put("stores", storeIdArry);
-    cluster.put("stores_count",num_stores);
-    return cluster;
-  }
+		JSONObject cluster = new JSONObject();
+		cluster.put("rank", rank);
+		JSONArray storeIdArry = new JSONArray();
+		for (String c : points) {
+			storeIdArry.put(c);
+		}
+		cluster.put("stores", storeIdArry);
+		cluster.put("stores_count", num_stores);
+		return cluster;
+	}
 
 }

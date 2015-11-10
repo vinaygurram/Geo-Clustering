@@ -11,25 +11,25 @@ import java.util.Map;
  */
 public class ConfigReader {
 
-  private Map configValues;
+	private Map configValues;
 
-  public ConfigReader(String configFilePath) throws FileNotFoundException {
-    Yaml yaml = new Yaml();
-    this.configValues = (Map)yaml.load(this.getClass().getClassLoader().getResourceAsStream(configFilePath));
-  }
+	public ConfigReader(String configFilePath) throws FileNotFoundException {
+		Yaml yaml = new Yaml();
+		this.configValues = (Map) yaml.load(this.getClass().getClassLoader().getResourceAsStream(configFilePath));
+	}
 
-  public File readFile(String path) throws IOException {
+	public File readFile(String path) throws IOException {
 
-    File file = new File("tmpFile");
-    FileUtils.copyInputStreamToFile(getClass().getClassLoader().getResourceAsStream(path), file);
-    return file;
-  }
+		File file = new File("tmpFile");
+		FileUtils.copyInputStreamToFile(getClass().getClassLoader().getResourceAsStream(path), file);
+		return file;
+	}
 
-  public Object readValue(String key) {
-    return configValues.get(key);
-  }
+	public Object readValue(String key) {
+		return configValues.get(key);
+	}
 
-  public Map readAllValues() {
-    return configValues;
-  }
+	public Map readAllValues() {
+		return configValues;
+	}
 }
