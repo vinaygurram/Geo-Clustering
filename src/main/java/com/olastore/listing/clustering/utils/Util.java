@@ -14,6 +14,13 @@ public class Util {
 		return map;
 	}
 
+	public static Map updateListingIndexNameForCity(Map map, String key, String oldCity, String newCity) {
+		String indexName = (String) map.get(key);
+		indexName = indexName.replace(oldCity,newCity);
+		map.put(key, indexName);
+		return map;
+	}
+
 	public static Map setClusterIndexes(Map map, String geo_index_key, String cluster_index_key) {
 		DateFormat dateFormat = new SimpleDateFormat("MM_dd_yyyy");
 		Date today = Calendar.getInstance().getTime();

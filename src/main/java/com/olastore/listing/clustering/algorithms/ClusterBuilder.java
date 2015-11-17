@@ -4,10 +4,7 @@ import com.olastore.listing.clustering.clients.ESClient;
 import com.olastore.listing.clustering.utils.ConfigReader;
 import com.olastore.listing.clustering.utils.GeoHashUtil;
 import com.olastore.listing.clustering.lib.models.ClusterPoint;
-import com.olastore.listing.clustering.utils.Util;
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.http.entity.FileEntity;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -43,7 +40,7 @@ public class ClusterBuilder {
 		this.esClient = new ESClient((String) esConfig.get(esHostKey));
 	}
 
-	public void reinitializeClusteringIndices() {
+	public void createClusteringIndices() {
 		try {
 			String indexName = esConfig.get("geo_hash_index_name") + "," + esConfig.get("clusters_index_name");
 			esClient.deleteIndex(indexName);
@@ -67,7 +64,6 @@ public class ClusterBuilder {
 	}
 
 	private Set<String> initializePopularProductSet() {
-
 		Set<String> productIdSet = new HashSet<>();
 		FileReader fileReader = null;
 		BufferedReader bufferedReader = null;
@@ -97,8 +93,7 @@ public class ClusterBuilder {
 		return productIdSet;
 	}
 
-	public void createClusters(String city) throws Exception {
-
+	public void createClusters(String[] cities) throws Exception {
 		// generate popular products
 		popularProdSet = initializePopularProductSet();
 		if (popularProdSet.size() == 0) {
@@ -107,12 +102,20 @@ public class ClusterBuilder {
 		}
 		logger.info("Popular items reading completed. Total number of popular products are " + popularProdSet.size());
 
-		esConfig = com.olastore.listing.clustering.utils.Util.setListingIndexNameForCity(esConfig, "listing_index_name",
-				city);
+		//Create cluster indices
 		esConfig = com.olastore.listing.clustering.utils.Util.setClusterIndexes(esConfig, "geo_hash_index_name",
 				"clusters_index_name");
-		// reinitializeClusteringIndices();
+		createClusteringIndices();
+		for(int i=0;i<cities.length;i++){
+			if(i==0) esConfig = com.olastore.listing.clustering.utils.Util.setListingIndexNameForCity(esConfig, "listing_index_name",
+					cities[i]);
+			else  esConfig = com.olastore.listing.clustering.utils.Util.updateListingIndexNameForCity(esConfig, "listing_index_name",
+					cities[i-1],cities[i]);
+			createClustersForCity(cities[i]);
+		}
+	}
 
+	public void createClustersForCity(String city ) throws Exception {
 		GeoHashUtil geoHashUtil = new GeoHashUtil();
 		List<String> geoHashList = geoHashUtil.getGeoHashesForArea(city, this.clustersConfig);
 
@@ -127,5 +130,8 @@ public class ClusterBuilder {
 			logger.info("Response from ES for  is " + result);
 		}
 	}
+
+
+
 
 }
