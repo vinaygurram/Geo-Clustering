@@ -17,6 +17,10 @@ listing_index_type: list
 stores_index_name: stores_common
 stores_index_type: store
 
+#alias names
+clusters_alias: geo_clusters
+geohash_alias: geo_hashes
+
 #mapping files
 cluster_mappings_file_path : mappings/cluster_mappings.json
 geo_mappings_file_path : mappings/geo_mappings.json

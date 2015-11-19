@@ -17,7 +17,7 @@ public class ClustersESURIBuilder {
 	private String schme = "http";
 
 	private enum endPoints {
-		SEARCH("_search"), BULK("_bulk");
+		SEARCH("_search"), BULK("_bulk"),ALIASES("_aliases");
 		protected final String name;
 
 		private endPoints(String name) {
@@ -82,5 +82,11 @@ public class ClustersESURIBuilder {
 
 	public URI getIndexURI(String indexName) throws URISyntaxException {
 		return new URIBuilder().setScheme(schme).setHost(ES_HOST).setPath("/" + indexName).build();
+	}
+
+	public URI getAliasesEndPoint() throws URISyntaxException {
+		StringBuilder path = new StringBuilder();
+		path.append("/").append(endPoints.ALIASES);
+		return new URIBuilder().setScheme(schme).setHost(ES_HOST).setPath(path.toString()).build();
 	}
 }

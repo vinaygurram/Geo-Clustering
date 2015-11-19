@@ -33,4 +33,16 @@ public class Util {
 		map.put(cluster_index_key, indexName);
 		return map;
 	}
+
+	public static String getIndexCreatedNdaysBack(String indexNameForToday,int days){
+		DateFormat dateFormat = new SimpleDateFormat("MM_dd_yyyy");
+		Calendar calendar = Calendar.getInstance();
+		Date today = calendar.getTime();
+		String dateString = dateFormat.format(today);
+		calendar.add(Calendar.DATE,-days);
+		Date yesterday = calendar.getTime();
+		String yesDateString =  dateFormat.format(yesterday);
+		indexNameForToday = indexNameForToday.replace(dateString,yesDateString);
+		return indexNameForToday;
+	}
 }

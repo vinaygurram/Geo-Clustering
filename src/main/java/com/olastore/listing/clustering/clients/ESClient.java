@@ -64,7 +64,6 @@ public class ESClient {
 		}
 		URI bulkURI = clustersESURIBuilder.getBulkEndPoint(map);
 		return clustersHttpClientFactory.getHttpClient().executePost(bulkURI, entity);
-
 	}
 
 	public JSONObject createIndex(String indexName, FileEntity fileEntity) throws URISyntaxException {
@@ -75,6 +74,12 @@ public class ESClient {
 	public void deleteIndex(String indexName) throws URISyntaxException {
 		URI indexUri = clustersESURIBuilder.getIndexURI(indexName);
 		clustersHttpClientFactory.getHttpClient().executeDelete(indexUri);
+	}
+
+	public JSONObject changeAliases(String data) throws URISyntaxException {
+		StringEntity entity = new StringEntity(data,Charset.defaultCharset());
+		URI aliasesUri = clustersESURIBuilder.getAliasesEndPoint();
+		return clustersHttpClientFactory.getHttpClient().executePost(aliasesUri,entity);
 	}
 
 }

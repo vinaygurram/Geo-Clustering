@@ -4,6 +4,7 @@ import com.olastore.listing.clustering.clients.ESClient;
 import com.olastore.listing.clustering.utils.ConfigReader;
 import com.olastore.listing.clustering.utils.GeoHashUtil;
 import com.olastore.listing.clustering.lib.models.ClusterPoint;
+import com.olastore.listing.clustering.utils.Util;
 import org.apache.commons.io.FileUtils;
 import org.apache.http.entity.FileEntity;
 import org.json.JSONObject;
@@ -11,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.net.URISyntaxException;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -40,7 +42,7 @@ public class ClusterBuilder {
 		this.esClient = new ESClient((String) esConfig.get(esHostKey));
 	}
 
-	public void createClusteringIndices() {
+	private void createClusteringIndices() {
 		try {
 			String indexName = esConfig.get("geo_hash_index_name") + "," + esConfig.get("clusters_index_name");
 			esClient.deleteIndex(indexName);
@@ -61,6 +63,35 @@ public class ClusterBuilder {
 		} catch (Exception e) {
 			logger.error("Exception in create/delete indices {}", e);
 		}
+	}
+
+	private void changeAliases() throws URISyntaxException {
+
+		String clusterIndex = (String) esConfig.get("clusters_index_name");
+		String geoHashIndex = (String)esConfig.get("geo_hash_index_name");
+		String oneDayBackClustersIndex = Util.getIndexCreatedNdaysBack(clusterIndex,1);
+		String twoDaysBackClustersIndex = Util.getIndexCreatedNdaysBack(clusterIndex,2);
+		String oneDayBackgeoHashsIndex = Util.getIndexCreatedNdaysBack(geoHashIndex,1);
+		String twoDaysBackgeoHashsIndex = Util.getIndexCreatedNdaysBack(geoHashIndex,2);
+		String clustersAlias = (String)esConfig.get("clusters_alias");
+		String geohashAlias = (String) esConfig.get("geohash_alias");
+
+
+		String aliasAddData = "{\"actions\":[" +
+				"{\"add\":{\"index\":\""+clusterIndex+"\",\"alias\":\""+clustersAlias+"\"}}," +
+				"{\"add\":{\"index\":\""+geoHashIndex+"\",\"alias\":\""+geohashAlias+"\"}}]}";
+		String aliasDeleteData = "{\"actions\":[" +
+				"{\"remove\":{\"index\":\""+oneDayBackClustersIndex+"\",\"alias\":\""+clustersAlias+"\"}}," +
+				"{\"remove\":{\"index\":\""+oneDayBackgeoHashsIndex+"\",\"alias\":\""+geohashAlias+"\"}}]}";
+		JSONObject result = esClient.changeAliases(aliasAddData);
+		if(result!=null){
+			logger.info(result.toString());
+			result = esClient.changeAliases(aliasDeleteData);
+			logger.info(result.toString());
+		}
+	}
+
+	private void deleteIndices(String indicesString){
 	}
 
 	private Set<String> initializePopularProductSet() {
@@ -130,8 +161,4 @@ public class ClusterBuilder {
 			logger.info("Response from ES for  is " + result);
 		}
 	}
-
-
-
-
 }
