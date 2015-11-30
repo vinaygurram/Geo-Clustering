@@ -37,7 +37,7 @@ public class DistanceMatrix {
 		HashMap<String, Double> ndMap = new HashMap<String, Double>();
 		Set<String> keySet = dMatrix.keySet();
 		for (String key : keySet) {
-			String[] keys = key.split("##");
+			String[] keys = key.split(CCATTERM);
 			if (keys[0].contentEquals(id)) {
 				ndMap.put(keys[1], dMatrix.get(key));
 			} else if (keys[1].contentEquals(id)) {

@@ -1,7 +1,16 @@
 {
   "settings": {
-    "number_of_shards": 1,
-    "index.mapper.dynamic": false
+    "index": {
+      "number_of_shards": 1,
+      "index.mapper.dynamic": false,
+      "analysis": {
+        "analyzer": {
+          "default": {
+            "type": "keyword"
+          }
+        }
+      }
+    }
   },
   "mappings": {
     "cluster": {
@@ -14,9 +23,6 @@
         },
         "rank": {
           "type": "double"
-        },
-        "status" : {
-          "type" : "String"
         }
       }
     }

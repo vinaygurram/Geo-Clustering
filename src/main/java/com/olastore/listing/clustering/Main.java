@@ -21,7 +21,7 @@ public class Main {
 			}
 
 			if (args[1] == null || args[1].isEmpty()) {
-				logger.error("Please provide valid city name");
+				logger.error("Please provide valid city/cities name");
 				return;
 			}
 

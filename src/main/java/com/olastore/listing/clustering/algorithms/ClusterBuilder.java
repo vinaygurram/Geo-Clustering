@@ -11,6 +11,7 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.print.DocFlavor;
 import java.io.*;
 import java.net.URISyntaxException;
 import java.util.*;
@@ -44,55 +45,53 @@ public class ClusterBuilder {
 
 	private void createClusteringIndices() {
 		try {
-			String indexName = esConfig.get("geo_hash_index_name") + "," + esConfig.get("clusters_index_name");
-			esClient.deleteIndex(indexName);
 			File file = new File("tmpFile");
 			FileUtils.copyInputStreamToFile(
 					getClass().getClassLoader().getResourceAsStream((String) esConfig.get("geo_mappings_file_path")),
 					file);
 			JSONObject create_geo_response = esClient.createIndex((String) esConfig.get("geo_hash_index_name"),
 					new FileEntity(file));
-			logger.info("Creating geo mappings {}", create_geo_response.toString());
+			logger.info("Creating geo mappings #{}", create_geo_response.toString());
 
 			FileUtils.copyInputStreamToFile(getClass().getClassLoader()
 					.getResourceAsStream((String) esConfig.get("cluster_mappings_file_path")), file);
 			JSONObject create_cluster_response = esClient.createIndex((String) esConfig.get("clusters_index_name"),
 					new FileEntity(file));
-			logger.info("Creating cluster mappings {}", create_cluster_response.toString());
+			logger.info("Creating cluster mappings #{}", create_cluster_response.toString());
 			file.delete();
 		} catch (Exception e) {
-			logger.error("Exception in create/delete indices {}", e);
+			logger.error("Exception in create/delete indices #{}", e);
 		}
 	}
 
 	private void changeAliases() throws URISyntaxException {
 
-		String clusterIndex = (String) esConfig.get("clusters_index_name");
-		String geoHashIndex = (String)esConfig.get("geo_hash_index_name");
-		String oneDayBackClustersIndex = Util.getIndexCreatedNdaysBack(clusterIndex,1);
-		String twoDaysBackClustersIndex = Util.getIndexCreatedNdaysBack(clusterIndex,2);
-		String oneDayBackgeoHashsIndex = Util.getIndexCreatedNdaysBack(geoHashIndex,1);
-		String twoDaysBackgeoHashsIndex = Util.getIndexCreatedNdaysBack(geoHashIndex,2);
-		String clustersAlias = (String)esConfig.get("clusters_alias");
-		String geohashAlias = (String) esConfig.get("geohash_alias");
+    String clusterIndex = (String) esConfig.get("clusters_index_name");
+    String geoHashIndex = (String)esConfig.get("geo_hash_index_name");
+    String oneDayBackClustersIndex = Util.getIndexCreatedNdaysBack(clusterIndex,1);
+    String twoDaysBackClustersIndex = Util.getIndexCreatedNdaysBack(clusterIndex,2);
+    String oneDayBackgeoHashIndex = Util.getIndexCreatedNdaysBack(geoHashIndex,1);
+    String twoDaysBackgeoHashIndex = Util.getIndexCreatedNdaysBack(geoHashIndex,2);
+    String clustersAlias = (String)esConfig.get("clusters_alias");
+    String geohashAlias = (String) esConfig.get("geohash_alias");
 
-
-		String aliasAddData = "{\"actions\":[" +
-				"{\"add\":{\"index\":\""+clusterIndex+"\",\"alias\":\""+clustersAlias+"\"}}," +
-				"{\"add\":{\"index\":\""+geoHashIndex+"\",\"alias\":\""+geohashAlias+"\"}}]}";
-		String aliasDeleteData = "{\"actions\":[" +
-				"{\"remove\":{\"index\":\""+oneDayBackClustersIndex+"\",\"alias\":\""+clustersAlias+"\"}}," +
-				"{\"remove\":{\"index\":\""+oneDayBackgeoHashsIndex+"\",\"alias\":\""+geohashAlias+"\"}}]}";
-		JSONObject result = esClient.changeAliases(aliasAddData);
-		if(result!=null){
-			logger.info(result.toString());
-			result = esClient.changeAliases(aliasDeleteData);
-			logger.info(result.toString());
-		}
-	}
-
-	private void deleteIndices(String indicesString){
-	}
+    String aliasAddData = "{\"actions\":[" +
+        "{\"add\":{\"index\":\""+clusterIndex+"\",\"alias\":\""+clustersAlias+"\"}}," +
+        "{\"add\":{\"index\":\""+geoHashIndex+"\",\"alias\":\""+geohashAlias+"\"}}]}";
+    String aliasDeleteData = "{\"actions\":[" +
+        "{\"remove\":{\"index\":\""+oneDayBackClustersIndex+"\",\"alias\":\""+clustersAlias+"\"}}," +
+        "{\"remove\":{\"index\":\""+oneDayBackgeoHashIndex+"\",\"alias\":\""+geohashAlias+"\"}}]}";
+    JSONObject result = esClient.changeAliases(aliasAddData);
+    if (result==null) {
+      logger.error("Failed to add aliases ");
+      return;
+    }
+    logger.info("Aliases Created Successfully"+ result);
+    result = esClient.changeAliases(aliasDeleteData);
+    if(result==null) logger.error("Aliases deletion failed");
+    logger.info("Aliases deleted " +result);
+    esClient.deleteIndex(twoDaysBackClustersIndex + "," + twoDaysBackgeoHashIndex);
+  }
 
 	private Set<String> initializePopularProductSet() {
 		Set<String> productIdSet = new HashSet<>();
@@ -133,10 +132,12 @@ public class ClusterBuilder {
 		}
 		logger.info("Popular items reading completed. Total number of popular products are " + popularProdSet.size());
 
-		//Create cluster indices
+		//create cluster indices
 		esConfig = com.olastore.listing.clustering.utils.Util.setClusterIndexes(esConfig, "geo_hash_index_name",
 				"clusters_index_name");
 		createClusteringIndices();
+
+    //creating clusters
 		for(int i=0;i<cities.length;i++){
 			if(i==0) esConfig = com.olastore.listing.clustering.utils.Util.setListingIndexNameForCity(esConfig, "listing_index_name",
 					cities[i]);
@@ -144,6 +145,7 @@ public class ClusterBuilder {
 					cities[i-1],cities[i]);
 			createClustersForCity(cities[i]);
 		}
+    changeAliases();
 	}
 
 	public void createClustersForCity(String city ) throws Exception {
@@ -157,8 +159,7 @@ public class ClusterBuilder {
 		executorService.shutdown();
 		executorService.awaitTermination(1, TimeUnit.DAYS);
 		if (!bulkDoc.toString().isEmpty()) {
-			JSONObject result = esClient.pushToESBulk("", "", bulkDoc.toString());
-			logger.info("Response from ES for  is " + result);
+			esClient.pushToESBulk("", "", bulkDoc.toString());
 		}
 	}
 }
