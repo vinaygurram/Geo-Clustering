@@ -257,7 +257,7 @@ public class ClusterStrategy {
 		} else if (storeIdList.size() >= 3) {
 			shortDistance = getShortestDistanceForMultiPoints(geoHash, storeIdList);
 		}
-		if (shortDistance > 8)
+		if (shortDistance > (Integer) clusterConfig.get("clusters_radius"))
 			return null;
 
 		ClusterDefinition clusterDefinition = new ClusterDefinition();
