@@ -30,13 +30,25 @@ Java 7 or greater, git, maven, elasticsearch
   mvn clean install
 ```
 * To create clusters on local machine, run jar file with the following parameters  
-  param1 --> Environment variable. Ex: dev,qa,staging,prod  
+  param1 --> Environment variable. Example: dev,qa,staging,prod  
   param2 --> City or multiple cities separate by comma   
   ```
-  java -jar target/clustering-1.0-SNAPSHOT.jar dev ban,ggn
+  java -jar target/clustering-1.0-SNAPSHOT.jar dev ban,ggn,hyd
   ```
 
-### Architecture ###
+### Updating Listing ###
+* Always use release branch. To do dev work, cut a new branch 
+* create the clusters jar  
+```mvn clean install ```
+* copy the jar file _clustering-1.0-SNAPSHOT.jar_ to the path _$LISTING_SERVICE_HOME/bin/clusters/_
+
+###  Production Deployment ###
+* In production elastic search we have 3 sets of indices like todayIndex, yesterdayIndex and twoDayBeforeIndex for 
+clusters
+* Aliases are pointed to todayIndex
+* Whenever Clustering logic is run, we remove twoDayBeforeIndex and update aliases with the new indices
+* This jar is run as part of listing service in crontab
+
 
 ##### CRUD Logic ####
 
