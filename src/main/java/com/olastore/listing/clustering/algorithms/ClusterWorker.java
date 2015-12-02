@@ -46,9 +46,8 @@ public class ClusterWorker implements Callable<String> {
 	public List<String> getClusetringPointsForGeoHash(String geohash) {
 		List<String> reShops = new ArrayList<String>();
 		try {
-			int cluster_radius = (Integer) clustersConfig.get("clusters_radius");
 			String query = "{\"size\":\"100\",\"query\":{\"filtered\":{\"filter\":{\"geo_distance\":{\"location\":\""
-					+ geohash + "\",\"distance\":\"" + cluster_radius + "km\"}}}}}";
+					+ geohash + "\",\"distance\":\"" + max_radius + "km\"}}}}}";
 			JSONObject jsonObject = ClusterBuilder.esClient.searchES((String) esConfig.get("stores_index_name"),
 					(String) esConfig.get("stores_index_type"), query);
 			JSONArray hits = jsonObject.getJSONObject("hits").getJSONArray("hits");

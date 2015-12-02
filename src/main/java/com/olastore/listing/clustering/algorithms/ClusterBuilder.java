@@ -33,6 +33,7 @@ public class ClusterBuilder {
   private static RedisClientOperation redisClientOperation =null;
   private RedisClient redisClient;
   private OpsGenieHelper opsGenieHelper;
+  private boolean isSendReports = false;
 
   public static ConcurrentHashMap<String, ClusterPoint> clusterPoints = new ConcurrentHashMap<>();
   public static List<String> pushedClusters = Collections.synchronizedList(new ArrayList<String>());
@@ -53,6 +54,7 @@ public class ClusterBuilder {
     this.redisClientOperation = new RedisClientOperationImpl(redisClient.getResource(),redisConfig);
     this.esClient = new ESClient((String) esConfig.get(esHostKey));
     opsGenieHelper = new OpsGenieHelper();
+    if (env.contentEquals("prod")) isSendReports = true;
   }
 
 
@@ -171,7 +173,7 @@ public class ClusterBuilder {
     changeAliasesAndDeleteIndexes();
     redisClient.returunReource(redisClientOperation.getResource());
     redisClient.connectionDestroy();
-    opsGenieHelper.sendHeartBeat();
+    if(isSendReports) opsGenieHelper.sendHeartBeat();
   }
 
   private void generateStoreRadiusCombinationsForCity(String city) {
