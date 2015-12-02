@@ -79,7 +79,7 @@ public class ClusterBuilder {
     return false;
   }
 
-  private void changeAliases() throws URISyntaxException {
+  private void changeAliasesAndDeleteIndexes() throws URISyntaxException {
 
     String clusterIndex = (String) esConfig.get("clusters_index_name");
     String geoHashIndex = (String)esConfig.get("geo_hash_index_name");
@@ -164,7 +164,7 @@ public class ClusterBuilder {
           cities[i-1],cities[i]);
       createClustersForCity(cities[i]);
     }
-    changeAliases();
+    changeAliasesAndDeleteIndexes();
   }
 
   private void generateStoreRadiusCombinationsForCity(String city) {

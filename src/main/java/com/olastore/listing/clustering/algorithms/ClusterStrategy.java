@@ -38,7 +38,7 @@ public class ClusterStrategy {
 	}
 
 	public List<ClusterDefinition> createClusters(Geopoint geoHash, List<String> points, Map esConfig,
-			Map clusterConfig) throws Exception {
+																								Map clusterConfig) throws Exception {
 		this.esConfig = esConfig;
 		this.clusterConfig = clusterConfig;
 		if (points == null || points.size() == 0)
@@ -159,7 +159,7 @@ public class ClusterStrategy {
 
 	/**
 	 * helper method
-	 * 
+	 *
 	 * @return the distance between two geo points
 	 */
 	public double distanceBtPoints(String c1, String c2) {
@@ -168,7 +168,7 @@ public class ClusterStrategy {
 
 	/**
 	 * computes the shortest path using all possible combinations
-	 * 
+	 *
 	 * @return Double shortest distance which connects all the distances
 	 */
 	public double getShortestDistanceWithPoint(String cp2, List<String> list) {
@@ -209,7 +209,7 @@ public class ClusterStrategy {
 	}
 
 	public void combinationUtil(int index, int start, int end, int combinationSize, List<String> inputArray,
-			List<String> thisCombination, Set<List<String>> totalCombinations) {
+															List<String> thisCombination, Set<List<String>> totalCombinations) {
 		if (index == combinationSize) {
 			totalCombinations.add(new ArrayList<>(thisCombination));
 			return;
@@ -243,7 +243,7 @@ public class ClusterStrategy {
 	 * Check if the point cluster is valid
 	 */
 	public ClusterDefinition checkValidCluster(Geopoint geoHash, List<String> storeIdList,
-			Set<String> subCombinationsSet) {
+																						 Set<String> subCombinationsSet) {
 
 		Collections.sort(storeIdList);
 		StringBuilder sb = new StringBuilder();
