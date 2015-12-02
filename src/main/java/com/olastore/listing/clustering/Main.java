@@ -25,8 +25,9 @@ public class Main {
 
 			ConfigReader esConfigReader = new ConfigReader("config/es.yaml");
 			ConfigReader clustersConfigReader = new ConfigReader("config/clusters.yaml");
+			ConfigReader redisConfigReader = new ConfigReader("config/redis.yaml");
 
-			ClusterBuilder clusterBuilder = new ClusterBuilder(args[0], esConfigReader, clustersConfigReader);
+			ClusterBuilder clusterBuilder = new ClusterBuilder(args[0], esConfigReader, clustersConfigReader,redisConfigReader);
 			clusterBuilder.createClusters(args[1].split(","));
 
 			long time_end = System.currentTimeMillis();

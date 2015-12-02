@@ -14,7 +14,6 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.print.DocFlavor;
 import java.io.*;
 import java.net.URISyntaxException;
 import java.util.*;
@@ -29,7 +28,8 @@ public class ClusterBuilder {
   public static ESClient esClient;
   private Map esConfig;
   private Map clustersConfig;
-  private static final RedisClientOperation redisClientOperation;
+  private Map redisConfig;
+  private static RedisClientOperation redisClientOperation =null;
 
   public static ConcurrentHashMap<String, ClusterPoint> clusterPoints = new ConcurrentHashMap<>();
   public static List<String> pushedClusters = Collections.synchronizedList(new ArrayList<String>());
@@ -39,13 +39,15 @@ public class ClusterBuilder {
   public static StringBuilder bulkDoc = new StringBuilder();
   public static Logger logger = LoggerFactory.getLogger(ClusterBuilder.class);
   public static ConcurrentHashMap<String, String> storeStatusMap = new ConcurrentHashMap<>();
+  public static HashMap<String,String> cityStoreRadiusMap = new HashMap<>();
 
-  public ClusterBuilder(String env, ConfigReader esConfigReader, ConfigReader clustersConfigReader) throws FileNotFoundException {
+  public ClusterBuilder(String env, ConfigReader esConfigReader, ConfigReader clustersConfigReader, ConfigReader redisConfigReader) throws FileNotFoundException {
     String esHostKey = "es_host_" + env;
     this.esConfig = esConfigReader.readAllValues();
     this.clustersConfig = clustersConfigReader.readAllValues();
+    this.redisConfig = redisConfigReader.readAllValues();
     RedisClient redisClient = new RedisClient(env);
-    this.redisClientOperation = new RedisClientOperationImpl(redisClient.getResource());
+    this.redisClientOperation = new RedisClientOperationImpl(redisClient.getResource(),redisConfig);
     this.esClient = new ESClient((String) esConfig.get(esHostKey));
   }
 
@@ -165,13 +167,36 @@ public class ClusterBuilder {
     changeAliases();
   }
 
+  private void generateStoreRadiusCombinationsForCity(String city) {
+    String combination = redisClientOperation.getParamsForCity(city);
+    if(combination==null || combination.isEmpty()) {
+      cityStoreRadiusMap.put(city,"NA");
+    }else {
+      cityStoreRadiusMap.put(city,combination);
+    }
+  }
+
+  private String getRadiusStoreCombination(String city, String geoHash) {
+    String geoComb = redisClientOperation.getParamsForGeoHash(geoHash);
+    if(geoComb==null || geoComb.isEmpty()) {
+      if(cityStoreRadiusMap.get(city)==null) {
+        generateStoreRadiusCombinationsForCity(city);
+      }
+      geoComb = cityStoreRadiusMap.get(city);
+      if(geoComb.contentEquals("NA")) geoComb = (String)clustersConfig.get("default_store_radius_combination");
+    }
+    return geoComb;
+  }
+
   public void createClustersForCity(String city ) throws Exception {
     GeoHashUtil geoHashUtil = new GeoHashUtil();
     List<String> geoHashList = geoHashUtil.getGeoHashesForArea(city, this.clustersConfig);
 
     ExecutorService executorService = Executors.newFixedThreadPool(10);
     for (String geoHash : geoHashList) {
-      executorService.submit(new ClusterWorker(geoHash, esConfig, clustersConfig));
+      String combination = getRadiusStoreCombination(city,geoHash);
+      String[] params = combination.split("-");
+      executorService.submit(new ClusterWorker(geoHash, esConfig, clustersConfig,Integer.parseInt(params[0]),Integer.parseInt(params[1])));
     }
     executorService.shutdown();
     executorService.awaitTermination(1, TimeUnit.DAYS);

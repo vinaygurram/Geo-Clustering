@@ -21,5 +21,9 @@ public interface RedisClientOperation {
 	public void rpush(String key, String... values);
 
 	public List<String> range(String key, int start, int end);
-	
+
+	public String getParamsForGeoHash(String geohash) ;
+
+	public String getParamsForCity(String city) ;
+
 }

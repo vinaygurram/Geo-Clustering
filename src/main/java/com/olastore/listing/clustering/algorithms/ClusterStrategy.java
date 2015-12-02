@@ -24,13 +24,13 @@ public class ClusterStrategy {
 	private DistanceMatrix distanceMatrix;
 	private Map esConfig;
 	private Map clusterConfig;
-//	private final int max_stores;
-//	private final int max_radius;
-//
-//	public ClusterStrategy(int max_stores, int max_radius) {
-//		this.max_radius = max_radius;
-//		this.max_stores = max_stores;
-//	}
+	private final int max_stores;
+	private final int max_radius;
+
+	public ClusterStrategy(int max_stores, int max_radius) {
+		this.max_radius = max_radius;
+		this.max_stores = max_stores;
+	}
 
 	public void createDistanceMatrix(Geopoint geoHash, List<String> points) {
 		List<String> ttpoints = new ArrayList<String>(points);
@@ -53,9 +53,8 @@ public class ClusterStrategy {
 		ClusterDefinition temp;
 		Set<List<String>> clusters;
 
-		int maxShops = (Integer) clusterConfig.get("clusters_max_shops");
 
-		for (int i = maxShops; i > 0; i--) {
+		for (int i = max_stores; i > 0; i--) {
 			if (points.size() >= i) {
 				clusters = getAllCombinations(points, i);
 				for (List<String> clusterObj : clusters) {
@@ -264,7 +263,7 @@ public class ClusterStrategy {
 		} else if (storeIdList.size() >= 3) {
 			shortDistance = getShortestDistanceForMultiPoints(geoHash, storeIdList);
 		}
-		if (shortDistance > (Integer) clusterConfig.get("clusters_radius"))
+		if (shortDistance > max_radius)
 			return null;
 
 		ClusterDefinition clusterDefinition = new ClusterDefinition();

@@ -2,6 +2,8 @@ package com.olastore.listing.clustering.algorithms;
 
 import com.github.davidmoten.geo.GeoHash;
 import com.github.davidmoten.geo.LatLong;
+import com.newrelic.api.agent.NewRelic;
+import com.newrelic.api.agent.NewRelicApiImplementation;
 import com.olastore.listing.clustering.lib.models.Geopoint;
 import com.olastore.listing.clustering.lib.models.ClusterDefinition;
 import com.olastore.listing.clustering.lib.models.ClusterPoint;
@@ -23,11 +25,15 @@ public class ClusterWorker implements Callable<String> {
 	String geohash;
 	Map esConfig;
 	Map clustersConfig;
+	int max_shops;
+	int max_radius;
 
-	ClusterWorker(String geohash, Map esConfig, Map clustersConfig) {
+	ClusterWorker(String geohash, Map esConfig, Map clustersConfig,int max_radius, int max_shops) {
 		this.geohash = geohash;
 		this.clustersConfig = clustersConfig;
 		this.esConfig = esConfig;
+		this.max_radius = max_radius;
+		this.max_shops = max_shops;
 
 	}
 
@@ -77,7 +83,7 @@ public class ClusterWorker implements Callable<String> {
 			LatLong gll = GeoHash.decodeHash(geohash);
 			Geopoint geopoint = new Geopoint(gll.getLat(), gll.getLon());
 			List<ClusterDefinition> clusterDefinitionList = null;
-			clusterDefinitionList = new ClusterStrategy().createClusters(geopoint, points, esConfig, clustersConfig);
+			clusterDefinitionList = new ClusterStrategy(max_shops,max_radius).createClusters(geopoint, points, esConfig, clustersConfig);
 			logger.info("Geohash : " + geohash + ", Number of shops : " + points.size() + ", Number of Clusters : "
 					+ clusterDefinitionList.size());
 			if (clusterDefinitionList.size() > 0) {
@@ -86,7 +92,7 @@ public class ClusterWorker implements Callable<String> {
 		} catch (Exception e) {
 			logger.error("Exception {}", e);
 		}
-
+		NewRelic.incrementCounter("Custom/geohash");
 		return "DONE for " + geohash;
 	}
 

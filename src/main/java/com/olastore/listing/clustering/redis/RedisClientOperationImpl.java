@@ -14,10 +14,10 @@ public class RedisClientOperationImpl implements RedisClientOperation {
     private final String geoHashKey;
     private final String geoHashCityKey;
 
-    public RedisClientOperationImpl(Jedis jedis, String geoHashKey, String geoHashCityKey) {
+    public RedisClientOperationImpl(Jedis jedis, Map redisConf) {
         this.jedisResource = jedis;
-        this.geoHashCityKey = geoHashCityKey;
-        this.geoHashKey = geoHashKey;
+        this.geoHashCityKey = (String) redisConf.get("geo_hash_city_key");
+        this.geoHashKey = (String) redisConf.get("geo_hash_key");
     }
 
     public String mset(String key, Map<String, String> map) {
@@ -70,11 +70,11 @@ public class RedisClientOperationImpl implements RedisClientOperation {
     }
 
     public String getParamsForGeoHash(String geohash) {
-        return get(geoHashKey);
+        return get(geoHashKey+geohash);
     }
 
     public String getParamsForCity(String city) {
-        return get(geoHashCityKey);
+        return get(geoHashCityKey+city);
     }
 
 }

@@ -16,9 +16,15 @@ public class RedisClient {
   public RedisClient(String env) throws FileNotFoundException {
     ConfigReader redisConfig = new ConfigReader("config/redis.yaml");
     String redis_host = (String) redisConfig.readValue("redis_host_"+env);
-    int redis_port = (int) redisConfig.readValue("redis_port"+env);
+    String redis_passwd = (String) redisConfig.readValue("redis_passwd_"+env);
+    int redis_port = (int) redisConfig.readValue("redis_port_"+env);
     JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
-    this.pool = new JedisPool(redis_host,redis_port);
+    jedisPoolConfig.setMaxTotal((int)redisConfig.readValue("redis_pool_maxActive"));
+    jedisPoolConfig.setMaxIdle((int) redisConfig.readValue("redis_pool_maxIdle"));
+    jedisPoolConfig.setTestOnBorrow((boolean)redisConfig.readValue("redis_pool_testOnBorrow"));
+    jedisPoolConfig.setTestOnReturn((boolean)redisConfig.readValue("redis_pool_testOnReturn"));
+    if(redis_passwd.isEmpty()) this.pool = new JedisPool(jedisPoolConfig,redis_host,redis_port);
+    else this.pool = new JedisPool(jedisPoolConfig,redis_host,redis_port,2000,redis_passwd);
   }
 
 
