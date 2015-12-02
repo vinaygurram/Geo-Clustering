@@ -77,8 +77,8 @@ public class RedisClientOperationImpl implements RedisClientOperation {
         return get(geoHashCityKey+city);
     }
 
-    public void closeResource() {
-      this.jedisResource.close();
+    public Jedis getResource() {
+      return this.jedisResource;
     }
 
 }

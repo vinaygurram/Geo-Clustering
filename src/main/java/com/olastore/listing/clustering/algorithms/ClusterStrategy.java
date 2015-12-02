@@ -115,7 +115,7 @@ public class ClusterStrategy {
 				productsSet.add(productId);
 			}
 		} catch (Exception e) {
-			LOG.error("Found error while setting ranks {}", e);
+			LOG.error("Found error while setting ranks ", e);
 		}
 		Set<String> intesection = new HashSet<String>(productsSet);
 		intesection.retainAll(popularProductsSet);
@@ -194,7 +194,7 @@ public class ClusterStrategy {
 			}
 			return gDistance;
 		} catch (Exception e) {
-			LOG.error("Error in calculating distance {}", e);
+			LOG.error("Error in calculating distance ", e);
 
 		}
 		return Double.MAX_VALUE;

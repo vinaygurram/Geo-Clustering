@@ -2,8 +2,6 @@
 
 # configuration
   clusters_geo_precision : 6
-  clusters_radius: 6
-  clusters_max_shops : 4
   default_store_radius_combination : 6-4
 
 #Location of the area Settings

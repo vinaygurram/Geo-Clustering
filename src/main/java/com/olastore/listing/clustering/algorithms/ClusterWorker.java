@@ -67,9 +67,9 @@ public class ClusterWorker implements Callable<String> {
 			}
 
 		} catch (JSONException e) {
-			logger.error("Json exceptions {}", e);
+			logger.error("Json exception ", e);
 		} catch (Exception e) {
-			logger.error("Exception {}", e);
+			logger.error("Exception ", e);
 		}
 		return reShops;
 	}
@@ -90,7 +90,7 @@ public class ClusterWorker implements Callable<String> {
 				pushClusters(clusterDefinitionList);
 			}
 		} catch (Exception e) {
-			logger.error("Exception {}", e);
+			logger.error("Exception ", e);
 		}
 		NewRelic.incrementCounter("Custom/geohash");
 		return "DONE for " + geohash;
@@ -162,7 +162,7 @@ public class ClusterWorker implements Callable<String> {
 			}
 
 		} catch (Exception e) {
-			logger.error("Something went wrong while pushing clusters {}", e);
+			logger.error("Something went wrong while pushing clusters ", e);
 		}
 	}
 }

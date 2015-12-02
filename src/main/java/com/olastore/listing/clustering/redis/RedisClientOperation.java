@@ -1,5 +1,7 @@
 package com.olastore.listing.clustering.redis;
 
+import redis.clients.jedis.Jedis;
+
 import java.util.List;
 import java.util.Map;
 
@@ -25,6 +27,6 @@ public interface RedisClientOperation {
 	public String getParamsForGeoHash(String geohash) ;
 
 	public String getParamsForCity(String city) ;
-	public void closeResource();
+	public Jedis getResource();
 
 }

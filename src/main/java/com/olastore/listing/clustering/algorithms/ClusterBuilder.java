@@ -4,6 +4,7 @@ import com.olastore.listing.clustering.clients.ESClient;
 import com.olastore.listing.clustering.redis.RedisClient;
 import com.olastore.listing.clustering.redis.RedisClientOperation;
 import com.olastore.listing.clustering.redis.RedisClientOperationImpl;
+import com.olastore.listing.clustering.reporting.OpsGenieHelper;
 import com.olastore.listing.clustering.utils.ConfigReader;
 import com.olastore.listing.clustering.utils.GeoHashUtil;
 import com.olastore.listing.clustering.lib.models.ClusterPoint;
@@ -31,6 +32,7 @@ public class ClusterBuilder {
   private Map redisConfig;
   private static RedisClientOperation redisClientOperation =null;
   private RedisClient redisClient;
+  private OpsGenieHelper opsGenieHelper;
 
   public static ConcurrentHashMap<String, ClusterPoint> clusterPoints = new ConcurrentHashMap<>();
   public static List<String> pushedClusters = Collections.synchronizedList(new ArrayList<String>());
@@ -50,6 +52,7 @@ public class ClusterBuilder {
     redisClient = new RedisClient(env);
     this.redisClientOperation = new RedisClientOperationImpl(redisClient.getResource(),redisConfig);
     this.esClient = new ESClient((String) esConfig.get(esHostKey));
+    opsGenieHelper = new OpsGenieHelper();
   }
 
 
@@ -65,17 +68,17 @@ public class ClusterBuilder {
         logger.error("Exception in creating indices");
         return false;
       };
-      logger.info("Creating geo mappings #{}", create_geo_response.toString());
+      logger.info("Creating geo mappings ", create_geo_response.toString());
 
       FileUtils.copyInputStreamToFile(getClass().getClassLoader()
           .getResourceAsStream((String) esConfig.get("cluster_mappings_file_path")), file);
       JSONObject create_cluster_response = esClient.createIndex((String) esConfig.get("clusters_index_name"),
           new FileEntity(file));
-      logger.info("Creating cluster mappings #{}", create_cluster_response.toString());
+      logger.info("Creating cluster mappings ", create_cluster_response.toString());
       file.delete();
       return true;
     } catch (Exception e) {
-      logger.error("Exception in create/delete indices #{}", e);
+      logger.error("Exception in create/delete indices ", e);
     }
     return false;
   }
@@ -125,7 +128,7 @@ public class ClusterBuilder {
       }
       file.delete();
     } catch (Exception e) {
-      logger.error("Exception happened!{}", e);
+      logger.error("Exception happened!", e);
     } finally {
       try {
         if (fileReader != null)
@@ -133,7 +136,7 @@ public class ClusterBuilder {
         if (bufferedReader != null)
           bufferedReader.close();
       } catch (Exception e) {
-        logger.error("Exception happened!{}", e);
+        logger.error("Exception happened!", e);
       }
     }
     return productIdSet;
@@ -166,8 +169,9 @@ public class ClusterBuilder {
       createClustersForCity(cities[i]);
     }
     changeAliasesAndDeleteIndexes();
-    redisClientOperation.closeResource();
+    redisClient.returunReource(redisClientOperation.getResource());
     redisClient.connectionDestroy();
+    opsGenieHelper.sendHeartBeat();
   }
 
   private void generateStoreRadiusCombinationsForCity(String city) {
