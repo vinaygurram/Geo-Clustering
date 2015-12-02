@@ -10,8 +10,8 @@ For a particular location, most of the data is pre computed.
 
 ### Geo Hash ###
 
-Geo Hash represents rectangular area in the map.  
-For more information you click [GeoHash](https://en.wikipedia.org/wiki/Geohash)
+Geo Hash represents rectangular area in the 2D map.  
+For more information you can click [GeoHash](https://en.wikipedia.org/wiki/Geohash)
 
 ### How it Works###
 
@@ -20,6 +20,21 @@ For each geo hash it will calculate the sample space. In our case we search for 
 It will create paths for that geo hashes. Paths are filtered using constraints like maximum distance.
 Once we figure out the valid paths, we score the paths based on the constraints provided by the business.
 We server the best path based on score.
+
+### Installation ###
+* Prerequisites : 
+Java 7 or greater, git, maven, elasticsearch
+* Start elasticsearch listening on port 9200 with stores_common index and listing_$CITY index
+* Creating clusters jar, given that you are at the root directory of this project  
+```
+  mvn clean install
+```
+* To create clusters on local machine, run jar file with the following parameters  
+  param1 --> Environment variable. Ex: dev,qa,staging,prod  
+  param2 --> City or multiple cities separate by comma   
+  ```
+  java -jar target/clustering-1.0-SNAPSHOT.jar dev ban,ggn
+  ```
 
 ### Architecture ###
 
