@@ -13,7 +13,9 @@ import java.io.IOException;
 import java.text.ParseException;
 
 /**
- * Created by gurramvinay on 12/3/15.
+ * OpsGenie heartbeat monitor to send hearbeats
+ * only supporting send heartbeat
+ * @author gurramvinay
  */
 public class OpsGenieHelper {
 

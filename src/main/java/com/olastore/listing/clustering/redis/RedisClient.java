@@ -8,7 +8,8 @@ import redis.clients.jedis.JedisPoolConfig;
 import java.io.FileNotFoundException;
 
 /**
- * Created by gurramvinay on 10/11/15.
+ * Client to connect to redis using connection pooling
+ * @author gurramvinay
  */
 public class RedisClient {
   private static JedisPool pool;

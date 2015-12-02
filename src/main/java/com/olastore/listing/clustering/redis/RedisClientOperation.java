@@ -25,5 +25,6 @@ public interface RedisClientOperation {
 	public String getParamsForGeoHash(String geohash) ;
 
 	public String getParamsForCity(String city) ;
+	public void closeResource();
 
 }

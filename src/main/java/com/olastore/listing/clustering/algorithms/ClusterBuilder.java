@@ -30,6 +30,7 @@ public class ClusterBuilder {
   private Map clustersConfig;
   private Map redisConfig;
   private static RedisClientOperation redisClientOperation =null;
+  private RedisClient redisClient;
 
   public static ConcurrentHashMap<String, ClusterPoint> clusterPoints = new ConcurrentHashMap<>();
   public static List<String> pushedClusters = Collections.synchronizedList(new ArrayList<String>());
@@ -46,7 +47,7 @@ public class ClusterBuilder {
     this.esConfig = esConfigReader.readAllValues();
     this.clustersConfig = clustersConfigReader.readAllValues();
     this.redisConfig = redisConfigReader.readAllValues();
-    RedisClient redisClient = new RedisClient(env);
+    redisClient = new RedisClient(env);
     this.redisClientOperation = new RedisClientOperationImpl(redisClient.getResource(),redisConfig);
     this.esClient = new ESClient((String) esConfig.get(esHostKey));
   }
@@ -165,6 +166,8 @@ public class ClusterBuilder {
       createClustersForCity(cities[i]);
     }
     changeAliasesAndDeleteIndexes();
+    redisClientOperation.closeResource();
+    redisClient.connectionDestroy();
   }
 
   private void generateStoreRadiusCombinationsForCity(String city) {
