@@ -1,6 +1,9 @@
 package com.olastore.listing.clustering.algorithms;
 
 import com.olastore.listing.clustering.clients.ESClient;
+import com.olastore.listing.clustering.redis.RedisClient;
+import com.olastore.listing.clustering.redis.RedisClientOperation;
+import com.olastore.listing.clustering.redis.RedisClientOperationImpl;
 import com.olastore.listing.clustering.utils.ConfigReader;
 import com.olastore.listing.clustering.utils.GeoHashUtil;
 import com.olastore.listing.clustering.lib.models.ClusterPoint;
@@ -23,48 +26,58 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class ClusterBuilder {
 
-	public static ESClient esClient;
-	private Map esConfig;
-	private Map clustersConfig;
+  public static ESClient esClient;
+  private Map esConfig;
+  private Map clustersConfig;
+  private static final RedisClientOperation redisClientOperation;
 
-	public static ConcurrentHashMap<String, ClusterPoint> clusterPoints = new ConcurrentHashMap<>();
-	public static List<String> pushedClusters = Collections.synchronizedList(new ArrayList<String>());
-	public static ConcurrentHashMap<String, Double> clusterRankMap = new ConcurrentHashMap<>();
-	public static Set<String> popularProdSet = new HashSet<>();
-	public static AtomicInteger bulkDocCount = new AtomicInteger(0);
-	public static StringBuilder bulkDoc = new StringBuilder();
-	public static Logger logger = LoggerFactory.getLogger(ClusterBuilder.class);
-	public static ConcurrentHashMap<String, String> storeStatusMap = new ConcurrentHashMap<>();
+  public static ConcurrentHashMap<String, ClusterPoint> clusterPoints = new ConcurrentHashMap<>();
+  public static List<String> pushedClusters = Collections.synchronizedList(new ArrayList<String>());
+  public static ConcurrentHashMap<String, Double> clusterRankMap = new ConcurrentHashMap<>();
+  public static Set<String> popularProdSet = new HashSet<>();
+  public static AtomicInteger bulkDocCount = new AtomicInteger(0);
+  public static StringBuilder bulkDoc = new StringBuilder();
+  public static Logger logger = LoggerFactory.getLogger(ClusterBuilder.class);
+  public static ConcurrentHashMap<String, String> storeStatusMap = new ConcurrentHashMap<>();
 
-	public ClusterBuilder(String env, ConfigReader esConfigReader, ConfigReader clustersConfigReader) {
-		String esHostKey = "es_host_" + env;
-		this.esConfig = esConfigReader.readAllValues();
-		this.clustersConfig = clustersConfigReader.readAllValues();
-		this.esClient = new ESClient((String) esConfig.get(esHostKey));
-	}
+  public ClusterBuilder(String env, ConfigReader esConfigReader, ConfigReader clustersConfigReader) throws FileNotFoundException {
+    String esHostKey = "es_host_" + env;
+    this.esConfig = esConfigReader.readAllValues();
+    this.clustersConfig = clustersConfigReader.readAllValues();
+    RedisClient redisClient = new RedisClient(env);
+    this.redisClientOperation = new RedisClientOperationImpl(redisClient.getResource());
+    this.esClient = new ESClient((String) esConfig.get(esHostKey));
+  }
 
-	private void createClusteringIndices() {
-		try {
-			File file = new File("tmpFile");
-			FileUtils.copyInputStreamToFile(
-					getClass().getClassLoader().getResourceAsStream((String) esConfig.get("geo_mappings_file_path")),
-					file);
-			JSONObject create_geo_response = esClient.createIndex((String) esConfig.get("geo_hash_index_name"),
-					new FileEntity(file));
-			logger.info("Creating geo mappings #{}", create_geo_response.toString());
 
-			FileUtils.copyInputStreamToFile(getClass().getClassLoader()
-					.getResourceAsStream((String) esConfig.get("cluster_mappings_file_path")), file);
-			JSONObject create_cluster_response = esClient.createIndex((String) esConfig.get("clusters_index_name"),
-					new FileEntity(file));
-			logger.info("Creating cluster mappings #{}", create_cluster_response.toString());
-			file.delete();
-		} catch (Exception e) {
-			logger.error("Exception in create/delete indices #{}", e);
-		}
-	}
+  private boolean createClusteringIndices() {
+    try {
+      File file = new File("tmpFile");
+      FileUtils.copyInputStreamToFile(
+          getClass().getClassLoader().getResourceAsStream((String) esConfig.get("geo_mappings_file_path")),
+          file);
+      JSONObject create_geo_response = esClient.createIndex((String) esConfig.get("geo_hash_index_name"),
+          new FileEntity(file));
+      if(create_geo_response==null) {
+        logger.error("Exception in creating indices");
+        return false;
+      };
+      logger.info("Creating geo mappings #{}", create_geo_response.toString());
 
-	private void changeAliases() throws URISyntaxException {
+      FileUtils.copyInputStreamToFile(getClass().getClassLoader()
+          .getResourceAsStream((String) esConfig.get("cluster_mappings_file_path")), file);
+      JSONObject create_cluster_response = esClient.createIndex((String) esConfig.get("clusters_index_name"),
+          new FileEntity(file));
+      logger.info("Creating cluster mappings #{}", create_cluster_response.toString());
+      file.delete();
+      return true;
+    } catch (Exception e) {
+      logger.error("Exception in create/delete indices #{}", e);
+    }
+    return false;
+  }
+
+  private void changeAliases() throws URISyntaxException {
 
     String clusterIndex = (String) esConfig.get("clusters_index_name");
     String geoHashIndex = (String)esConfig.get("geo_hash_index_name");
@@ -93,73 +106,77 @@ public class ClusterBuilder {
     esClient.deleteIndex(twoDaysBackClustersIndex + "," + twoDaysBackgeoHashIndex);
   }
 
-	private Set<String> initializePopularProductSet() {
-		Set<String> productIdSet = new HashSet<>();
-		FileReader fileReader = null;
-		BufferedReader bufferedReader = null;
-		try {
-			File file = new File("tmpFile");
-			FileUtils.copyInputStreamToFile(getClass().getClassLoader()
-					.getResourceAsStream((String) clustersConfig.get("popular_products_file_path")), file);
-			fileReader = new FileReader(file);
-			bufferedReader = new BufferedReader(fileReader);
-			String line = bufferedReader.readLine();
-			while ((line = bufferedReader.readLine()) != null) {
-				productIdSet.add(line);
-			}
-			file.delete();
-		} catch (Exception e) {
-			logger.error("Exception happened!{}", e);
-		} finally {
-			try {
-				if (fileReader != null)
-					fileReader.close();
-				if (bufferedReader != null)
-					bufferedReader.close();
-			} catch (Exception e) {
-				logger.error("Exception happened!{}", e);
-			}
-		}
-		return productIdSet;
-	}
+  private Set<String> initializePopularProductSet() {
+    Set<String> productIdSet = new HashSet<>();
+    FileReader fileReader = null;
+    BufferedReader bufferedReader = null;
+    try {
+      File file = new File("tmpFile");
+      FileUtils.copyInputStreamToFile(getClass().getClassLoader()
+          .getResourceAsStream((String) clustersConfig.get("popular_products_file_path")), file);
+      fileReader = new FileReader(file);
+      bufferedReader = new BufferedReader(fileReader);
+      String line = bufferedReader.readLine();
+      while ((line = bufferedReader.readLine()) != null) {
+        productIdSet.add(line);
+      }
+      file.delete();
+    } catch (Exception e) {
+      logger.error("Exception happened!{}", e);
+    } finally {
+      try {
+        if (fileReader != null)
+          fileReader.close();
+        if (bufferedReader != null)
+          bufferedReader.close();
+      } catch (Exception e) {
+        logger.error("Exception happened!{}", e);
+      }
+    }
+    return productIdSet;
+  }
 
-	public void createClusters(String[] cities) throws Exception {
-		// generate popular products
-		popularProdSet = initializePopularProductSet();
-		if (popularProdSet.size() == 0) {
-			logger.error("Popular products is zero. Stopping now");
-			return;
-		}
-		logger.info("Popular items reading completed. Total number of popular products are " + popularProdSet.size());
+  public void createClusters(String[] cities) throws Exception {
+    // generate popular products
+    popularProdSet = initializePopularProductSet();
+    if (popularProdSet.size() == 0) {
+      logger.error("Popular products is zero. Stopping now");
+      return;
+    }
+    logger.info("Popular items reading completed. Total number of popular products are " + popularProdSet.size());
 
-		//create cluster indices
-		esConfig = com.olastore.listing.clustering.utils.Util.setClusterIndexes(esConfig, "geo_hash_index_name",
-				"clusters_index_name");
-		createClusteringIndices();
+    //create cluster indices
+    esConfig = com.olastore.listing.clustering.utils.Util.setClusterIndexes(esConfig, "geo_hash_index_name",
+        "clusters_index_name");
+    boolean isIndicesCreated = createClusteringIndices();
+    if(!isIndicesCreated) {
+      logger.error("Error in creating clusters Indices. Stopping now");
+      return;
+    }
 
     //creating clusters
-		for(int i=0;i<cities.length;i++){
-			if(i==0) esConfig = com.olastore.listing.clustering.utils.Util.setListingIndexNameForCity(esConfig, "listing_index_name",
-					cities[i]);
-			else  esConfig = com.olastore.listing.clustering.utils.Util.updateListingIndexNameForCity(esConfig, "listing_index_name",
-					cities[i-1],cities[i]);
-			createClustersForCity(cities[i]);
-		}
+    for(int i=0;i<cities.length;i++){
+      if(i==0) esConfig = com.olastore.listing.clustering.utils.Util.setListingIndexNameForCity(esConfig, "listing_index_name",
+          cities[i]);
+      else  esConfig = com.olastore.listing.clustering.utils.Util.updateListingIndexNameForCity(esConfig, "listing_index_name",
+          cities[i-1],cities[i]);
+      createClustersForCity(cities[i]);
+    }
     changeAliases();
-	}
+  }
 
-	public void createClustersForCity(String city ) throws Exception {
-		GeoHashUtil geoHashUtil = new GeoHashUtil();
-		List<String> geoHashList = geoHashUtil.getGeoHashesForArea(city, this.clustersConfig);
+  public void createClustersForCity(String city ) throws Exception {
+    GeoHashUtil geoHashUtil = new GeoHashUtil();
+    List<String> geoHashList = geoHashUtil.getGeoHashesForArea(city, this.clustersConfig);
 
-		ExecutorService executorService = Executors.newFixedThreadPool(10);
-		for (String geoHash : geoHashList) {
-			executorService.submit(new ClusterWorker(geoHash, esConfig, clustersConfig));
-		}
-		executorService.shutdown();
-		executorService.awaitTermination(1, TimeUnit.DAYS);
-		if (!bulkDoc.toString().isEmpty()) {
-			esClient.pushToESBulk("", "", bulkDoc.toString());
-		}
-	}
+    ExecutorService executorService = Executors.newFixedThreadPool(10);
+    for (String geoHash : geoHashList) {
+      executorService.submit(new ClusterWorker(geoHash, esConfig, clustersConfig));
+    }
+    executorService.shutdown();
+    executorService.awaitTermination(1, TimeUnit.DAYS);
+    if (!bulkDoc.toString().isEmpty()) {
+      esClient.pushToESBulk("", "", bulkDoc.toString());
+    }
+  }
 }

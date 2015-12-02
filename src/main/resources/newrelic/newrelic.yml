@@ -29,7 +29,7 @@ common: &default_settings
   # app_name: My Application;My Application 2
   # This setting is required. Up to 3 different application names can be specified.
   # The first application name must be unique.
-  app_name: ClusterFF
+  app_name: ListingClusters
 
   # To enable high security, set this property to true. When in high
   # security mode, the agent will use SSL and obfuscated SQL. Additionally,
@@ -273,17 +273,18 @@ common: &default_settings
 # NOTE if your application has other named environments, you should
 # provide configuration settings for these environments here.
 
-development:
+dev:
   <<: *default_settings
-  app_name: My Application (Development)
+  app_name: ListingClusters(dev)
 
 test:
   <<: *default_settings
-  app_name: My Application (Test)
+  app_name: ListingClusters(test)
 
-production:
+prod:
   <<: *default_settings
+  app_name: ListingClusters(prod)
 
-staging:
+stage:
   <<: *default_settings
-  app_name: My Application (Staging)
+  app_name: ListingClusters(stage)

@@ -1,0 +1,30 @@
+{
+  "settings": {
+    "index": {
+      "number_of_shards": 1,
+      "index.mapper.dynamic": false,
+      "analysis": {
+        "analyzer": {
+          "default": {
+            "type": "keyword"
+          }
+        }
+      }
+    }
+  },
+  "mappings": {
+    "hash": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "clusters": {
+          "type": "string"
+        },
+        "clusters_count" : {
+          "type" : "integer"
+        }
+      }
+    }
+  }
+}

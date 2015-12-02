@@ -5,8 +5,6 @@ import com.olastore.listing.clustering.algorithms.ClusterBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
-
 public class Main {
 
 	public static final Logger logger = LoggerFactory.getLogger(Main.class);

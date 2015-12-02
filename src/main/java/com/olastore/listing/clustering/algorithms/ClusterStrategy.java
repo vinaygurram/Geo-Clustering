@@ -24,6 +24,13 @@ public class ClusterStrategy {
 	private DistanceMatrix distanceMatrix;
 	private Map esConfig;
 	private Map clusterConfig;
+//	private final int max_stores;
+//	private final int max_radius;
+//
+//	public ClusterStrategy(int max_stores, int max_radius) {
+//		this.max_radius = max_radius;
+//		this.max_stores = max_stores;
+//	}
 
 	public void createDistanceMatrix(Geopoint geoHash, List<String> points) {
 		List<String> ttpoints = new ArrayList<String>(points);

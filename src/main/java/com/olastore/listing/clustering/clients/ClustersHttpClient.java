@@ -36,7 +36,7 @@ public class ClustersHttpClient {
 			if (responseCode == 200) {
 				resultObject = new JSONObject(EntityUtils.toString(closeableHttpResponse.getEntity()));
 			} else {
-				logger.debug("Request failed " + responseCode);
+				logger.debug("Request failed with status code " + responseCode);
 				logger.debug("Message is" + closeableHttpResponse.getStatusLine().getReasonPhrase());
 			}
 			EntityUtils.consume(closeableHttpResponse.getEntity());
@@ -63,8 +63,8 @@ public class ClustersHttpClient {
 			if (responseCode == 200 || responseCode == 201 || responseCode == 204) {
 				resultObject = new JSONObject(EntityUtils.toString(closeableHttpResponse.getEntity()));
 			} else {
-				logger.debug("Request failed" + responseCode);
-				logger.debug("Message is " + closeableHttpResponse.getStatusLine().getReasonPhrase());
+				logger.debug("Request failed with status code" + responseCode);
+				logger.debug("Server Response is " + closeableHttpResponse.getStatusLine().getReasonPhrase());
 			}
 			EntityUtils.consume(closeableHttpResponse.getEntity());
 		} catch (Exception e) {
@@ -90,8 +90,8 @@ public class ClustersHttpClient {
 			if (responseCode == 200 || responseCode == 201 || responseCode == 204) {
 				resultObject = new JSONObject(EntityUtils.toString(closeableHttpResponse.getEntity()));
 			} else {
-				logger.debug("Request failed" + responseCode);
-				logger.debug("Message is " + closeableHttpResponse.getStatusLine().getReasonPhrase());
+				logger.error("Request failed with status code " + responseCode);
+				logger.error("Server Response is " + closeableHttpResponse.getStatusLine().getReasonPhrase());
 			}
 			EntityUtils.consume(closeableHttpResponse.getEntity());
 		} catch (Exception e) {
@@ -122,8 +122,8 @@ public class ClustersHttpClient {
 				logger.info("deleted successfully");
 				logger.info("response is " + EntityUtils.toString(closeableHttpResponse.getEntity()));
 			} else {
-				logger.error("Request failed " + responseCode);
-				logger.error("Message is " + closeableHttpResponse.getStatusLine());
+				logger.error("Request failed with status code " + responseCode);
+				logger.error("Server Response is " + closeableHttpResponse.getStatusLine());
 			}
 			EntityUtils.consume(closeableHttpResponse.getEntity());
 		} catch (Exception e) {
