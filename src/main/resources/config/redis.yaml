@@ -2,9 +2,9 @@ redis_host_dev: "localhost"
 redis_port_dev: 6379
 redis_passwd_dev: ""
 
-redis_host_stage: "localhost"
-redis_port_stage: 6379
-redis_passwd_stage: "redis000!h"
+redis_host_staging: "localhost"
+redis_port_staging: 6379
+redis_passwd_staging: "redis000!h"
 
 redis_host_qa: "localhost"
 redis_port_qa: 6379
