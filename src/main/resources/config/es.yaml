@@ -2,10 +2,6 @@
 
 #host
 es_host_dev: localhost:9200
-es_host_staging: es.olahack.in
-es_host_qa: es.qa.olahack.in
-es_host_prod: escluster.internal.olastore.com:9200
-es_host_perf: es-perf-001-prod.internal.olastore.com:9200
 
 #index names
 geo_hash_index_name: geo_hashes

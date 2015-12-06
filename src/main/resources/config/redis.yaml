@@ -2,22 +2,6 @@ redis_host_dev: "localhost"
 redis_port_dev: 6379
 redis_passwd_dev: ""
 
-redis_host_staging: "localhost"
-redis_port_staging: 6379
-redis_passwd_staging: "redis000!h"
-
-redis_host_qa: "localhost"
-redis_port_qa: 6379
-redis_passwd_qa: ""
-
-redis_host_perf: "redis.perf.olahack.in"
-redis_port_perf: 6379
-redis_passwd_perf: ""
-
-redis_host_prod: "redis-customer.internal.olastore.com"
-redis_port_prod: 6379
-redis_passwd_prod: ""
-
 redis_pool_maxActive: 5
 redis_pool_maxIdle: 2
 redis_pool_testOnBorrow: true
