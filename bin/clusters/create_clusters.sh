@@ -3,7 +3,7 @@
 is_exit=false;
 error_message=""
 user_email=vinay.gurram@olacabs.com
-if [ "$#" -ne 2 ] ; then
+if [ "$#" -lt 2 ] ; then
   is_exit=true
   error_message=$(echo "Illegal number of arguments, pass env and city_codes")
 elif [ -z "$1" ];then
@@ -18,30 +18,38 @@ if [ $is_exit == true ];then
   exit;
 fi
 
-ENV=$1
-city_codes=$2
-city_array=$(echo ${city_codes}| tr "," "\n")
+rel_path=""
+if [ "$#" -eq 3 ]; then
+  rel_path=$3
+fi
+
+geo_mappings_file=${rel_path}geo_mappings.json
+cluster_mappings_file=${rel_path}cluster_mappings.json
+clusters_jar_file=${rel_path}clustering-1.0-SNAPSHOT.jar
 
 #check if mappping files and jar file are present
-if [ ! -r ../../src/main/resources/mappings/geo_mappings.json ];then
+if [ ! -f "${geo_mappings_file}" ];
+ then
   is_exit=true
   error_message=$(echo "Geo Mappings file does not exist")
- exit;
-elif [ ! -r ../../src/main/resources/mappings/cluster_mappings.json ]
+elif [ ! -r ${cluster_mappings_file} ]
  then
   is_exit=true
   error_message=$(echo "Cluster Mappings file does not exist")
-elif [ ! -r clustering-1.0-SNAPSHOT.jar ]
+elif [ ! -r ${clusters_jar_file} ]
  then
   is_exit=true
   error_message=$(echo "Clustering jar file does not exist")
 fi
-if [ $is_exit == true ];then
+if [ "${is_exit}" = true ];then
   echo ${error_message} | mail -s "clustering error" "$user_email"
   exit;
 fi
 
 #create hosts and indexes
+ENV=$1
+city_codes=$2
+city_array=$(echo ${city_codes}| tr "," "\n")
 ES_HOST=""
 if [ $ENV == "dev" ]; then
   ES_HOST=localhost:9200
@@ -51,6 +59,7 @@ elif [ $ENV == "staging" ]; then
   ES_HOST=http://es.olahack.in
 elif [ $ENV == "prod" ]; then
   ES_HOST=http://escluster.internal.olastore.com:9200
+  user_email=tnt-fulfilment@olacabs.com
 else 
   echo "ENV variable provided is not compatible. Can be one of dev,qa,staging,prod" | mail -s "Cluster Error" "$user_email"
   exit
@@ -59,25 +68,25 @@ ES_GEO_INDEX=geo_hashes
 ES_CLUSTER_INDEX=geo_clusters
 dt=$(date '+%m_%d_%Y');
 #dt_1_b=$(date --date='1 day ago' '+%m_%d_%Y');
-#dt_2_b=$(date -d "2 days ago" '+%m_%d_%Y')
+#dt_2_b=$(date --date='2 days ago' '+%m_%d_%Y')
 dt_1_b=$(date -v -1d '+%m_%d_%Y');
 dt_2_b=$(date -v -2d '+%m_%d_%Y')
 ES_GEO_INDEX_tday=${ES_GEO_INDEX}_${dt}
 ES_CLUSTER_INDEX_tday=${ES_CLUSTER_INDEX}_${dt}
-ES_GEO_YESDAY_INDEX=${ES_GEO_INDEX}_${dt_1_b}
-ES_CLUSTER_YESDAY_INDEX=${ES_CLUSTER_INDEX}_${dt_1_b}
-ES_GEO_DEL_INDEXES=${ES_GEO_INDEX}_${date_2_b},${ES_CLUSTER_INDEX}_${date_2_b}
+ES_GEO_INDEX_yday=${ES_GEO_INDEX}_${dt_1_b}
+ES_CLUSTER_INDEX_yday=${ES_CLUSTER_INDEX}_${dt_1_b}
+ES_GEO_DEL_INDEXES=${ES_GEO_INDEX}_${dt_2_b},${ES_CLUSTER_INDEX}_${dt_2_b}
 
 #create mappings
-geo_response=$(curl -s -w "%{http_code}\\n" -XPOST ${ES_HOST}/${ES_GEO_INDEX_tday} -T ../../src/main/resources/mappings/geo_mappings.json -o /dev/null)
-cluster_response=$(curl -s -w "%{http_code}\\n" -XPOST ${ES_HOST}/${ES_CLUSTER_INDEX_tday} -T ../../src/main/resources/mappings/cluster_mappings.json -o /dev/null)
+geo_response=$(curl -s -w "%{http_code}\\n" -XPOST ${ES_HOST}/${ES_GEO_INDEX_tday} -T ${geo_mappings_file} -o /dev/null)
+cluster_response=$(curl -s -w "%{http_code}\\n" -XPOST ${ES_HOST}/${ES_CLUSTER_INDEX_tday} -T ${cluster_mappings_file} -o /dev/null)
 
 #create clusters only if both the calls are successful
 if [ $geo_response -eq 200 ] && [ $cluster_response -eq  200 ];then
  echo "Mappings are successfully created"
  for city in $city_array
  do
-   algo_response=$(java -jar clustering-1.0-SNAPSHOT.jar ${ENV} ${city})
+   algo_response=$(java -jar ${clusters_jar_file} ${ENV} ${city})
    error_code=$?
    if (( $error_code )); then
       echo "algo did not run successfully. Please check the logs" | mail -s "Clustering algo error" "$user_email"
